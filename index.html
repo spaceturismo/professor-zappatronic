@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Professor Zappatronic</title>
+<style>
+/* Layout idea: one storm-lit world taken from the intro. Tilted title card hero on the left,
+   emblem on the right, then four left-aligned bands (games, bio, channels, business) on a 1080px rail. */
+:root{
+  color-scheme:dark;
+  --bg:#090304; --storm:#4a0b12; --panel:#1c060a; --line:rgba(255,210,31,.28);
+  --fg:#f6f2e6; --dim:#b9a9a4;
+  --yel:#ffd21f; --org:#ff7a1a; --red:#ff5a3c; --ink:#2a0709;
+  --display:Georgia,"Times New Roman",serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:4.5rem}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 1rem/1.6 var(--body);overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-2;background:radial-gradient(circle at 50% 30%,var(--storm) 0,var(--panel) 52%,var(--bg) 100%)}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+a{color:var(--yel)}
+a:focus-visible,button:focus-visible{outline:3px solid var(--yel);outline-offset:3px}
+.rail{width:min(1080px,100% - 2.5rem);margin-inline:auto}
+
+/* nav */
+header{position:sticky;top:0;z-index:5;background:rgba(9,3,4,.82);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header .rail{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-block:.7rem}
+.mark{display:flex;align-items:center;gap:.6rem;font:700 .95rem var(--display);letter-spacing:.18em;text-transform:uppercase;color:var(--yel);text-decoration:none}
+.mark svg{width:26px;height:26px}
+nav{display:flex;gap:1.4rem;flex-wrap:wrap}
+nav a{font:600 .75rem var(--body);letter-spacing:.28em;text-transform:uppercase;color:var(--fg);text-decoration:none;padding-block:.3rem;border-bottom:2px solid transparent}
+nav a:hover{color:var(--yel);border-color:var(--red)}
+
+/* shared type */
+.eyebrow{font:600 .75rem var(--body);letter-spacing:.5em;text-transform:uppercase;color:var(--dim)}
+.zn1{font:700 clamp(1rem,3.2vw,1.7rem) var(--display);letter-spacing:.5em;text-transform:uppercase;color:var(--red);text-shadow:0 0 16px rgba(255,74,58,.7)}
+.zn2{font:700 clamp(1.8rem,5.4vw,4rem)/1 var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0;color:var(--yel);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 #b8200f,0 0 28px rgba(255,120,30,.6);white-space:nowrap}
+h2{font:700 clamp(1.6rem,4.6vw,2.6rem)/1.1 var(--display);letter-spacing:.08em;text-transform:uppercase;margin:.4rem 0 0;color:var(--yel);-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 3px 0 #b8200f;text-wrap:balance}
+.bar{width:min(50vw,300px);height:4px;border-radius:2px;margin-top:1rem;background:linear-gradient(90deg,var(--red),var(--yel),var(--org));box-shadow:0 0 14px var(--red),0 0 28px rgba(255,210,31,.5)}
+.todo{border:1px dashed var(--line);border-radius:6px;padding:.1rem .45rem;color:var(--dim);font-style:italic}
+
+/* hero */
+.hero{position:relative;padding-block:clamp(2.5rem,7vw,5rem) clamp(3rem,8vw,5.5rem);overflow:hidden}
+.sun{position:absolute;left:50%;top:50%;width:160vmax;height:160vmax;transform:translate(-50%,-50%);z-index:-1;pointer-events:none;background:repeating-conic-gradient(from 0deg,rgba(255,210,31,.09) 0 5deg,transparent 5deg 15deg);-webkit-mask-image:radial-gradient(circle,#000 0,transparent 34%);mask-image:radial-gradient(circle,#000 0,transparent 34%);animation:spin 60s linear infinite}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.hero .rail{display:grid;grid-template-columns:1.25fr .75fr;gap:2.5rem;align-items:center}
+.tilt{transform:rotate(-4deg);transform-origin:left center;display:flex;flex-direction:column;gap:.9rem}
+.hero p{max-width:34rem;margin:1.6rem 0 0;font-size:1.1rem}
+.cta{display:flex;gap:.9rem;flex-wrap:wrap;margin-top:1.6rem}
+.btn{display:inline-block;font:700 .8rem var(--body);letter-spacing:.25em;text-transform:uppercase;text-decoration:none;padding:.85rem 1.3rem;border-radius:8px;border:2px solid var(--yel);color:var(--yel);transition:transform .15s,box-shadow .15s}
+.btn.hot{background:var(--yel);color:var(--ink);box-shadow:0 4px 0 #b8200f}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 0 #b8200f,0 0 24px rgba(255,122,26,.5)}
+.emb{display:block;width:min(100%,300px);height:auto;margin-inline:auto;overflow:visible;filter:drop-shadow(0 0 26px rgba(255,90,40,.6))}
+.emb .rays{transform-origin:100px 100px;animation:raysp 1.6s ease-in-out infinite alternate}
+@keyframes raysp{to{transform:scale(1.08);opacity:.75}}
+.emb .coil{animation:coilz .5s steps(2) infinite}
+@keyframes coilz{50%{opacity:.5}}
+
+/* sections */
+section{padding-block:clamp(2.5rem,6vw,4.5rem);border-top:1px solid var(--line)}
+.lede{max-width:40rem;margin:1.2rem 0 0;color:var(--fg)}
+
+/* games: each card is a little title screen */
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.4rem;margin-top:2rem}
+.game{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.screen{position:relative;aspect-ratio:16/10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;text-align:center;padding:1.6rem 1rem;background:radial-gradient(circle at 50% 45%,#5a0c14 0,#1c060a 70%);border-block:14px solid #000}
+.screen i{position:absolute;width:18px;height:18px;border:0 solid rgba(255,74,58,.75)}
+.screen i:nth-child(1){left:10px;top:10px;border-width:2px 0 0 2px}
+.screen i:nth-child(2){right:10px;top:10px;border-width:2px 2px 0 0}
+.screen i:nth-child(3){left:10px;bottom:10px;border-width:0 0 2px 2px}
+.screen i:nth-child(4){right:10px;bottom:10px;border-width:0 2px 2px 0}
+.screen svg{width:38px;height:38px;filter:drop-shadow(0 0 10px var(--org))}
+.screen b{font:700 1.25rem/1.15 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--yel);text-shadow:0 2px 0 #b8200f}
+.pill{font:700 .65rem var(--body);letter-spacing:.3em;text-transform:uppercase;color:var(--yel);animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{50%{opacity:.35}}
+.game div.info{padding:1rem 1.1rem 1.2rem;display:flex;flex-direction:column;gap:.8rem;flex:1}
+.game p{margin:0;color:var(--dim);font-size:.95rem}
+.game .btn{align-self:flex-start;margin-top:auto;padding:.6rem 1rem;font-size:.7rem}
+
+/* bio */
+.bio{display:grid;grid-template-columns:auto 1fr;gap:2rem;align-items:start;margin-top:2rem}
+.bio .emb{width:140px}
+.bio p{margin:0 0 1rem;max-width:38rem}
+.facts{display:flex;flex-wrap:wrap;gap:.6rem 2rem;margin:1.2rem 0 0;padding:0;list-style:none}
+.facts li{font-size:.9rem;color:var(--dim)}
+.facts b{display:block;font:600 .65rem var(--body);letter-spacing:.3em;text-transform:uppercase;color:var(--red)}
+
+/* channels: a switchboard of rows */
+.chan{list-style:none;margin:2rem 0 0;padding:0;border-top:1px solid var(--line)}
+.chan a{display:grid;grid-template-columns:minmax(7rem,12rem) 1fr auto;gap:1rem;align-items:center;padding:1.1rem .4rem;border-bottom:1px solid var(--line);text-decoration:none;color:var(--fg);transition:background .15s,padding .15s}
+.chan a:hover{background:rgba(255,210,31,.07);padding-left:1rem}
+.chan b{font:700 1.15rem var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--yel)}
+.chan span{color:var(--dim);overflow-wrap:anywhere}
+.chan em{font:700 .7rem var(--body);font-style:normal;letter-spacing:.25em;text-transform:uppercase;color:var(--red);white-space:nowrap}
+
+/* business */
+.biz{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2rem}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1.4rem}
+.card h3{font:700 1rem var(--display);letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin:0 0 .6rem}
+.card ul{margin:0;padding-left:1.1rem;color:var(--dim)}
+.card p{margin:0 0 .8rem}
+.mail{font:700 1.05rem var(--body);color:var(--yel);overflow-wrap:anywhere}
+
+/* minigames */
+.minis{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.4rem;margin-top:2rem}
+.mini{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1.3rem;display:flex;flex-direction:column;gap:.9rem}
+.mini h3{font:700 1.2rem var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--yel);margin:0}
+.mini p{margin:0;color:var(--dim);font-size:.95rem}
+.pad{flex:1;min-height:190px;width:100%;border:2px solid var(--line);border-radius:10px;cursor:pointer;padding:1rem;background:radial-gradient(circle at 50% 45%,#5a0c14 0,#1c060a 75%);color:var(--fg);font:700 1.1rem var(--display);letter-spacing:.12em;text-transform:uppercase}
+.pad.wait{background:#2a0709;color:var(--red)}
+.pad.go{background:var(--yel);color:var(--ink);border-color:#fff;box-shadow:0 0 40px rgba(255,210,31,.7)}
+.grid9{display:grid;grid-template-columns:repeat(3,1fr);gap:0;max-width:380px;width:100%;margin-inline:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.grid9 button{aspect-ratio:1;border:3px solid var(--panel);border-radius:14px;background:#2a0709;cursor:pointer;padding:16%;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.grid9 svg{pointer-events:none}
+.pad{touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.grid9 svg{width:100%;height:100%;opacity:0}
+.grid9 .lit{background:radial-gradient(circle,#fff6c8 0,var(--yel) 45%,var(--org) 100%);box-shadow:0 0 24px rgba(255,210,31,.7)}
+.grid9 .lit svg{opacity:1}
+.stats{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1.4rem;font:600 .7rem var(--body);letter-spacing:.2em;text-transform:uppercase;color:var(--dim);font-variant-numeric:tabular-nums}
+.stats b{color:var(--yel);font-size:.95rem;letter-spacing:.05em;margin-left:.3rem}
+.stats .btn{margin-left:auto;padding:.55rem 1rem;font-size:.7rem;cursor:pointer;font-family:var(--body)}
+
+/* news */
+.news{list-style:none;margin:2rem 0 0;padding:0;border-top:1px solid var(--line)}
+.news li{display:grid;grid-template-columns:9rem 1fr;gap:1rem;padding:1.1rem .4rem;border-bottom:1px solid var(--line)}
+.news time{font:600 .7rem var(--body);letter-spacing:.25em;text-transform:uppercase;color:var(--red);padding-top:.35rem}
+.news b{font:700 1.1rem var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--yel)}
+.news p{margin:.3rem 0 0;color:var(--dim);max-width:38rem}
+.cta{align-items:center}
+@media (max-width:720px){.news li{grid-template-columns:1fr;gap:.3rem}}
+
+@media (max-width:720px){.zn2{font-size:8.4vw}}
+
+footer{border-top:1px solid var(--line);padding-block:2rem;text-align:center;font:500 .65rem var(--body);letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+
+@media (max-width:720px){
+  .hero .rail,.biz,.bio{grid-template-columns:1fr}
+  .hero .emb{width:200px;order:-1}
+  .tilt{transform:rotate(-3deg)}
+  .chan a{grid-template-columns:1fr auto}
+  .chan span{grid-column:1/-1;grid-row:2}
+  nav{gap:.9rem}
+  nav a{letter-spacing:.18em}
+}
+@media (prefers-reduced-motion:reduce){
+  .sun,.emb .rays,.emb .coil,.pill{animation:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="eg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb02e"/><stop offset="1" stop-color="#e11d2a"/></linearGradient>
+    <symbol id="bolt" viewBox="0 0 200 200"><path d="M120 10 L52 108 H94 L68 192 L152 76 H110 L148 10 Z" fill="url(#eg)" stroke="#1a0508" stroke-width="8" stroke-linejoin="round"/></symbol>
+    <symbol id="emblem" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="97" fill="#5a0c14" stroke="#ffd21f" stroke-width="3"/>
+      <g class="rays" stroke="#ffd21f" stroke-width="7" stroke-linecap="round"><line x1="161.8" y1="105.4" x2="183.7" y2="107.3"/><line x1="153.3" y1="131.7" x2="178.2" y2="146.5"/><line x1="134.3" y1="151.7" x2="154.2" y2="181.7"/><line x1="108.5" y1="161.4" x2="111.5" y2="183.2"/><line x1="81.0" y1="159.0" x2="72.1" y2="186.6"/><line x1="57.3" y1="144.9" x2="32.5" y2="171.0"/><line x1="42.0" y1="121.9" x2="21.4" y2="129.7"/><line x1="38.2" y1="94.6" x2="9.3" y2="92.1"/><line x1="46.7" y1="68.3" x2="15.7" y2="49.9"/><line x1="65.7" y1="48.3" x2="53.6" y2="30.0"/><line x1="91.5" y1="38.6" x2="87.6" y2="9.9"/><line x1="119.0" y1="41.0" x2="130.1" y2="6.7"/><line x1="142.7" y1="55.1" x2="157.9" y2="39.1"/><line x1="158.0" y1="78.1" x2="185.1" y2="67.8"/></g>
+      <path d="M120 10 L52 108 H94 L68 192 L152 76 H110 L148 10 Z" fill="url(#eg)" stroke="#1a0508" stroke-width="5" stroke-linejoin="round"/>
+      <g transform="rotate(-38 100 100)"><rect x="10" y="82" width="180" height="36" rx="12" fill="#3a3a10" stroke="#ffd21f" stroke-width="4"/>
+        <text x="100" y="108" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="22" fill="#fff0a8" stroke="#2a0709" stroke-width="1" textLength="150" lengthAdjust="spacingAndGlyphs">ZAPPATRONIC</text></g>
+    </symbol>
+  </defs>
+</svg>
+
+<header>
+  <div class="rail">
+    <a class="mark" href="#top"><svg aria-hidden="true"><use href="#bolt"/></svg>Zappatronic</a>
+    <nav aria-label="Sections">
+      <a href="#games">Games</a>
+      <a href="#minigames">Minigames</a>
+      <a href="#news">News</a>
+      <a href="#bio">Bio</a>
+      <a href="#channels">Channels</a>
+      <a href="#business">Business</a>
+      <a href="#feedback">Feedback</a>
+      <a href="#donate">Donate</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="sun"></div>
+    <div class="rail">
+      <div>
+        <div class="tilt">
+          <div class="zn1">Professor</div>
+          <h1 class="zn2">Zappatronic</h1>
+          <div class="bar"></div>
+        </div>
+        <!-- EDIT: your one-line tagline -->
+        <p>Electrify your imagination. Music, games and art from the lab.</p>
+        <div class="cta">
+          <a class="btn hot" href="#games">Enter the lab</a>
+          <a class="btn" href="#channels">Watch the channel</a>
+        </div>
+      </div>
+      <svg class="emb" viewBox="0 0 200 200" role="img" aria-label="Professor Zappatronic emblem"><use href="#emblem"/></svg>
+    </div>
+  </div>
+
+  <section id="games">
+    <div class="rail">
+      <div class="eyebrow">Now loading</div>
+      <h2>The games</h2>
+      <p class="lede">Everything built in the lab, playable or on the way.</p>
+      <div class="games">
+        <!-- EDIT: one <article class="game"> per game. Change the title, blurb, status and link. -->
+        <article class="game">
+          <div class="screen"><i></i><i></i><i></i><i></i>
+            <svg aria-hidden="true"><use href="#bolt"/></svg>
+            <b>Game title one</b>
+            <span class="pill">Coming soon</span>
+          </div>
+          <div class="info">
+            <p><span class="todo">One or two lines about this game</span></p>
+            <a class="btn" href="#games">Add play link</a>
+          </div>
+        </article>
+        <article class="game">
+          <div class="screen"><i></i><i></i><i></i><i></i>
+            <svg aria-hidden="true"><use href="#bolt"/></svg>
+            <b>Game title two</b>
+            <span class="pill">Coming soon</span>
+          </div>
+          <div class="info">
+            <p><span class="todo">One or two lines about this game</span></p>
+            <a class="btn" href="#games">Add play link</a>
+          </div>
+        </article>
+        <article class="game">
+          <div class="screen"><i></i><i></i><i></i><i></i>
+            <svg aria-hidden="true"><use href="#bolt"/></svg>
+            <b>Game title three</b>
+            <span class="pill">Coming soon</span>
+          </div>
+          <div class="info">
+            <p><span class="todo">One or two lines about this game</span></p>
+            <a class="btn" href="#games">Add play link</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="minigames">
+    <div class="rail">
+      <div class="eyebrow">Play right here</div>
+      <h2>Minigames</h2>
+      <p class="lede">Two quick ones from the lab. Your best scores are saved in this browser.</p>
+      <div class="minis">
+        <div class="mini">
+          <h3>Reflex Zap</h3>
+          <p>Wait for the strike, then tap as fast as you can.</p>
+          <button type="button" class="pad" id="rz-pad">Tap to start</button>
+          <div class="stats"><span>Best <b id="rz-best">none yet</b></span></div>
+        </div>
+        <div class="mini">
+          <h3>Spark Catcher</h3>
+          <p>Hit every spark you can in 20 seconds.</p>
+          <div class="grid9" id="sc-grid"></div>
+          <div class="stats">
+            <span>Score <b id="sc-score">0</b></span>
+            <span>Time <b id="sc-time">20</b></span>
+            <span>Best <b id="sc-best">none yet</b></span>
+            <button type="button" class="btn hot" id="sc-start">Start</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="news">
+    <div class="rail">
+      <div class="eyebrow">Fresh from the lab</div>
+      <h2>News</h2>
+      <!-- EDIT: newest first. Copy one <li> and change the date, headline and text. -->
+      <ol class="news">
+        <li><time datetime="2026-11-16">Nov 16, 2026</time><div><b>Two minigames added</b><p>Reflex Zap and Spark Catcher are playable on this page now.</p></div></li>
+        <li><time datetime="2026-11-16">Nov 16, 2026</time><div><b>The lab is open</b><p>The Professor Zappatronic homepage is live: games, channels and business in one place.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="bio">
+    <div class="rail">
+      <div class="eyebrow">Meet the professor</div>
+      <h2>Bio</h2>
+      <div class="bio">
+        <svg class="emb" viewBox="0 0 200 200" aria-hidden="true"><use href="#emblem"/></svg>
+        <div>
+          <!-- EDIT: your bio -->
+          <p>Just a young innovator, making music, games and art.</p>
+          <p>The plan is simple: make money while giving to the many.</p>
+          <ul class="facts">
+            <li><b>Makes</b>Music, games, art</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="channels">
+    <div class="rail">
+      <div class="eyebrow">Tune in</div>
+      <h2>Channels</h2>
+      <!-- EDIT: put your real link in each href and your handle in each <span>. Delete rows you don't use. -->
+      <ul class="chan">
+        <li><a href="https://www.youtube.com/@Professor_Zappatronic"><b>YouTube</b><span>@Professor_Zappatronic</span><em>Subscribe</em></a></li>
+        <li><a href="https://www.tiktok.com/@dahgoat0001"><b>TikTok</b><span>@dahgoat0001</span><em>Follow</em></a></li>
+        <li><a href="https://www.instagram.com/professorzappatronic/"><b>Instagram</b><span>@professorzappatronic</span><em>Follow</em></a></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="business">
+    <div class="rail">
+      <div class="eyebrow">Work with the lab</div>
+      <h2>Business</h2>
+      <div class="biz">
+        <div class="card">
+          <h3>What I do</h3>
+          <!-- EDIT: your services or what your business sells -->
+          <ul>
+            <li>Music</li>
+            <li>Games</li>
+            <li>Art</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Get in touch</h3>
+          <p>For business, sponsorships and collabs, email:</p>
+          <!-- EDIT: your business email -->
+          <p class="mail"><span class="todo">your business email</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="feedback">
+    <div class="rail">
+      <div class="eyebrow">Talk to the professor</div>
+      <h2>Feedback</h2>
+      <p class="lede">Got an idea, a bug or a request? Say it where I'll see it.</p>
+      <div class="cta">
+        <a class="btn hot" href="https://forms.gle/7H8YxdxEwokMFHxQA">Send feedback</a>
+        <a class="btn" href="https://www.youtube.com/@Professor_Zappatronic">Comment on YouTube</a>
+        <a class="btn" href="https://www.tiktok.com/@dahgoat0001">Message on TikTok</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="donate">
+    <div class="rail">
+      <div class="eyebrow">Power the lab</div>
+      <h2>Donate</h2>
+      <p class="lede">Donations keep the music, games and art coming.</p>
+      <!-- EDIT: put your donation page link in this href -->
+      <div class="cta">
+        <a class="btn hot" href="#donate">Donate</a>
+        <span class="todo">Add your donation link (PayPal, Ko-fi, Cash App or similar)</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>&copy; 2026 Professor Zappatronic</footer>
+
+<script>
+/* Ambient lightning behind the page, same bolt shape as the intro. */
+(function(){
+  var cv=document.getElementById('fx'),X=cv.getContext('2d');
+  if(!X||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches))return;
+  var dpr=Math.min(window.devicePixelRatio||1,2),W=0,H=0,bolts=[],flash=0,last=0;
+  var C=['#ff4a3a','#ffd21f','#ff7a1a'];
+  function rnd(a,b){return a+Math.random()*(b-a)}
+  function size(){W=window.innerWidth;H=window.innerHeight;cv.width=W*dpr;cv.height=H*dpr;X.setTransform(dpr,0,0,dpr,0,0)}
+  window.addEventListener('resize',size);size();
+  function mid(x1,y1,x2,y2,d,out){var L=Math.hypot(x2-x1,y2-y1);if(d<=0||L<14){out.push([x2,y2]);return}
+    var mx=(x1+x2)/2+rnd(-1,1)*L*.22,my=(y1+y2)/2+rnd(-1,1)*L*.22;mid(x1,y1,mx,my,d-1,out);mid(mx,my,x2,y2,d-1,out)}
+  function bolt(x1,y1,x2,y2,c,w,life,br){var p=[[x1,y1]];mid(x1,y1,x2,y2,6,p);bolts.push({p:p,c:c,w:w,life:life,t:life});
+    for(var i=0;i<br&&p.length>6;i++){var k=p[Math.floor(rnd(2,p.length-2))];bolt(k[0],k[1],k[0]+rnd(-1,1)*W*.15,k[1]+rnd(.1,.25)*H,c,w*.5,life*.8,0)}}
+  function path(p){X.beginPath();X.moveTo(p[0][0],p[0][1]);for(var i=1;i<p.length;i++)X.lineTo(p[i][0],p[i][1]);X.stroke()}
+  function loop(now){var dt=Math.min(now-last,50);last=now;
+    X.clearRect(0,0,W,H);
+    if(!document.hidden&&Math.random()<.006){var x=rnd(0,W);bolt(x,-10,x+rnd(-140,140),rnd(.25,.6)*H,C[Math.floor(rnd(0,3))],1.6,320,2);flash=.1}
+    X.lineJoin='round';X.lineCap='round';
+    for(var i=bolts.length-1;i>=0;i--){var b=bolts[i];b.t-=dt;if(b.t<=0){bolts.splice(i,1);continue}
+      X.globalAlpha=(b.t/b.life)*.8;X.shadowColor=b.c;X.shadowBlur=22;X.strokeStyle=b.c;X.lineWidth=b.w*2.4;path(b.p);
+      X.shadowBlur=6;X.strokeStyle='#fff';X.lineWidth=b.w;path(b.p)}
+    X.shadowBlur=0;
+    if(flash>.01){X.globalAlpha=flash;X.fillStyle='#ffd9c0';X.fillRect(0,0,W,H);flash*=.85}
+    X.globalAlpha=1;requestAnimationFrame(loop)}
+  requestAnimationFrame(loop);
+})();
+</script>
+<script>
+/* Minigames */
+(function(){
+  var $=function(i){return document.getElementById(i)},mem={};
+  function getB(k){try{var c=localStorage.getItem(k);if(c!==null)return +c}catch(e){}return k in mem?mem[k]:null}
+  function setB(k,v){mem[k]=v;try{localStorage.setItem(k,String(v))}catch(e){}}
+
+  /* Reflex Zap */
+  var pad=$('rz-pad'),rzB=$('rz-best'),st='idle',tm=0,t0=0;
+  function showRz(){var b=getB('pz-reflex');rzB.textContent=b===null?'none yet':b+' ms'}
+  showRz();
+  function press(el,fn){el.addEventListener('pointerdown',function(e){e.preventDefault();fn()});
+    el.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&!e.repeat){e.preventDefault();fn()}})}
+  press(pad,function(){
+    if(st==='idle'){st='wait';pad.className='pad wait';pad.textContent='Wait for the strike...';
+      tm=setTimeout(function(){st='go';t0=performance.now();pad.className='pad go';pad.textContent='Zap! Tap now'},1500+Math.random()*2500)}
+    else if(st==='wait'){clearTimeout(tm);st='idle';pad.className='pad';pad.textContent='Too early. Tap to try again'}
+    else{var ms=Math.round(performance.now()-t0),b=getB('pz-reflex');st='idle';pad.className='pad';
+      pad.textContent=ms+' ms. Tap to go again';if(b===null||ms<b)setB('pz-reflex',ms);showRz()}
+  });
+
+  /* Spark Catcher */
+  var grid=$('sc-grid'),sS=$('sc-score'),sT=$('sc-time'),sB=$('sc-best'),go=$('sc-start'),cells=[],cur=-1,score=0,time=20,run=false,iv=0,mv=0;
+  function showSc(){var b=getB('pz-spark');sB.textContent=b===null?'none yet':b;sS.textContent=score;sT.textContent=time}
+  function move(){var n;do{n=Math.floor(Math.random()*9)}while(n===cur);
+    if(cur>=0)cells[cur].classList.remove('lit');cur=n;cells[cur].classList.add('lit');
+    clearTimeout(mv);mv=setTimeout(move,1100)}
+  function end(){run=false;clearInterval(iv);clearTimeout(mv);if(cur>=0)cells[cur].classList.remove('lit');cur=-1;
+    var b=getB('pz-spark');if(b===null||score>b)setB('pz-spark',score);go.textContent='Play again';go.disabled=false;showSc()}
+  for(var i=0;i<9;i++){(function(k){var c=document.createElement('button');c.type='button';c.setAttribute('aria-label','Spark cell '+(k+1));
+    c.innerHTML='<svg aria-hidden="true"><use href="#bolt"/></svg>';
+    press(c,function(){if(run&&k===cur){score++;sS.textContent=score;move()}});
+    grid.appendChild(c);cells.push(c)})(i)}
+  go.addEventListener('click',function(){if(run)return;score=0;time=20;run=true;go.disabled=true;go.textContent='Go!';showSc();move();
+    iv=setInterval(function(){time--;sT.textContent=time;if(time<=0)end()},1000)});
+  showSc();
+})();
+</script>
+<script src="intro.js"></script>
+</body>
+</html>
