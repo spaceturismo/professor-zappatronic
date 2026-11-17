@@ -103,6 +103,12 @@ section{padding-block:clamp(2.5rem,6vw,4.5rem);border-top:1px solid var(--line)}
 .card p{margin:0 0 .8rem}
 .mail{font:700 1.05rem var(--body);color:var(--yel);overflow-wrap:anywhere}
 
+.games[hidden]{display:none}
+.games-toggle{margin-top:1.5rem;cursor:pointer;font-family:var(--body)}
+.game .screen b{overflow-wrap:anywhere;letter-spacing:0;font-size:1.15rem}
+.game .info{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center}
+.game .info .btn{margin:0}
+
 /* minigames */
 .minis{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.4rem;margin-top:2rem}
 .mini{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1.3rem;display:flex;flex-direction:column;gap:.9rem}
@@ -209,42 +215,10 @@ footer{border-top:1px solid var(--line);padding-block:2rem;text-align:center;fon
       <div class="eyebrow">Now loading</div>
       <h2>The games</h2>
       <p class="lede">Everything built in the lab, playable or on the way.</p>
-      <div class="games">
-        <!-- EDIT: one <article class="game"> per game. Change the title, blurb, status and link. -->
-        <article class="game">
-          <div class="screen"><i></i><i></i><i></i><i></i>
-            <svg aria-hidden="true"><use href="#bolt"/></svg>
-            <b>Game title one</b>
-            <span class="pill">Coming soon</span>
-          </div>
-          <div class="info">
-            <p><span class="todo">One or two lines about this game</span></p>
-            <a class="btn" href="#games">Add play link</a>
-          </div>
-        </article>
-        <article class="game">
-          <div class="screen"><i></i><i></i><i></i><i></i>
-            <svg aria-hidden="true"><use href="#bolt"/></svg>
-            <b>Game title two</b>
-            <span class="pill">Coming soon</span>
-          </div>
-          <div class="info">
-            <p><span class="todo">One or two lines about this game</span></p>
-            <a class="btn" href="#games">Add play link</a>
-          </div>
-        </article>
-        <article class="game">
-          <div class="screen"><i></i><i></i><i></i><i></i>
-            <svg aria-hidden="true"><use href="#bolt"/></svg>
-            <b>Game title three</b>
-            <span class="pill">Coming soon</span>
-          </div>
-          <div class="info">
-            <p><span class="todo">One or two lines about this game</span></p>
-            <a class="btn" href="#games">Add play link</a>
-          </div>
-        </article>
-      </div>
+      <div class="games" id="featured-games"></div>
+      <div class="games" id="more-games" hidden></div>
+      <button class="btn games-toggle" id="games-toggle" type="button" aria-expanded="false" aria-controls="more-games" hidden>View all</button>
+      <noscript><p><a href="https://github.com/spaceturismo?tab=repositories">Browse the games on GitHub</a></p></noscript>
     </div>
   </section>
 
@@ -360,11 +334,7 @@ footer{border-top:1px solid var(--line);padding-block:2rem;text-align:center;fon
       <div class="eyebrow">Power the lab</div>
       <h2>Donate</h2>
       <p class="lede">Donations keep the music, games and art coming.</p>
-      <!-- EDIT: put your donation page link in this href -->
-      <div class="cta">
-        <a class="btn hot" href="#donate">Donate</a>
-        <span class="todo">Add your donation link (PayPal, Ko-fi, Cash App or similar)</span>
-      </div>
+      <p>Coming Soon</p>
     </div>
   </section>
 </main>
@@ -437,6 +407,7 @@ footer{border-top:1px solid var(--line);padding-block:2rem;text-align:center;fon
   showSc();
 })();
 </script>
+<script src="games.js"></script>
 <script src="intro.js"></script>
 </body>
 </html>
