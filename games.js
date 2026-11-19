@@ -55,20 +55,24 @@
     article.className = 'game';
     var screen = document.createElement('div');
     screen.className = 'screen';
-    for (var corner = 0; corner < 4; corner++) {
-      screen.appendChild(document.createElement('i'));
-    }
-    var emblem = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    emblem.setAttribute('aria-hidden', 'true');
-    var bolt = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-    bolt.setAttribute('href', '#bolt');
-    emblem.appendChild(bolt);
-    screen.appendChild(emblem);
-    var title = document.createElement('b');
+    var image = document.createElement('img');
+    image.src = 'images/games/' + game[0] + '.jpg';
+    image.alt = game[1] + ' game preview';
+    image.width = 960;
+    image.height = 600;
+    image.loading = index < 3 ? 'eager' : 'lazy';
+    image.decoding = 'async';
+    screen.appendChild(image);
+    var title = document.createElement('h3');
     title.textContent = game[1];
-    screen.appendChild(title);
     var info = document.createElement('div');
     info.className = 'info';
+    info.appendChild(title);
+    var blurb = document.createElement('p');
+    blurb.textContent = window.gameBlurbs[game[0]];
+    info.appendChild(blurb);
+    var actions = document.createElement('div');
+    actions.className = 'game-actions';
     var play = document.createElement('a');
     play.className = 'btn hot';
     play.href = 'https://spaceturismo.github.io/' + game[0] + '/';
@@ -79,8 +83,9 @@
     source.href = 'https://github.com/spaceturismo/' + game[0];
     source.textContent = 'GitHub';
     source.setAttribute('aria-label', game[1] + ' on GitHub');
-    info.appendChild(play);
-    info.appendChild(source);
+    actions.appendChild(play);
+    actions.appendChild(source);
+    info.appendChild(actions);
     article.appendChild(screen);
     article.appendChild(info);
     (index < 3 ? featured : more).appendChild(article);
