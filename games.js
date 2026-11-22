@@ -3,9 +3,9 @@
 
   var games = [
     ['Pixel_Omniverse', 'Pixel Omniverse'],
-    ['arena-clash', 'Arena Clash'],
-    ['orb-runner', 'Orb Runner'],
     ['freddles-after-dark', 'Freddles After Dark'],
+    ['orb-runner', 'Orb Runner'],
+    ['arena-clash', 'Arena Clash'],
     ['heartbox-dodge-3d-expanded', 'Heartbox Dodge 3D Expanded'],
     ['hyper-twilight-chapter-1', 'Hyper Twilight Chapter 1'],
     ['math-meadow', 'Math Meadow'],
