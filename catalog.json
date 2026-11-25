@@ -1,0 +1,567 @@
+{
+  "version": 1,
+  "name": "Professor Zappatronic",
+  "url": "https://zappatronic.com/",
+  "email": "professorzappatronic@gmail.com",
+  "ratings": "Personal browser-local ratings; not community averages",
+  "games": [
+    {
+      "slug": "Pixel_Omniverse",
+      "name": "Pixel Omniverse",
+      "description": "Knock rivals off forest stages in a brawler packed with battles, races, bosses and more.",
+      "genre": "Action",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/Pixel_Omniverse/",
+      "image": "https://zappatronic.com/images/games/Pixel_Omniverse.jpg"
+    },
+    {
+      "slug": "freddles-after-dark",
+      "name": "Freddles After Dark",
+      "description": "Search an abandoned pizza restaurant for six cores and uncover what happened to your brother.",
+      "genre": "Horror",
+      "mobileSupport": "friendly",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/freddles-after-dark/",
+      "image": "https://zappatronic.com/images/games/freddles-after-dark.jpg"
+    },
+    {
+      "slug": "heartbox-dodge-3d-expanded",
+      "name": "Heartbox Dodge 3D Expanded",
+      "description": "Dodge dangerous attacks in three dimensions and face challenging boss battles.",
+      "genre": "Action",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/heartbox-dodge-3d-expanded/",
+      "image": "https://zappatronic.com/images/games/heartbox-dodge-3d-expanded.jpg"
+    },
+    {
+      "slug": "arena-clash",
+      "name": "Arena Clash",
+      "description": "Survive endless arena rounds with hundreds of weapons and a huge selection of battlegrounds.",
+      "genre": "Action",
+      "mobileSupport": "desktop",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/arena-clash/",
+      "image": "https://zappatronic.com/images/games/arena-clash.jpg"
+    },
+    {
+      "slug": "orb-runner",
+      "name": "Orb Runner",
+      "description": "Collect glowing orbs and dodge rocks with mouse, touch or keyboard controls.",
+      "genre": "Action",
+      "mobileSupport": "friendly",
+      "controls": "Mouse, touch or arrow keys",
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/orb-runner/",
+      "image": "https://zappatronic.com/images/games/orb-runner.jpg"
+    },
+    {
+      "slug": "hyper-twilight-chapter-1",
+      "name": "Hyper Twilight Chapter 1",
+      "description": "Step into a fantasy story of blue, red and grey, where blades meet magic.",
+      "genre": "Adventure",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/hyper-twilight-chapter-1/",
+      "image": "https://zappatronic.com/images/games/hyper-twilight-chapter-1.jpg"
+    },
+    {
+      "slug": "math-meadow",
+      "name": "Math Meadow",
+      "description": "Explore a colorful collection of math activities and practice your number skills through play.",
+      "genre": "Education",
+      "mobileSupport": "friendly",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/math-meadow/",
+      "image": "https://zappatronic.com/images/games/math-meadow.jpg"
+    },
+    {
+      "slug": "rift-racer-3d",
+      "name": "Rift Racer 3D",
+      "description": "Race through shifting dimensions and chase your previous lap across dozens of tracks.",
+      "genre": "Racing",
+      "mobileSupport": "friendly",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/rift-racer-3d/",
+      "image": "https://zappatronic.com/images/games/rift-racer-3d.jpg"
+    },
+    {
+      "slug": "silent-vault-3d-heist",
+      "name": "Silent Vault 3D Heist",
+      "description": "Sneak past bank guards, crack the vault and carry your gold to the getaway van.",
+      "genre": "Adventure",
+      "mobileSupport": "desktop",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/silent-vault-3d-heist/",
+      "image": "https://zappatronic.com/images/games/silent-vault-3d-heist.jpg"
+    },
+    {
+      "slug": "wizard-academy-3d",
+      "name": "Wizard Academy 3D",
+      "description": "Explore an open valley and discover the magic waiting around the academy.",
+      "genre": "Adventure",
+      "mobileSupport": "desktop",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/wizard-academy-3d/",
+      "image": "https://zappatronic.com/images/games/wizard-academy-3d.jpg"
+    },
+    {
+      "slug": "the-land-has-no-edge",
+      "name": "The Land Has No Edge",
+      "description": "Follow television signals and recovered bulletins while strange figures stalk a seemingly endless landscape.",
+      "genre": "Horror",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/the-land-has-no-edge/",
+      "image": "https://zappatronic.com/images/games/the-land-has-no-edge.jpg"
+    },
+    {
+      "slug": "dusk-dojo-pixel-fighter",
+      "name": "Dusk Dojo - Pixel Fighter",
+      "description": "Grab weapons, dodge your opponents and knock them off the map.",
+      "genre": "Action",
+      "mobileSupport": "friendly",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/dusk-dojo-pixel-fighter/",
+      "image": "https://zappatronic.com/images/games/dusk-dojo-pixel-fighter.jpg"
+    },
+    {
+      "slug": "steel-and-sinew",
+      "name": "Steel and Sinew",
+      "description": "Fight a tactical arena duel where wounds, weakened limbs and well-timed bandages change the battle.",
+      "genre": "Action",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/steel-and-sinew/",
+      "image": "https://zappatronic.com/images/games/steel-and-sinew.jpg"
+    },
+    {
+      "slug": "the-marrow-house",
+      "name": "The Marrow House",
+      "description": "Search three floors of a haunted family home for seven missing VHS tapes.",
+      "genre": "Horror",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/the-marrow-house/",
+      "image": "https://zappatronic.com/images/games/the-marrow-house.jpg"
+    },
+    {
+      "slug": "vacancy-case-file-2",
+      "name": "Vacancy - Case File 2",
+      "description": "Investigate another unsettling case in a first-person horror mystery.",
+      "genre": "Horror",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/vacancy-case-file-2/",
+      "image": "https://zappatronic.com/images/games/vacancy-case-file-2.jpg"
+    },
+    {
+      "slug": "hollow-pines-the-hall",
+      "name": "Hollow Pines - The Hall",
+      "description": "Enter the eerie halls of Hollow Pines and explore its unsettling mysteries.",
+      "genre": "Horror",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/hollow-pines-the-hall/",
+      "image": "https://zappatronic.com/images/games/hollow-pines-the-hall.jpg"
+    },
+    {
+      "slug": "hollow-pines-night-watch",
+      "name": "Hollow Pines - Night Watch",
+      "description": "Return to Hollow Pines for a tense night-watch horror experience.",
+      "genre": "Horror",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/hollow-pines-night-watch/",
+      "image": "https://zappatronic.com/images/games/hollow-pines-night-watch.jpg"
+    },
+    {
+      "slug": "last-frame-night-shift",
+      "name": "Last Frame - Night Shift",
+      "description": "Take the night shift and investigate the unsettling world of Last Frame.",
+      "genre": "Horror",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/last-frame-night-shift/",
+      "image": "https://zappatronic.com/images/games/last-frame-night-shift.jpg"
+    },
+    {
+      "slug": "photon-arena",
+      "name": "Photon Arena",
+      "description": "Battle through an arena with energy management, gadgets and a shrinking safe zone.",
+      "genre": "Action",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/photon-arena/",
+      "image": "https://zappatronic.com/images/games/photon-arena.jpg"
+    },
+    {
+      "slug": "worldsmith-globe",
+      "name": "Worldsmith Globe",
+      "description": "Generate a planet, choose a landing site and survive by gathering, crafting and building.",
+      "genre": "Adventure",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/worldsmith-globe/",
+      "image": "https://zappatronic.com/images/games/worldsmith-globe.jpg"
+    },
+    {
+      "slug": "the-beyond-files-4-the-workshop",
+      "name": "The Beyond Files 4 - The Workshop",
+      "description": "Investigate the Workshop in the fourth unsettling Beyond Files case.",
+      "genre": "Horror",
+      "mobileSupport": "desktop",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/the-beyond-files-4-the-workshop/",
+      "image": "https://zappatronic.com/images/games/the-beyond-files-4-the-workshop.jpg"
+    },
+    {
+      "slug": "the-beyond-files-3-blackout-ward",
+      "name": "The Beyond Files 3 - Blackout Ward",
+      "description": "Enter Blackout Ward for another chapter of the Beyond Files horror series.",
+      "genre": "Horror",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/the-beyond-files-3-blackout-ward/",
+      "image": "https://zappatronic.com/images/games/the-beyond-files-3-blackout-ward.jpg"
+    },
+    {
+      "slug": "the-beyond-files-2-randy",
+      "name": "The Beyond Files 2 - Randy",
+      "description": "Follow the Randy case in the second installment of the Beyond Files.",
+      "genre": "Horror",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/the-beyond-files-2-randy/",
+      "image": "https://zappatronic.com/images/games/the-beyond-files-2-randy.jpg"
+    },
+    {
+      "slug": "the-beyond-files-1-the-girl-in-the-4th-dimension",
+      "name": "The Beyond Files 1 - The Girl in the 4th Dimension",
+      "description": "Gather case-file pages and manage your light while trying to remain unseen.",
+      "genre": "Horror",
+      "mobileSupport": "friendly",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/the-beyond-files-1-the-girl-in-the-4th-dimension/",
+      "image": "https://zappatronic.com/images/games/the-beyond-files-1-the-girl-in-the-4th-dimension.jpg"
+    },
+    {
+      "slug": "ankle-breakers",
+      "name": "Ankle Breakers",
+      "description": "Dash, jump and taunt your way through fast first-person tag rounds.",
+      "genre": "Action",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/ankle-breakers/",
+      "image": "https://zappatronic.com/images/games/ankle-breakers.jpg"
+    },
+    {
+      "slug": "wren-folded",
+      "name": "Wren, Folded",
+      "description": "Explore a curious world of folds and turns in this atmospheric adventure.",
+      "genre": "Adventure",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/wren-folded/",
+      "image": "https://zappatronic.com/images/games/wren-folded.jpg"
+    },
+    {
+      "slug": "walker",
+      "name": "Walker",
+      "description": "Roam an open world on foot or by vehicle, discover landmarks and explore hidden caves.",
+      "genre": "Adventure",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/walker/",
+      "image": "https://zappatronic.com/images/games/walker.jpg"
+    },
+    {
+      "slug": "wick-and-cinder-3",
+      "name": "Wick and Cinder 3",
+      "description": "Guide Wick and his lantern-moth companion through a world of shards, sparks and lost light.",
+      "genre": "Adventure",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/wick-and-cinder-3/",
+      "image": "https://zappatronic.com/images/games/wick-and-cinder-3.jpg"
+    },
+    {
+      "slug": "wick-and-cinder-saga",
+      "name": "Wick and Cinder Saga",
+      "description": "Follow the connected Wick and Cinder chapters, carrying your progress from one adventure to the next.",
+      "genre": "Adventure",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/wick-and-cinder-saga/",
+      "image": "https://zappatronic.com/images/games/wick-and-cinder-saga.jpg"
+    },
+    {
+      "slug": "juke-hour",
+      "name": "Juke Hour",
+      "description": "Tag, juke and bonk through quick rounds while building your combo and score.",
+      "genre": "Action",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/juke-hour/",
+      "image": "https://zappatronic.com/images/games/juke-hour.jpg"
+    },
+    {
+      "slug": "vengeful-pendulum",
+      "name": "Vengeful Pendulum",
+      "description": "Share a keyboard for a two-partner fantasy campaign in a world growing stranger by the day.",
+      "genre": "Adventure",
+      "mobileSupport": "desktop",
+      "controls": "Shared keyboard",
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/vengeful-pendulum/",
+      "image": "https://zappatronic.com/images/games/vengeful-pendulum.jpg"
+    },
+    {
+      "slug": "worldwalker",
+      "name": "WorldWalker",
+      "description": "Explore worlds, find landmarks and take your pack into new adventures beyond the horizon.",
+      "genre": "Adventure",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/worldwalker/",
+      "image": "https://zappatronic.com/images/games/worldwalker.jpg"
+    },
+    {
+      "slug": "worldsmith",
+      "name": "Worldsmith",
+      "description": "Shape a planet, found a realm and guide its future through decrees and rival kingdoms.",
+      "genre": "Creative",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/worldsmith/",
+      "image": "https://zappatronic.com/images/games/worldsmith.jpg"
+    },
+    {
+      "slug": "trickshot-tapes",
+      "name": "Trickshot Tapes",
+      "description": "Line up trick shots, build combos and work your way through eight levels.",
+      "genre": "Puzzle",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/trickshot-tapes/",
+      "image": "https://zappatronic.com/images/games/trickshot-tapes.jpg"
+    },
+    {
+      "slug": "wick-and-cinder-iii",
+      "name": "Wick and Cinder III",
+      "description": "Reunite two heroes in a turn-based tactics puzzle with movement, teamwork and undoable turns.",
+      "genre": "Puzzle",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/wick-and-cinder-iii/",
+      "image": "https://zappatronic.com/images/games/wick-and-cinder-iii.jpg"
+    },
+    {
+      "slug": "wick-and-cinder-2",
+      "name": "Wick and Cinder 2",
+      "description": "Continue the lantern-lit adventure with hidden treasure, spark bolts and Beacon Shards to collect.",
+      "genre": "Adventure",
+      "mobileSupport": "friendly",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/wick-and-cinder-2/",
+      "image": "https://zappatronic.com/images/games/wick-and-cinder-2.jpg"
+    },
+    {
+      "slug": "wick-and-cinder",
+      "name": "Wick and Cinder",
+      "description": "Help a lamplighter apprentice and a lantern-moth gather shards to relight the world.",
+      "genre": "Adventure",
+      "mobileSupport": "friendly",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/wick-and-cinder/",
+      "image": "https://zappatronic.com/images/games/wick-and-cinder.jpg"
+    },
+    {
+      "slug": "total-mayhem",
+      "name": "Total Mayhem",
+      "description": "Survive a disaster-prone city, unlock wild weapons and watch your destruction bill climb.",
+      "genre": "Action",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/total-mayhem/",
+      "image": "https://zappatronic.com/images/games/total-mayhem.jpg"
+    },
+    {
+      "slug": "claude-in-claude",
+      "name": "Claude in Claude",
+      "description": "Try a simple chat interface designed to send your questions to Claude.",
+      "genre": "Chat",
+      "mobileSupport": "unknown",
+      "controls": "Keyboard text input",
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/claude-in-claude/",
+      "image": "https://zappatronic.com/images/games/claude-in-claude.jpg"
+    },
+    {
+      "slug": "claude-in-claude-demo-mode",
+      "name": "Claude in Claude - Demo Mode",
+      "description": "Explore a local chat demonstration with simulated replies and no API calls.",
+      "genre": "Chat",
+      "mobileSupport": "unknown",
+      "controls": "Keyboard text input",
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/claude-in-claude-demo-mode/",
+      "image": "https://zappatronic.com/images/games/claude-in-claude-demo-mode.jpg"
+    },
+    {
+      "slug": "hollowmere",
+      "name": "Hollowmere",
+      "description": "Recover five candles from a haunted village while watching the creature that moves when you look away.",
+      "genre": "Horror",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/hollowmere/",
+      "image": "https://zappatronic.com/images/games/hollowmere.jpg"
+    },
+    {
+      "slug": "nimbo-s-rainbow-garden",
+      "name": "Nimbo's Rainbow Garden",
+      "description": "Rain on magic seeds, grow new paths and wake six friends to restore the rainbow.",
+      "genre": "Adventure",
+      "mobileSupport": "friendly",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/nimbo-s-rainbow-garden/",
+      "image": "https://zappatronic.com/images/games/nimbo-s-rainbow-garden.jpg"
+    },
+    {
+      "slug": "wumble-and-tink",
+      "name": "Wumble and Tink",
+      "description": "Collect chimes, unlock new moves and bring five Sun Cogs home in a colorful 3D adventure.",
+      "genre": "Adventure",
+      "mobileSupport": "friendly",
+      "controls": null,
+      "threeDimensional": true,
+      "url": "https://spaceturismo.github.io/wumble-and-tink/",
+      "image": "https://zappatronic.com/images/games/wumble-and-tink.jpg"
+    }
+  ],
+  "minigames": [
+    {
+      "name": "Reflex Zap",
+      "mechanic": "Reaction timing",
+      "url": "https://zappatronic.com/#minigames",
+      "requiresJavaScript": true
+    },
+    {
+      "name": "Spark Catcher",
+      "mechanic": "Timed target tapping",
+      "url": "https://zappatronic.com/#minigames",
+      "requiresJavaScript": true
+    },
+    {
+      "name": "Circuit Pairs",
+      "mechanic": "Memory matching",
+      "url": "https://zappatronic.com/#minigames",
+      "requiresJavaScript": true
+    },
+    {
+      "name": "Keypad",
+      "mechanic": "Secret-code discovery and story puzzles",
+      "url": "https://zappatronic.com/minigames/keypad.html",
+      "requiresJavaScript": true
+    }
+  ],
+  "gameUpdates": [
+    {
+      "slug": "ankle-breakers",
+      "date": "2026-11-20",
+      "summary": "Reduced rendering overhead on high-density screens."
+    },
+    {
+      "slug": "freddles-after-dark",
+      "date": "2026-11-20",
+      "summary": "Reduced rendering overhead on high-density screens."
+    },
+    {
+      "slug": "juke-hour",
+      "date": "2026-11-20",
+      "summary": "Reduced rendering overhead on high-density screens."
+    },
+    {
+      "slug": "last-frame-night-shift",
+      "date": "2026-11-20",
+      "summary": "Reduced rendering overhead on high-density screens."
+    },
+    {
+      "slug": "nimbo-s-rainbow-garden",
+      "date": "2026-11-20",
+      "summary": "Reduced rendering overhead on high-density screens."
+    },
+    {
+      "slug": "Pixel_Omniverse",
+      "date": "2026-11-20",
+      "summary": "Reduced rendering overhead on high-density screens."
+    },
+    {
+      "slug": "silent-vault-3d-heist",
+      "date": "2026-11-20",
+      "summary": "Reduced rendering overhead on high-density screens."
+    },
+    {
+      "slug": "the-beyond-files-4-the-workshop",
+      "date": "2026-11-20",
+      "summary": "Reduced rendering overhead on high-density screens."
+    }
+  ],
+  "youtube": [
+    {
+      "id": "LP4AaPgZ4N8",
+      "title": "Highway 3000",
+      "published": "2026-11-07T02:09:56+00:00"
+    },
+    {
+      "id": "MACc4t0y7Wo",
+      "title": "Twisted Obsession",
+      "published": "2026-11-07T01:58:05+00:00"
+    },
+    {
+      "id": "GXQ6_RahGs8",
+      "title": "Nevermore - Halloween Special",
+      "published": "2026-11-02T02:45:16+00:00"
+    }
+  ]
+}

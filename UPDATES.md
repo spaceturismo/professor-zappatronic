@@ -1,5 +1,15 @@
 # Homepage Updates
 
+## Navigation and Sound
+
+With JavaScript enabled, the top navigation opens five views: Games, Minigames, Latest drops, About (bio and channels), and Contact (business and feedback). Games is the default. Hash links and browser history still work; the logo returns to the intro/home section. The empty Donate section was removed. Without JavaScript, the sections remain readable on one page.
+
+Interface sound is opt-in, low-volume Web Audio synthesis for actions, the Reflex Zap ready cue, and minigame success cues. The checkbox remembers the preference locally and can mute the interface. Audio is initialized after interaction. Keypad and external media retain their independent audio controls.
+
+## Readable HTML and Data
+
+The homepage includes a complete no-JavaScript game listing. `catalog.html` is a standalone readable catalog; `catalog.json` provides games, minigames, metadata and update data for programs. Schema.org JSON-LD describes the catalog without inventing community ratings. Generate these files with `node scripts/build-readable.cjs`; the feed workflow also runs the generator. Gameplay, filters and ratings still require JavaScript. HTML and structured data make content accessible to parsers but do not guarantee inclusion in any AI service.
+
 The catalog search, genre filter, random-game button, and email bug reports run in the browser. Reports are prepared in the visitor's email app; the site does not send or store them.
 
 `scripts/refresh-feeds.ps1` writes recent game commits and the public YouTube upload feed to JSON. The scheduled GitHub Actions workflow refreshes them every four hours. Scheduled jobs can be delayed; this is not instant upload notification. It also supports Run workflow under Actions.
