@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Keypad</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=VT323&display=swap">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#cfd4d8;--ink:#1b2024;--plate:#a3abb1;--plate2:#858d93;--key:#eceff1;--keyink:#1b2024;--lcd:#1a1405;--amber:#ffb000;--mute:#4a545b;--line:#aab1b6;--edge:#6d757b}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#1c2125;--ink:#e6e9eb;--plate:#4d555b;--plate2:#363c41;--key:#c9ced2;--mute:#9aa4ab;--line:#3a4147;--edge:#22272b}}
+:root[data-theme=dark]{--bg:#1c2125;--ink:#e6e9eb;--plate:#4d555b;--plate2:#363c41;--key:#c9ced2;--mute:#9aa4ab;--line:#3a4147;--edge:#22272b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:18px}
+main{display:grid;gap:26px;justify-items:center;padding:26px 16px 56px}
+.dev{box-sizing:border-box;min-width:0;width:min(366px,100%);background:linear-gradient(160deg,var(--plate),var(--plate2));border-radius:14px;padding:18px;box-shadow:0 2px 0 rgba(255,255,255,.25) inset,0 14px 30px rgba(0,0,0,.35)}
+.lcd{background:var(--lcd);border-radius:6px;padding:8px 14px 6px;color:var(--amber);font-family:VT323,"Courier New",monospace;box-shadow:inset 0 0 12px #000}
+#code{font-size:48px;letter-spacing:6px;min-height:52px;overflow:hidden;white-space:nowrap}
+#code:empty::before{content:"_";opacity:.5}
+#msg{font-size:21px;min-height:66px;line-height:1.05;white-space:pre-line;opacity:.9}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.pad button{font:700 30px "Barlow Condensed",sans-serif;height:62px;border:0;border-radius:8px;background:var(--key);color:var(--keyink);box-shadow:0 4px 0 var(--edge);cursor:pointer;touch-action:manipulation}
+.pad button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--edge)}
+.pad .go{background:var(--amber)}
+button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.how{max-width:330px;margin:0;color:var(--mute);line-height:1.3;text-align:center}
+.log{min-width:0;width:min(660px,100%)}
+h2{font-size:26px;margin:0 0 4px}
+#cnt{color:var(--mute);margin:0 0 12px}
+#log{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+#log li{border:1px solid var(--line);border-radius:6px;padding:7px 10px;display:grid;gap:1px;color:var(--mute)}
+#log li b{font:400 26px VT323,monospace;letter-spacing:3px}
+#log li.on{border-color:var(--amber);color:var(--ink)}
+#log li.on b{color:var(--ink)}
+.reset{margin-top:14px;font:inherit;background:none;border:1px solid var(--line);color:var(--mute);border-radius:6px;padding:5px 12px;cursor:pointer}
+#cv{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:4}
+#fx.siren{animation:sir .5s steps(1) infinite}
+@keyframes sir{0%{background:rgba(255,0,40,.45)}50%{background:rgba(0,90,255,.45)}}
+#fx.blackout{background:#000;animation:blk 4s forwards}
+@keyframes blk{0%,10%{opacity:1}20%{opacity:.15}30%{opacity:1}45%{opacity:.3}60%,85%{opacity:1}100%{opacity:0}}
+#fx.disco{background:linear-gradient(90deg,#ff2d95,#00e5ff,#ffe600,#7c4dff);animation:hue 1s linear infinite,pulse .5s ease-in-out infinite alternate}
+@keyframes hue{to{filter:hue-rotate(360deg)}}
+@keyframes pulse{from{opacity:.15}to{opacity:.5}}
+#fx.hot{background:linear-gradient(to top,rgba(255,40,0,.5),transparent 70%);animation:pulse 1s ease-in-out infinite alternate}
+#fx.iris{overflow:hidden}
+#fx .c{position:absolute;left:50%;top:50%;width:200vmax;height:200vmax;border-radius:50%;box-shadow:0 0 0 200vmax #000;transform:translate(-50%,-50%);animation:ir 3.4s forwards}
+@keyframes ir{0%{transform:translate(-50%,-50%) scale(1);opacity:1}60%,85%{transform:translate(-50%,-50%) scale(.06);opacity:1}100%{transform:translate(-50%,-50%) scale(.06);opacity:0}}
+#fx .ph{position:absolute;left:50%;top:38%;font-size:110px;transform:translateX(-50%);animation:rg .3s linear infinite}
+@keyframes rg{0%,50%,100%{transform:translateX(-50%) rotate(0)}25%{transform:translateX(-50%) rotate(-18deg)}75%{transform:translateX(-50%) rotate(18deg)}}
+#fx.aqua{background:linear-gradient(to top,rgba(0,150,255,.4),transparent 80%)}
+#fx.rose{background:radial-gradient(circle,transparent 30%,rgba(255,60,130,.4))}
+#fx.storm{animation:st 3s steps(1) infinite}
+@keyframes st{0%,40%,44%,70%,74%,100%{background:rgba(20,30,60,.45)}42%,72%{background:rgba(255,255,255,.6)}}
+#fx.hole{background:radial-gradient(circle at 50% 50%,#000 0,#000 7%,rgba(90,0,160,.65) 25%,transparent 60%);animation:hl 1.2s ease-in-out infinite alternate}
+@keyframes hl{from{transform:scale(.8)}to{transform:scale(1.15)}}
+#fx.gold{background:radial-gradient(circle,rgba(255,210,80,.55),transparent 70%);animation:pulse .6s ease-in-out infinite alternate}
+#arc article{border-left:3px solid var(--amber);padding:2px 12px;margin:10px 0}
+.dev.flick{animation:fl .7s steps(1)}
+@keyframes fl{0%,20%,40%,60%{opacity:.15}10%,30%,50%,100%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.dev.flick{animation:none}}
+#arc h3{font-size:21px;margin:0}
+#arc p{margin:2px 0;color:var(--mute);line-height:1.35;max-width:62ch}
+body.shake .dev{animation:sh .1s linear 8}
+@keyframes sh{25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+body.glitch .dev{animation:gl .15s steps(2) infinite}
+@keyframes gl{0%{transform:translate(-7px,2px) skewX(8deg);filter:hue-rotate(90deg)}50%{transform:translate(7px,-2px) skewX(-8deg);filter:invert(1)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){body.shake .dev,body.glitch .dev{animation:none}#fx.siren,#fx.disco{animation-duration:2s}}
+</style></head>
+<body>
+<main>
+<div class="dev">
+<div class="lcd"><div id="code" aria-live="polite"></div><div id="msg"></div></div>
+<div class="pad" id="pad"></div>
+</div>
+<p class="how">Type a code and press #. The * key clears. Every code triggers something. Secret codes have a clue below, and any other code gets an event of its own. Every key also has its own effect when pressed, and a hidden event if you press it five times fast.</p>
+<section class="log">
+<h2>Secrets</h2>
+<p id="cnt"></p>
+<ul id="log"></ul>
+<h2 style="margin-top:24px">Archive</h2>
+<div id="arc"></div>
+<button class="reset" id="sable">Ask Sable for a hint</button> <button class="reset" id="reset">Reset progress</button>
+</section>
+</main>
+<div id="fx"></div><canvas id="cv"></canvas>
+<script>
+const $=s=>document.querySelector(s),R=(a,b)=>a+Math.random()*(b-a);
+const S={
+"911":{n:"Dispatch",h:"Emergency line",m:"Help is on the way. It is not.",fx:"siren",s:[[700,900,700,900,700,900,700,900],.5,"sawtooth"]},
+"1234":{n:"Too obvious",h:"Counting up",m:"Access denied, on principle.",fx:"shake",s:[[200,150],.25,"square"]},
+"0000":{n:"Power cut",h:"Nothing at all",m:"The main breaker just tripped.",fx:"blackout",s:[[160,110,70,50],.3,"sawtooth"]},
+"777":{n:"Jackpot",h:"Lucky",m:"Three sevens. The machine pays out.",fx:"coins",s:[[880,1109,1319,1760,1319,1760,2093],.08,"triangle"]},
+"42":{n:"The answer",h:"Life, the universe, everything",m:"Now you only need the question.",fx:"stars",s:[[262,330,392,523,659,784],.25,"sine"]},
+"8675309":{n:"Jenny",h:"Call her",m:"Pick up. She has been waiting.",fx:"ring",s:[[1200,0,1200,0,0,0,1200,0,1200],.2,"sine"]},
+"1337":{n:"Elite",h:"Leet",m:"Wake up. You are in the matrix.",fx:"matrix",s:[[220,330,440,330,220,165,220,440],.1,"sawtooth"]},
+"666":{n:"Hot floor",h:"Number of the beast",m:"It got warm in here.",fx:"embers",s:[[55,58,55,52,55,58],.35,"sawtooth"]},
+"314159":{n:"Pi",h:"Circle ratio",m:"3.14159 and it keeps going.",fx:"pi",s:[[392,294,440,294,523,880],.2,"triangle"]},
+"2580":{n:"Dance floor",h:"Down the middle of a phone pad",m:"The disco lights are on.",fx:"disco",s:[[110,110,165,110,110,196,165,110],.22,"sawtooth"]},
+"1111":{n:"Make a wish",h:"Repeating",m:"Wish granted. Confetti, as requested.",fx:"confetti",s:[[1047,1319,1568,2093],.15,"sine"]},
+"007":{n:"Agent",h:"License to ...",m:"Shaken, not stirred.",fx:"iris",s:[[165,196,208,196,165,0,185],.3,"sawtooth"]},
+"404":{n:"Not found",h:"Web error",m:"This keypad could not be found.",fx:"glitch",s:[[100,1800,60,1500,90,2000,50],.06,"square"]},
+"1999":{n:"Party",h:"Prince",m:"The year is 1999. Fireworks, naturally.",fx:"fireworks",s:[[90,0,90,0,90,0,90],.45,"sine"]},
+"12345":{n:"Luggage",h:"Spaceballs",m:"That is the same combination as my luggage.",fx:"rain",e:["🧳"],s:[[262,294,330,349,392],.2,"square"]},
+"1225":{n:"Holiday",h:"Month and day",m:"Snow, and bells somewhere.",fx:"snow",s:[[659,659,659,0,659,659,659,0,659,784,523,587,659],.18,"triangle"]}
+};
+const E=["🧳"],PI="31415926535897932384626433832795".split("");
+const MODES=["rain","confetti","fireworks","stars","embers","snow","disco","glitch","iris","shake","siren","coins","matrix"];
+const EMS=[["🍕","🍔","🌮"],["🐸","🐢","🦎"],["🚀","🛸","🌙"],["🍄","🌸","🍀"],["🎈","🎁","🎉"],["🐙","🦑","🐠"],["⚡","🔥","💎"],["🧀","🥨","🍩"]];
+const OPEN=["The lock hums","A distant door creaks","The keypad purrs","Somewhere a bell rings","The wall hiccups","A drawer slides open","The lights wink","A tiny drone salutes"];
+const END=["and nothing explodes.","and a pigeon files a report.","and the floor smells like toast.","but only on Tuesdays.","and you feel faintly watched.","and the ceiling nods.","and a distant crowd cheers.","as if it expected you."];
+const P=[261.6,293.7,329.6,392,440,523.3,587.3,659.3,784,880];
+const WH=["Pike was here. His handwriting is still on the wall.","Zero the cat watches from the vent.","A note: not every door wants opening.","Sable hums a held 440 under the floor.","Door 13 is on no floor plan.","The ledger counts what the keypad forgets.","Someone scratched 6174 into the frame.","The observatory closed in 1993. The keypad did not.","A coffee cup, still warm, behind the panel.","Ines wrote: loops are how you find the exit.","Pike’s theory: the hum is a signal.","The hum rises when you press the fourth key."];
+const tn=(c,st,ty)=>[[...c].map(d=>P[+d]),st,ty];
+[["5050","Coin flip","Fifty and fifty","Heads. The coin lands on its edge anyway.","coins"],
+["1010","Binary","Ten and ten","Two, in binary. The keypad is only pretending to count.","matrix"],
+["2112","Overture","A palindrome with a rock opera in it","A rock opera starts playing inside the wall.","disco"],
+["1492","Ocean blue","Columbus sailed this year","Three small ships cross your screen.","rain",["⛵"]],
+["1776","Declaration","A year of independence","Fireworks over a field of paper.","fireworks"],
+["1969","One small step","The year of the moon landing","A small step for a keypad, a giant leap for buttons.","stars"],
+["2001","Monolith","A space odyssey year","A monolith appears. It is mostly keypad.","iris"],
+["1984","Big brother","Orwell’s year","The keypad is watching you press that.","glitch"],
+["1066","Invasion","Conquest year","Arrows fall like rain.","rain",["🏹"]],
+["1357","Odd ones out","Odd numbers, counting up","The odd ones throw a tiny party.","confetti"],
+["9999","Maximum","Four of the biggest digit","Maximum security. The keypad blushes.","siren"],
+["2222","Twos day","Twos only","Twos day happens twice.","k2"],
+["1212","Mirror","Twelve, twelve","Everything reverses for a moment.","glitch"],
+["0001","Beginnings","Almost nothing","The first light comes on.","stars"],
+["5551212","Directory","Information, please","Operator: what city?","ring"],
+["4321","Countdown","Backwards from four","Ignition sequence complete.","embers"],
+["8888","Fortune","Four lucky eights","Prosperity rains from the ceiling.","coins"],
+["7777","Slot machine","Four lucky sevens","The reels spin out of control.","coins"],
+["1618","Golden ratio","Phi, rounded","Spirals everywhere. Nobody asked for this.","pi"],
+["2718","Euler","The natural number","Natural, again and again.","pi"],
+["1729","Taxicab","Ramanujan’s favorite ride","A dull number? Hardly. A very interesting one.","stars"],
+["1123","Fibonacci","Add the last two","One, one, two, three. A spiral of stars.","stars"],
+["2600","Blue box","A phone hacker’s hertz","A single tone opens every line at once.","ring"],
+["9876","Descending","Backwards from nine","Down the staircase.","rain",["🪜"]],
+["1000","Thousand","One and three zeros","A thousand tiny confetti.","confetti"]
+].forEach(([c,n,h,m,f,e])=>S[c]={code:c,n,h,m,fx:f,e,s:tn(c,.14,"triangle")});
+[["0314","Opening night","Ines Halloran’s first day: month, then day","Observatory staff note: Ines Halloran bolted this keypad to the basement door in 1987 and told no one what it protects. Ledger digit: 4.","stars"],
+["1987","Install year","The year it was bolted to the wall","Her install log says the door was built to keep something in, not out. Corvin Pike signed the invoice and never forgave himself. Ledger digit: 1.","glitch"],
+["1313","Door thirteen","The door number, twice","Door 13 appears on no floor plan. Janitors say the corridor behind it hums at a held 440. Ledger digit: 8.","k0"],
+["2468","Corvin Pike","Even numbers, counting up","Dr. Pike believed the hum was a signal from outside. He tried every code he could think of. He never tried the ones Ines made up when she was bored. Ledger digit: 0.","k7"],
+["6174","The constant","Every four-digit number ends up here eventually","Ines hid her real notes behind a mathematical loop: start anywhere and you end at this number. The keypad was built to remember who keeps looping back. Ledger digit: 2.","pi"],
+["0102","Zero the cat","The lab cat who slept at the door, January 2","Zero the lab cat slept against door 13 every night. Sable, the building’s assistant, logged her as the only visitor the door ever liked. Ledger digit: 6.","k6"],
+["72253","Sable","The building’s voice, spelled with the keypad letters","Sable has known the final code for thirty years. She will only say it to someone who has read every page: put the ledger digits in chapter order, then press enter. Ledger digit: 9.","k9"]
+].forEach(([c,n,h,l,f],i)=>S[c]={code:c,n,h,l,ch:i+1,m:"Archive updated. Chapter "+(i+1)+" filed.",fx:f,s:tn(c,.2,"sine")});
+S["4180269"]={code:"4180269",n:"The door",h:"The seven ledger digits, in chapter order",l:"Behind door 13 is a small room with a chair, a window and a note from Ines: ‘The hum was only ever the sound of someone listening. Thank you for listening back.’ Pike’s coat hangs by the door. Zero is asleep on it.",ch:8,m:"Door 13 opens.",fx:"finale",s:[[262,330,392,523,659,784,1047],.2,"triangle"]};
+[["142857","Cyclic number","Multiply it by two through six and watch","Times 2 through 6, the same digits rotate. Times 7, the spell breaks.","pi"],
+["1089","Magic trick","Reverse a three-digit number, subtract, then add the reverse","Whatever you chose, you end up here. You never chose. You were led.","glitch"],
+["3435","Munchausen","Each digit to its own power, then add","Each digit to its own power adds back to the number. Only one other number does that.","matrix"],
+["8128","Perfect","Its divisors add up to itself","A perfect number. Its parts add up to the whole. Few things manage that.","stars"],
+["2520","Divisible","The smallest number that one through ten all divide","Every digit up to ten divides it evenly. The keypad finds it restful.","confetti"],
+["9801","Almost","One over this number prints digits in order","One over 9801 counts 00, 01, 02 and onward. It skips 98 on purpose.","pi"]
+].forEach(([c,n,h,m,f])=>S[c]={code:c,n,h,m,fx:f,s:tn(c,.14,"triangle")});
+[["0113","Pike’s last night","The night Pike vanished: month, then day","Night log: at 11:58 pm Pike entered every code he knew. The hum stopped at midnight. His coat was found by the door. He was not.","blackout"],
+["1993","The closing","The year the observatory shut","The board closed the observatory after one night and one missing researcher. They left the keypad powered. Nobody remembers deciding that.","iris"],
+["0440","The hum","The held pitch behind the door","Measured at 440 hertz, steady for thirty years. It dips whenever someone presses a key and rises when they stop. It is not a machine. It is breathing.","k8"],
+["0010","The collar","Zero’s tag number, in binary","Zero’s collar was found on the inside of door 13. The tag is engraved with one word: LISTEN.","glitch"],
+["9100","Sable’s log","The error code Sable gave before she went quiet","Sable: I did not lock the door. The door locked itself. Then something asked me to keep the keypad powered. I said yes. I am sorry.","k7"],
+["0331","Marginalia","Ines’s notes margin: the thirty-first of March","In the margin of her notes Ines wrote: it does not want out, it wants in. The keypad is not a lock. It is a doorbell.","stars"],
+["0229","Second fingerprints","A date that exists only some years","Leap-day entry: Ines found a second set of fingerprints on the keypad. Smaller than hers. Older than the building.","embers"],
+["1881","The ear","The year the hill was named, a palindrome","The observatory was founded in 1881 on land the town avoided. Old maps mark the hill with a small drawing of an ear.","rain",["👂"]],
+["4040","Missing room","Not found, twice","Door 13’s room is not on the map, the deed or the ground survey. The survey simply stops where the door would be.","glitch"],
+["3003","Ines logs in","Three, two zeros, three","Someone has logged in as Ines every thirty days since 1993. The password has never been wrong.","matrix"],
+["0030","Thirty years","Years of the hum","Thirty years of hum, an unbroken line on the seismograph. Last month it gained a second tone. A voice, perhaps. Nobody has the recording.","k0"],
+["6420","Counting down","Even numbers, in the other direction","Pike’s 2468 counted up. This one counts down. Someone has been answering him.","k7"],
+["7007","Zero waits","Zero, between two sevens","A cat that sleeps at a door for years is not guarding it. She is waiting for someone to come back out.","k6"],
+["0099","The hundredth","Almost a hundred","On the hundredth press the keypad stops counting. The next press is not yours.","shake"]
+].forEach(([c,n,h,l,f,e],i)=>S[c]={code:c,n,h,l,e,ch:9+i,m:"File added to the archive.",fx:f,s:tn(c,.18,"sine")});
+const X={"0314":"Month first, then day: 03 and 14.","1987":"Four digits: the year on the install log.","1313":"The door number, typed twice.","2468":"Add two each time, starting from two.","6174":"Take any four digits. Subtract the smallest arrangement from the largest, again and again. Where do you land?","0102":"Zero’s birthday: January the second, month first.","72253":"S-A-B-L-E on a phone: 7, 2, 2, 5, 3.","4180269":"Seven ledger digits, one from each chapter, in order.","0113":"Month then day: the night Pike was lost."};
+const CREEP=["The hum went quiet while you pressed that.","Someone is on the other side of this keypad.","Zero is looking at the vent again.","Do not press the same key six times.","Sable: you are not the first to get this far.","The ledger has a new entry. It is your name.","Behind the door, a chair scrapes.","Pike pressed this key too. Right here.","The keypad is warm. It was cold a second ago.","Your last press was heard.","It is listening for the tenth digit.","Door 13 is closer than it was.","The hum took a breath.","Do not look at the vent.","Ines was here. Ines is still here.","One more press and it will answer."];
+let pr=0;try{pr=+localStorage.getItem("kp-pr")||0}catch(e){}
+function eerie(m){setTimeout(()=>{$("#msg").textContent=m;nz(1.2,200,60,"lowpass",.15);sw(70,45,1.5,"sine",.1)},150)}
+function haunt(){pr++;try{localStorage.setItem("kp-pr",pr)}catch(e){}
+if(pr===100){eerie("The hundredth press was not yours.\nSomething pressed it for you.");go("shake");return}
+const dr=Math.min(1,(found.length+kf.length*2+pr/20)/60);
+if(pr<15||Math.random()>.02+dr*.12)return;
+const t=Math.random()*5|0,d=document.querySelector(".dev");
+if(t===0){const k="0123456789*#"[Math.random()*12|0];setTimeout(()=>{ksnd(k);tap(k);$("#msg").textContent="Key "+k+" pressed itself."},700)}
+else if(t===1){d.classList.add("flick");nz(.5,4000,500,"bandpass",.1);setTimeout(()=>d.classList.remove("flick"),700)}
+else if(t===2){const o=$("#code").textContent;$("#code").textContent=String(R(1000,9999)|0);setTimeout(()=>$("#code").textContent=o,900)}
+else if(t===3){tone(440,0,3,"sine",.03);eerie(CREEP[Math.random()*CREEP.length|0])}
+else eerie(CREEP[Math.random()*CREEP.length|0])}
+$("#sable").onclick=()=>{const m=Object.keys(S).filter(c=>S[c].l&&!found.includes(c)).sort((a,b)=>S[a].ch-S[b].ch);$("#msg").textContent=m.length?"Sable: "+(X[m[0]]||S[m[0]].h)+" ("+m[0].length+" digits)":"Sable: Everything is filed. Almost.";sw(440,430,.8,"sine",.05)};
+let code="",lock=false,found=[],tried=0,ac,tm;
+try{found=JSON.parse(localStorage.getItem("kp-found")||"[]");tried=+localStorage.getItem("kp-tried")||0}catch(e){}
+function save(){try{localStorage.setItem("kp-found",JSON.stringify(found));localStorage.setItem("kp-tried",tried)}catch(e){}}
+function tone(f,t,d,type,v){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume();const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime+t;o.type=type||"square";o.frequency.value=f;g.gain.setValueAtTime(v||.07,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g).connect(ac.destination);o.start(n);o.stop(n+d+.02)}catch(e){}}
+function tune(a,st,ty){a.forEach((f,i)=>f&&tone(f,i*st,st*1.2,ty))}
+const cv=$("#cv"),cx=cv.getContext("2d"),fx=$("#fx");
+let W,H,parts=[],raf=0,endT=0,spawn=null;
+function size(){const d=devicePixelRatio||1;W=innerWidth;H=innerHeight;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0)}
+addEventListener("resize",size);size();
+function frame(t){
+cx.clearRect(0,0,W,H);
+if(spawn&&t<endT)spawn();
+parts=parts.filter(p=>p.l>0&&p.y<H+60&&p.y>-80);
+for(const p of parts){p.x+=p.vx;p.y+=p.vy;p.vy+=p.g||0;p.l--;
+cx.globalAlpha=p.l<60?p.l/60:1;cx.fillStyle=p.col;
+if(p.c){cx.font=p.sz+"px sans-serif";cx.fillText(p.c,p.x,p.y)}
+else if(p.r){cx.fillRect(p.x,p.y,p.sz,p.sz*.6)}
+else if(p.ring){cx.strokeStyle=p.col;cx.lineWidth=3;cx.beginPath();cx.arc(p.x,p.y,p.sz,0,6.283);cx.stroke();p.sz+=p.gr}
+else{cx.beginPath();cx.arc(p.x,p.y,p.sz,0,6.283);cx.fill()}}
+cx.globalAlpha=1;
+raf=(parts.length||(spawn&&t<endT))?requestAnimationFrame(frame):0}
+const rain=(ch,col,sz,vy,rate)=>()=>{if(Math.random()<rate)parts.push({x:R(0,W),y:-20,vx:R(-.3,.3),vy:R(vy,vy*1.8),l:999,c:ch[Math.random()*ch.length|0],col,sz:R(sz*.7,sz*1.3)})};
+const rise=(ch,col,sz,vy,rate)=>()=>{if(Math.random()<rate)parts.push({x:R(0,W),y:H+10,vx:R(-.5,.5),vy:-R(vy*.6,vy*1.6),l:999,c:ch[Math.random()*ch.length|0],col,sz:R(sz*.7,sz*1.3)})};
+const stars=()=>{if(Math.random()<.5)parts.push({x:R(0,W),y:R(0,H),vx:0,vy:-.3,l:R(60,140),c:"✦",col:"#ffd75e",sz:R(14,34)})};
+const conf=()=>{if(Math.random()<.7)parts.push({x:R(0,W),y:-10,vx:R(-2,2),vy:R(2,5),g:.02,l:999,r:1,col:`hsl(${R(0,360)|0} 90% 55%)`,sz:R(6,11)})};
+const fw=()=>{let n=0;return()=>{if(n++%28===0){const x=R(W*.2,W*.8),y=R(H*.15,H*.5),hu=R(0,360)|0;for(let i=0;i<46;i++){const a=i/46*6.283,s=R(2,6);parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,g:.07,l:70,col:`hsl(${hu} 95% 60%)`,sz:3})}}}};
+const FX={
+siren:{o:"siren",ms:4000},shake:{b:"shake",ms:900},blackout:{o:"blackout",ms:4000},glitch:{b:"glitch",ms:2200},disco:{o:"disco",ms:4500},
+iris:{o:"iris",h:"<i class=c></i>",ms:3500},ring:{o:"ring",h:"<b class=ph>📞</b>",ms:3500},
+coins:{p:rain(["🪙"],"",34,3,.5),ms:4000},stars:{p:stars,ms:4500},
+matrix:{p:rain("01アイウエオカキクケコ".split(""),"#3dff7a",22,3,.9),ms:4500},
+embers:{o:"hot",p:rise(["●"],"#ff6a1a",12,1.5,.9),ms:4500},
+pi:{p:rain(PI,"#7ad7ff",34,1.6,.5),ms:4500},confetti:{p:conf,ms:4000},fireworks:{p:fw(),ms:5000},
+rain:{p:rain(E,"",34,3,.5),ms:4000},snow:{p:rain(["•"],"#8ecbff",26,1.2,.8),ms:5000}};
+let kf=[];try{kf=JSON.parse(localStorage.getItem("kp-keys")||"[]")}catch(e){}
+Object.assign(FX,{
+k1:{p:()=>{if(Math.random()<.5)parts.push({x:R(W*.3,W*1.2),y:-30,vx:-5,vy:5,l:999,c:"☄️",col:"",sz:R(24,44)})},ms:4500},
+k2:{o:"aqua",p:rise(["🫧"],"",40,2,.6),ms:4500},
+k3:{p:rain(["🍃","🌿","🦜","🌴"],"",34,2.5,.6),ms:4500},
+k4:{p:()=>{if(Math.random()<.8)parts.push({x:W/2,y:H,vx:R(-5,5),vy:-R(9,15),g:.25,l:200,r:1,col:`hsl(${R(0,360)|0} 90% 55%)`,sz:R(8,16)})},ms:4500},
+k5:{p:(()=>{let n=0;return()=>{if(n++%22===0)for(let i=0;i<28;i++){const a=i/28*6.283,s=R(3,7);parts.push({x:W/2,y:H/2,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:90,c:"✦",col:"#ffd75e",sz:R(18,32)})}}})(),ms:5000},
+k6:{o:"rose",p:rise(["❤","💌","💖"],"",32,2,.7),ms:4500},
+k7:{o:"storm",p:rain(["|"],"#9ecbff",44,14,.9),ms:3500},
+k8:{p:()=>{if(Math.random()<.12)parts.push({x:R(0,W),y:R(0,H),vx:0,vy:0,ring:1,gr:R(1.5,3.5),sz:4,l:60,col:`hsl(${R(180,260)|0} 90% 60%)`})},ms:4500},
+k9:{p:()=>{if(Math.random()<.25)parts.push({x:-20,y:R(H*.2,H*.8),vx:R(3,5),vy:R(-1,1),l:400,c:["♪","♫","♬"][Math.random()*3|0],col:`hsl(${R(0,360)|0} 85% 55%)`,sz:R(26,46)})},ms:4500},
+k0:{o:"hole",p:()=>{if(Math.random()<.8){const a=R(0,6.283),rr=Math.min(W,H)*.45,x=W/2+Math.cos(a)*rr,y=H/2+Math.sin(a)*rr;parts.push({x,y,vx:(W/2-x)/40,vy:(H/2-y)/40,l:40,col:"#a24bff",sz:R(2,6)})}},ms:4500},
+"k*":{b:"shake",p:rain(["❄","•","❅"],"#8ecbff",26,1.5,1),ms:4500},
+"k#":{o:"gold",p:fw(),ms:5000},
+finale:{o:"gold",p:(()=>{const a=fw();return()=>{a();stars()}})(),ms:8000}});
+const SEC={
+"1":{n:"Meteor shower",m:"Number one gets a sky of its own.",s:[[880,988,1175,1319],.1,"triangle"]},
+"2":{n:"Bubble bath",m:"Two is company. Two thousand bubbles is a party.",s:[[523,659,523,784,659],.12,"sine"]},
+"3":{n:"Jungle",m:"Three leaves and the keypad is overgrown.",s:[[196,262,196,330,262],.15,"triangle"]},
+"4":{n:"Fountain",m:"Four colors, fully pressurized.",s:[[330,392,494,659],.1,"square"]},
+"5":{n:"Supernova",m:"Five stars. Highest rating available.",s:[[523,659,784,1047,1319],.09,"triangle"]},
+"6":{n:"Love letter",m:"Six hearts delivered. No return address.",s:[[392,440,523,440,392],.2,"sine"]},
+"7":{n:"Thunderstorm",m:"Seven strikes in the forecast.",s:[[60,0,45,0,80],.3,"sawtooth"]},
+"8":{n:"Ripples",m:"Eight on its side is infinity. The ripples agree.",s:[[440,0,440,0,440],.25,"sine"]},
+"9":{n:"Orchestra",m:"Nine players, no conductor.",s:[[262,330,392,523,392,330,262],.14,"triangle"]},
+"0":{n:"Black hole",m:"Zero light escapes.",s:[[330,247,185,139,104,78],.2,"sawtooth"]},
+"*":{n:"Snow globe",m:"Someone shook the whole keypad.",s:[[1047,1319,1568,1319,1047],.14,"sine"]},
+"#":{n:"Coronation",m:"All hail the enter key.",s:[[392,392,523,659,784,1047],.15,"square"]}};
+const AC=()=>{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume();return ac};
+let nb;
+const rp=(n,f)=>{for(let i=0;i<n;i++)f(i)};
+const hs=c=>{let h=2166136261;for(const ch of c){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
+function env(g,t,d,v){g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+d)}
+function sw(f0,f1,d,ty,v,t){try{const a=AC(),n=a.currentTime+(t||0),o=a.createOscillator(),g=a.createGain();o.type=ty||"sine";o.frequency.setValueAtTime(f0,n);o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),n+d);env(g,n,d,v||.08);o.connect(g).connect(a.destination);o.start(n);o.stop(n+d+.05)}catch(e){}}
+function nz(d,f0,f1,ty,v,t,q){try{const a=AC(),n=a.currentTime+(t||0),s=a.createBufferSource(),fl=a.createBiquadFilter(),g=a.createGain();if(!nb){nb=a.createBuffer(1,a.sampleRate*2,a.sampleRate);const x=nb.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=Math.random()*2-1}s.buffer=nb;fl.type=ty||"bandpass";fl.Q.value=q||1;fl.frequency.setValueAtTime(f0,n);fl.frequency.exponentialRampToValueAtTime(Math.max(20,f1||f0),n+d);env(g,n,d,v||.1);s.connect(fl).connect(g).connect(a.destination);s.start(n,Math.random());s.stop(n+d+.05)}catch(e){}}
+function bell(f,t,d,v,r){try{const a=AC(),n=a.currentTime+t,c=a.createOscillator(),m=a.createOscillator(),mg=a.createGain(),g=a.createGain();c.frequency.value=f;m.frequency.value=f*r;mg.gain.setValueAtTime(f*2.5,n);mg.gain.exponentialRampToValueAtTime(1,n+d);m.connect(mg).connect(c.frequency);env(g,n,d,v);c.connect(g).connect(a.destination);c.start(n);m.start(n);c.stop(n+d+.05);m.stop(n+d+.05)}catch(e){}}
+const SFX={
+siren:(m,s)=>rp(8,i=>sw(i%2?900*m:700*m,i%2?700*m:900*m,.5*s,"sawtooth",.05,i*.5*s)),
+shake:(m,s)=>{sw(90*m,40,.5,"square",.12);rp(6,i=>nz(.08,300*m,100,"bandpass",.12,i*.1*s))},
+blackout:(m,s)=>{sw(500*m,30,1.3*s,"sawtooth",.1);nz(.9,2500,80,"lowpass",.15);sw(60,30,.6,"sine",.25,1.3*s)},
+coins:(m,s)=>rp(7,i=>bell(988*m*(1+i*.1),i*.07*s,.4,.06,3.5)),
+stars:(m,s)=>[0,4,7,12,16,19].forEach((st,i)=>bell(660*m*2**(st/12),i*.12*s,.9,.05,2)),
+ring:(m,s)=>[0,.25,1.2,1.45].forEach(t=>{tone(440*m,t*s,.22,"sine",.07);tone(480*m,t*s,.22,"sine",.07)}),
+matrix:(m,s)=>{rp(10,i=>tone(R(300,1800)*m,i*.06*s,.05,"square",.04));nz(.7,6000,2000,"highpass",.03)},
+embers:(m,s)=>{nz(2.2,300*m,80,"lowpass",.22);rp(14,()=>nz(.02,R(2000,6000),0,"highpass",.14,R(0,2)))},
+pi:(m,s)=>PI.slice(0,8).forEach((d,i)=>sw(P[+d]*m,P[+d]*m*1.01,.25,"sine",.06,i*.16*s)),
+disco:(m,s)=>rp(8,i=>{sw(150*m,45,.18,"sine",.22,i*.25*s);nz(.04,8000,0,"highpass",.06,(i*.25+.125)*s);tone(110*m*(i%4?1:1.5),i*.25*s,.2,"sawtooth",.05)}),
+confetti:(m,s)=>{sw(300*m,900*m,.4,"sawtooth",.05);rp(7,()=>nz(.05,R(800,3000),500,"bandpass",.18,.1+R(0,.9)*s))},
+iris:(m,s)=>{sw(900*m,180*m,1.8*s,"sine",.07);[98,98,116,98,87].forEach((f,i)=>tone(f*m,.4+i*.3*s,.5,"sawtooth",.05))},
+glitch:(m,s)=>rp(14,i=>{tone(R(100,2000),i*.045*s,.04,"square",.06);if(i%3==0)nz(.05,R(500,5000),0,"bandpass",.1,i*.045*s)}),
+fireworks:(m,s)=>rp(3,i=>{const t=i*1.1*s;sw(400*m,1800*m,.6,"sine",.05,t);nz(.8,900,60,"lowpass",.28,t+.6);sw(80,30,.5,"sine",.22,t+.6);rp(5,()=>nz(.02,R(3000,7000),0,"highpass",.1,t+.8+R(0,.5)))}),
+rain:(m,s)=>rp(24,()=>nz(.03,R(2000,5000)*m,0,"bandpass",.06,R(0,2),4)),
+snow:(m,s)=>rp(6,i=>bell(1319*m*(1+(i%3)*.25),i*.4*s,1.1,.03,2.2)),
+k0:()=>{sw(300,30,2.5,"sawtooth",.08);sw(150,20,3,"sine",.14);nz(2.5,3000,60,"lowpass",.12)},
+k1:()=>rp(5,i=>{nz(.7,5000,400,"bandpass",.09,i*.45,3);sw(1200,150,.7,"sine",.04,i*.45)}),
+k2:()=>rp(14,()=>sw(R(250,500),R(700,1400),.1,"sine",.06,R(0,2.5))),
+k3:()=>{rp(4,i=>nz(.5,4000,2500,"bandpass",.04,i*.6));rp(8,i=>sw(2000,3200,.08,"sine",.05,i*.3))},
+k4:()=>{nz(3,1500,3000,"bandpass",.07,0,.5);rp(8,i=>sw(400+i*70,500+i*70,.08,"square",.04,i*.3))},
+k5:()=>{sw(200,3000,1.2,"sawtooth",.05);nz(1.6,1500,50,"lowpass",.32,1.2);sw(60,40,1,"sine",.25,1.2)},
+k6:()=>{[0,.25,.9,1.15].forEach(t=>sw(80,40,.15,"sine",.28,t));[392,440,523,659].forEach((f,i)=>sw(f,f*1.02,.45,"triangle",.07,.3+i*.3))},
+k7:()=>{nz(.15,8000,1000,"highpass",.3,0);nz(2.5,300,40,"lowpass",.35,.2);nz(3,6000,6000,"highpass",.03)},
+k8:()=>rp(4,i=>sw(1200,1180,.9,"sine",.07,i*.9)),
+k9:()=>[[262,330,392],[294,370,440],[330,392,494],[349,440,523]].forEach((c,i)=>c.forEach(f=>tone(f,i*.5,.55,"sawtooth",.03))),
+"k*":()=>{rp(10,i=>bell(1568*2**([0,2,4,7,9][i%5]/12),i*.22,1,.03,4));nz(2.5,800,400,"lowpass",.05)},
+"k#":()=>{[[523,659,784],[659,784,1047],[784,1047,1319]].forEach((c,i)=>c.forEach(f=>tone(f,i*.3,i>1?1.2:.35,"sawtooth",.04)));nz(1.4,8000,3000,"highpass",.1,.6)},
+finale:()=>{[262,330,392,523,659,784,1047].forEach((f,i)=>bell(f,i*.25,1.6,.06,2));sw(60,40,2,"sine",.2,1.7);rp(4,i=>nz(.6,900,60,"lowpass",.2,2.2+i*.9));[523,659,784,1047].forEach(f=>tone(f,2,3,"sawtooth",.03))}};
+function sfx(n,c){const h=hs(c),m=2**((h%13-6)/12),s=.8+(h>>4)%5*.1;SFX[n](m,s);[...c].slice(0,6).forEach((d,i)=>tone(P[+d]*2,i*.1,.25,"sine",.025))}
+const KS={
+"1":()=>sw(1800,900,.06,"square",.05),
+"2":()=>sw(300,900,.12,"sine",.1),
+"3":()=>nz(.15,5000,2000,"bandpass",.07),
+"4":()=>{tone(440,0,.06,"square",.06);tone(660,.06,.06,"square",.06)},
+"5":()=>bell(1568,0,.3,.05,3),
+"6":()=>{tone(523,0,.1,"sine",.08);tone(659,.1,.15,"sine",.08)},
+"7":()=>{sw(2400,200,.15,"sawtooth",.06);nz(.1,6000,0,"highpass",.06)},
+"8":()=>sw(1000,950,.5,"sine",.08),
+"9":()=>sw(784,790,.25,"triangle",.08),
+"0":()=>sw(400,60,.25,"sine",.12),
+"*":()=>bell(2093,0,.5,.04,2),
+"#":()=>{bell(988,0,.3,.07,3.5);tone(1319,.08,.3,"triangle",.06)}};
+function ksnd(k){KS[k]()}
+const burst=(x,y,n,o)=>{for(let i=0;i<n;i++){const a=i/n*6.283,s=R(o.s0,o.s1);parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,g:o.g||0,l:o.l||40,col:o.col,sz:o.sz||3,c:o.c})}};
+const ring=(x,y,gr,col)=>parts.push({x,y,vx:0,vy:0,ring:1,gr,sz:6,l:30,col});
+const TAP={
+"1":(x,y)=>burst(x,y,16,{s0:2,s1:5,col:"#ff9f1c",sz:2.5}),
+"2":(x,y)=>{for(let i=0;i<8;i++)parts.push({x:x+R(-25,25),y,vx:R(-.4,.4),vy:-R(1,2.5),l:70,col:"#6cc6ff",sz:R(4,9)})},
+"3":(x,y)=>{for(let i=0;i<8;i++)parts.push({x,y,vx:R(-2,2),vy:-R(3,6),g:.12,l:50,c:"▲",col:"#2bd67b",sz:18})},
+"4":(x,y)=>{for(let i=0;i<10;i++)parts.push({x,y,vx:R(-3,3),vy:-R(3,7),g:.2,l:60,r:1,col:`hsl(${R(0,360)|0} 90% 55%)`,sz:R(6,10)})},
+"5":(x,y)=>burst(x,y,10,{s0:2,s1:5,c:"★",col:"#ffd75e",sz:20}),
+"6":(x,y)=>{for(let i=0;i<6;i++)parts.push({x:x+R(-20,20),y,vx:R(-1,1),vy:-R(1.5,3),l:80,c:"❤",col:"#ff4d79",sz:R(18,28)})},
+"7":(x,y)=>burst(x,y,5,{s0:3,s1:6,c:"⚡",col:"#ffd400",sz:28,l:25}),
+"8":(x,y)=>{ring(x,y,2,"#4db8ff");ring(x,y,3.5,"#b06bff")},
+"9":(x,y)=>{for(let i=0;i<5;i++)parts.push({x,y,vx:R(-3,3),vy:-R(1,3),l:70,c:["♪","♫","♬"][i%3],col:`hsl(${R(0,360)|0} 85% 55%)`,sz:26})},
+"0":(x,y)=>{for(let i=0;i<14;i++){const a=R(0,6.283);parts.push({x:x+Math.cos(a)*70,y:y+Math.sin(a)*70,vx:-Math.cos(a)*2.8,vy:-Math.sin(a)*2.8,l:25,col:"#a24bff",sz:4})}},
+"*":(x,y)=>{for(let i=0;i<12;i++)parts.push({x,y,vx:R(-2,2),vy:R(-2,.5),g:.05,l:70,c:"❄",col:"#8ecbff",sz:20})},
+"#":(x,y)=>{ring(x,y,4,"#ffb000");burst(x,y,20,{s0:3,s1:7,col:"#ffb000",sz:3,g:.08,l:50})}};
+function tap(k){const b=document.querySelector(`[data-k="${k}"]`);if(!b||!TAP[k])return;const r=b.getBoundingClientRect();TAP[k](r.left+r.width/2,r.top+r.height/2);if(!raf)raf=requestAnimationFrame(frame)}
+let lastK="",streak=0,lastT=0;
+function keyStreak(k){const n=Date.now();streak=k===lastK&&n-lastT<1500?streak+1:1;lastK=k;lastT=n;if(streak===5){streak=0;setTimeout(()=>secret(k),30)}}
+function secret(k){const r=SEC[k],fresh=!kf.includes(k);if(fresh){kf.push(k);try{localStorage.setItem("kp-keys",JSON.stringify(kf))}catch(e){}}
+$("#msg").textContent=(fresh?"New key secret: ":"")+r.n+"\n"+r.m;SFX["k"+k](1,1);go("k"+k);lock=true;log()}
+function go(name){
+const f=FX[name],root=document.documentElement;
+fx.className="";fx.innerHTML="";document.body.classList.remove("shake","glitch");
+parts=[];spawn=f.p||null;
+if(f.o){fx.className=f.o;fx.innerHTML=f.h||""}
+if(f.b)document.body.classList.add(f.b);
+endT=performance.now()+f.ms;
+if(!raf)raf=requestAnimationFrame(frame);
+clearTimeout(tm);
+tm=setTimeout(()=>{fx.className="";fx.innerHTML="";document.body.classList.remove("shake","glitch");root.style.removeProperty("--amber")},f.ms)}
+function proc(c){
+let h=2166136261;for(const ch of c){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}h>>>=0;
+const hue=h%360;
+return{n:"Mystery "+c,m:OPEN[h%8]+" "+END[(h>>3)%8]+(h%3?"":"\n"+WH[(h>>12)%12]),fx:MODES[h%MODES.length],e:EMS[(h>>5)%EMS.length],hue,s:[[...c].map(d=>P[+d]),.14,["triangle","square","sine","sawtooth"][(h>>9)%4]]}}
+function submit(){
+if(!code)return;
+let r=S[code],fresh=false;
+if(r){if(!found.includes(code)){found.push(code);fresh=true}}
+else{r=proc(code);tried++}
+save();
+if(r.e){E.length=0;E.push(...r.e)}
+if(r.hue!=null)document.documentElement.style.setProperty("--amber",`hsl(${r.hue} 95% 58%)`);
+$("#msg").textContent=(fresh?"New secret: ":"")+r.n+"\n"+r.m;
+sfx(r.fx,code);go(r.fx);lock=true;log();if(fresh&&r.l&&Object.keys(S).every(c=>!S[c].l||found.includes(c)))setTimeout(()=>{eerie("Archive complete.\nThe hum has stopped.");go("blackout");SFX.blackout(1,1)},4500)}
+function press(k){
+ksnd(k);tap(k);keyStreak(k);haunt();
+if(k==="*"){code="";lock=false;$("#msg").textContent=""}
+else if(k==="#")submit();
+else{if(lock){code="";lock=false;$("#msg").textContent=""}if(code.length<10)code+=k}
+$("#code").textContent=code}
+function log(){
+const ks=Object.keys(S);
+$("#log").innerHTML=ks.map(c=>{const f=found.includes(c);return`<li class="${f?"on":""}"><b>${f?c:"•".repeat(c.length)}</b><span>${f?S[c].n:S[c].h}</span></li>`}).join("");
+const ar=Object.keys(S).filter(c=>S[c].l&&found.includes(c)).sort((a,b)=>S[a].ch-S[b].ch);
+$("#arc").innerHTML=ar.length?ar.map(c=>`<article><h3>${S[c].ch<8?"Chapter "+S[c].ch+": ":S[c].ch>8?"File: ":""}${S[c].n}</h3><p>${S[c].l}</p></article>`).join(""):"<p>Nothing filed yet. Some secret codes add a page here.</p>";
+const kk=Object.keys(SEC);
+$("#log").innerHTML+=kk.map(k=>{const f=kf.includes(k);return`<li class="${f?"on":""}"><b>${k}</b><span>${f?SEC[k].n:"Press it five times, fast"}</span></li>`}).join("");
+$("#cnt").textContent=`${found.length} of ${ks.length} code secrets · ${kf.length} of ${kk.length} key secrets · ${tried} mystery codes tried`}
+$("#pad").innerHTML=["1","2","3","4","5","6","7","8","9","*","0","#"].map(k=>`<button data-k="${k}" class="${k==="#"?"go":""}" aria-label="${k==="#"?"Enter":k==="*"?"Clear":k}">${k}</button>`).join("");
+$("#pad").addEventListener("click",e=>{const b=e.target.closest("button");if(b)press(b.dataset.k)});
+addEventListener("keydown",e=>{if(e.metaKey||e.ctrlKey||e.altKey)return;
+if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==="Enter"){e.preventDefault();press("#")}else if(e.key==="Backspace"||e.key==="Escape")press("*")});
+$("#reset").onclick=()=>{found=[];kf=[];tried=0;save();pr=0;try{localStorage.removeItem("kp-keys");localStorage.removeItem("kp-pr")}catch(e){}log()};
+$("#msg").textContent="Type a code, then press #.";
+log();
+</script>
+</body></html>

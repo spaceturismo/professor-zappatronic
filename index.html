@@ -160,6 +160,46 @@ footer{border-top:1px solid var(--line);padding-block:2rem;text-align:center;fon
   html{scroll-behavior:auto}
 }
 </style>
+<style>
+.catalog-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin:24px 0}
+.catalog-tools label{display:grid;gap:6px;min-width:150px}
+.catalog-tools label:first-child{flex:1}
+.catalog-tools button,.bug-form button{background:transparent;color:#ffd21f}
+.catalog-tools input,.catalog-tools select,.bug-form input,.bug-form select,.bug-form textarea{width:100%;min-width:0;padding:10px 12px;background:#160b0e;color:#fff8ec;border:1px solid #75434b;border-radius:4px;font:inherit}
+.game-meta{display:block;font-size:13px;color:#e2cda7;margin:8px 0}
+.game-rating{border:0;padding:0;margin:16px 0;min-width:0}
+.game-rating legend{font-size:13px;color:#e2cda7;margin-bottom:6px}
+.rating-stars{display:flex;align-items:center;gap:2px;min-height:38px}
+.rating-choice{position:relative;display:block;width:34px;height:38px;flex:none}
+.rating-choice input{position:absolute;inset:0;opacity:0;margin:0;width:100%;height:100%;cursor:pointer}
+.rating-choice span{display:grid;place-items:center;width:100%;height:100%;font-size:28px;color:#99757b;pointer-events:none}
+.rating-choice.is-filled span{color:#ffd21f}
+.rating-choice:focus-within{outline:2px solid #ffd21f;outline-offset:1px;border-radius:3px}
+.rating-clear{background:transparent;border:1px solid #75434b;border-radius:4px;color:#fff8ec;padding:6px 8px;margin-left:6px;cursor:pointer;font:inherit;font-size:12px}
+.rating-clear:disabled{opacity:.5;cursor:default}
+.rating-value{display:block;font-size:13px;min-height:20px;margin-top:4px;color:#e2cda7}
+.game-actions{flex-wrap:wrap}
+.game[hidden],.games[hidden]{display:none!important}
+.updates-list{list-style:none;padding:0;margin:20px 0}
+.updates-list li{padding:14px 0;border-bottom:1px solid #75434b;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline}
+.updates-list time{font-size:13px;color:#e2cda7}
+.bug-form{display:grid;gap:16px;max-width:660px;margin-top:24px}
+.bug-form label{display:grid;gap:6px}
+.bug-form textarea{resize:vertical;min-height:130px}
+.mail a{overflow-wrap:anywhere}
+.social-posts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:20px;margin-top:24px}
+.social-posts article{border-bottom:1px solid #75434b;padding-bottom:16px;min-width:0}
+.social-posts img{width:100%;aspect-ratio:16/9;object-fit:cover}
+.social-posts h3{font-size:18px;line-height:1.4;overflow-wrap:anywhere}
+.social-posts time{font-size:13px;color:#e2cda7}
+.tiktok-player{display:block;width:100%;max-width:340px;height:580px;border:0;background:#160b0e}
+.pairs-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:16px 0}
+.pairs-board button{height:60px;border:1px solid #75434b;border-radius:4px;background:#160b0e;color:#ffd21f;font:700 22px Georgia,serif;cursor:pointer;touch-action:manipulation}
+.pairs-board button:disabled{opacity:.7;cursor:default}
+.keypad-frame{display:block;width:100%;height:720px;border:0;margin-top:16px}
+.mini button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@media(max-width:480px){.catalog-tools label{width:100%}.catalog-tools .btn{flex:1}}
+</style>
 </head>
 <body>
 <canvas id="fx" aria-hidden="true"></canvas>
@@ -184,7 +224,7 @@ footer{border-top:1px solid var(--line);padding-block:2rem;text-align:center;fon
     <nav aria-label="Sections">
       <a href="#games">Games</a>
       <a href="#minigames">Minigames</a>
-      <a href="#news">News</a>
+      <a href="#latest-drops">Latest drops</a>
       <a href="#bio">Bio</a>
       <a href="#channels">Channels</a>
       <a href="#business">Business</a>
@@ -221,6 +261,13 @@ footer{border-top:1px solid var(--line);padding-block:2rem;text-align:center;fon
       <h2>The games</h2>
       <p class="lede">Everything built in the lab, playable or on the way.</p>
       <p class="lede" role="note">Pictures missing? Your browser may have an older version saved. Try a hard refresh (Ctrl+Shift+R on Windows or Command+Shift+R on Mac), or clear this site's cached files and reload.</p>
+      <div class="catalog-tools" id="catalog-tools" hidden>
+        <label for="game-search">Search games<input id="game-search" type="search" placeholder="Game name" autocomplete="off"></label>
+        <label for="game-genre">Genre<select id="game-genre"><option value="">All genres</option></select></label>
+        <label for="game-mobile">Mobile support<select id="game-mobile"><option value="">All games</option><option value="friendly">Mobile-friendly</option><option value="desktop">Desktop only</option><option value="unknown">Not yet verified</option></select></label>
+        <button class="btn" id="random-game" type="button">Surprise me</button>
+      </div>
+      <p id="game-results" role="status" aria-live="polite" hidden></p>
       <div class="games" id="featured-games"></div>
       <div class="games" id="more-games" hidden></div>
       <button class="btn games-toggle" id="games-toggle" type="button" aria-expanded="false" aria-controls="more-games" hidden>View all</button>
@@ -228,11 +275,41 @@ footer{border-top:1px solid var(--line);padding-block:2rem;text-align:center;fon
     </div>
   </section>
 
+  <section id="latest-drops">
+    <div class="rail">
+      <h2>Latest drops</h2>
+      <ul class="updates-list" id="recent-games"></ul>
+      <ol class="news">
+        <li><time datetime="2026-11-25">Nov 25, 2026</time><div><b>Keypad joins the lab</b><p>Discover secret codes and uncover the story behind Door 13.</p></div></li>
+        <li><time datetime="2026-11-16">Nov 16, 2026</time><div><b>The lab is open</b><p>Games, music and art from Professor Zappatronic.</p></div></li>
+      </ol>
+      <div id="youtube-latest" hidden>
+        <div class="social-posts" id="youtube-posts"></div>
+      </div>
+      <div id="tiktok-beats">
+        <div class="social-posts">
+          <article>
+            <h3><a href="https://www.tiktok.com/@dahgoat0001/video/7711196441372347662">Microlarp</a></h3>
+            <iframe class="tiktok-player" src="https://www.tiktok.com/player/v1/7711196441372347662" title="Microlarp beat on TikTok" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+          </article>
+          <article>
+            <h3><a href="https://www.tiktok.com/@dahgoat0001/video/7710856594988289293">Nuclear Biohazard</a></h3>
+            <iframe class="tiktok-player" src="https://www.tiktok.com/player/v1/7710856594988289293" title="Nuclear Biohazard beat on TikTok" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+          </article>
+          <article>
+            <h3><a href="https://www.tiktok.com/@dahgoat0001/video/7704546407482395918">Highway 3000</a></h3>
+            <iframe class="tiktok-player" src="https://www.tiktok.com/player/v1/7704546407482395918" title="Highway 3000 beat preview on TikTok" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="minigames">
     <div class="rail">
       <div class="eyebrow">Play right here</div>
       <h2>Minigames</h2>
-      <p class="lede">Two quick ones from the lab. Your best scores are saved in this browser.</p>
+      <p class="lede">Quick games from the lab.</p>
       <div class="minis">
         <div class="mini">
           <h3>Reflex Zap</h3>
@@ -251,19 +328,17 @@ footer{border-top:1px solid var(--line);padding-block:2rem;text-align:center;fon
             <button type="button" class="btn hot" id="sc-start">Start</button>
           </div>
         </div>
+        <div class="mini">
+          <h3>Circuit Pairs</h3>
+          <div class="pairs-board" id="pairs-board" aria-label="Circuit Pairs board"></div>
+          <div class="stats"><span id="pairs-status" role="status">Moves 0</span><button class="btn" id="pairs-start" type="button">New round</button></div>
+        </div>
+        <div class="mini">
+          <h3>Keypad</h3>
+          <a href="minigames/keypad.html" target="_blank" rel="noopener">Open full game</a>
+          <iframe class="keypad-frame" src="minigames/keypad.html" title="Keypad secret-code game" loading="lazy"></iframe>
+        </div>
       </div>
-    </div>
-  </section>
-
-  <section id="news">
-    <div class="rail">
-      <div class="eyebrow">Fresh from the lab</div>
-      <h2>News</h2>
-      <!-- EDIT: newest first. Copy one <li> and change the date, headline and text. -->
-      <ol class="news">
-        <li><time datetime="2026-11-16">Nov 16, 2026</time><div><b>Two minigames added</b><p>Reflex Zap and Spark Catcher are playable on this page now.</p></div></li>
-        <li><time datetime="2026-11-16">Nov 16, 2026</time><div><b>The lab is open</b><p>The Professor Zappatronic homepage is live: games, channels and business in one place.</p></div></li>
-      </ol>
     </div>
   </section>
 
@@ -331,6 +406,14 @@ footer{border-top:1px solid var(--line);padding-block:2rem;text-align:center;fon
         <a class="btn" href="https://www.youtube.com/@Professor_Zappatronic">Comment on YouTube</a>
         <a class="btn" href="https://www.tiktok.com/@dahgoat0001">Message on TikTok</a>
       </div>
+      <form class="bug-form" id="bug-form">
+        <h3>Report a Bug</h3>
+        <label for="bug-game">Game<select id="bug-game" required><option value="">Choose a game</option></select></label>
+        <label for="bug-description">What happened?<textarea id="bug-description" required maxlength="2500"></textarea></label>
+        <label for="bug-device">Device and browser<input id="bug-device" maxlength="300" placeholder="For example: Windows, Chrome"></label>
+        <button class="btn" type="submit">Prepare email report</button>
+        <p id="bug-status" role="status" aria-live="polite"></p>
+      </form>
     </div>
   </section>
 
@@ -413,7 +496,9 @@ footer{border-top:1px solid var(--line);padding-block:2rem;text-align:center;fon
 })();
 </script>
 <script src="game-blurbs.js?v=b7b8f96"></script>
-<script src="games.js?v=featured-heartbox-20261121"></script>
+<script src="games.js?v=keypad-20261125"></script>
+<script src="social-updates.js?v=20261122"></script>
+<script src="extra-minigames.js?v=keypad-20261125"></script>
 <script src="intro.js"></script>
 </body>
 </html>
