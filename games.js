@@ -40,7 +40,6 @@
     ['wick-and-cinder-2', 'Wick and Cinder 2'],
     ['wick-and-cinder', 'Wick and Cinder'],
     ['total-mayhem', 'Total Mayhem'],
-    ['claude-in-claude', 'Claude in Claude'],
     ['claude-in-claude-demo-mode', 'Claude in Claude - Demo Mode'],
     ['hollowmere', 'Hollowmere'],
     ['nimbo-s-rainbow-garden', "Nimbo's Rainbow Garden"],
@@ -102,19 +101,20 @@
   function genreOf(slug) {
     return Object.keys(genres).find(function (genre) { return genres[genre].indexOf(slug) !== -1; }) || 'Adventure';
   }
-  Array.from(new Set(games.map(function (game) { return genreOf(game[0]); }))).sort().forEach(function (genre) {
+  Array.from(new Set(games.map(function (game) { return genreOf(game[0]); }))).filter(function (genre) { return genre !== 'Chat'; }).sort().forEach(function (genre) {
     var option = document.createElement('option');
     option.value = genre; option.textContent = genre; genreSelect.appendChild(option);
   });
 
   games.forEach(function (game, index) {
+    var isApp = genreOf(game[0]) === 'Chat';
     var article = document.createElement('article');
     article.className = 'game';
     var screen = document.createElement('div');
     screen.className = 'screen';
     var image = document.createElement('img');
     image.src = 'images/games/' + game[0] + '.jpg';
-    image.alt = game[1] + ' game preview';
+    image.alt = game[1] + (isApp ? ' app preview' : ' game preview');
     image.width = 960;
     image.height = 600;
     image.loading = index < 3 ? 'eager' : 'lazy';
@@ -161,8 +161,8 @@
     var play = document.createElement('a');
     play.className = 'btn hot';
     play.href = 'https://spaceturismo.github.io/' + game[0] + '/';
-    play.textContent = 'Play';
-    play.setAttribute('aria-label', 'Play ' + game[1]);
+    play.textContent = isApp ? 'Open app' : 'Play';
+    play.setAttribute('aria-label', (isApp ? 'Open ' : 'Play ') + game[1]);
     var source = document.createElement('a');
     source.className = 'btn';
     source.href = 'https://github.com/spaceturismo/' + game[0];
@@ -178,19 +178,42 @@
     info.appendChild(actions);
     article.appendChild(screen);
     article.appendChild(info);
-    (index < 3 ? featured : more).appendChild(article);
+    (isApp ? document.getElementById('html-apps') : index < 3 ? featured : more).appendChild(article);
     cards.push({ element: article, game: game, genre: genreOf(game[0]), mobile: mobileOf(game[0]), index: index, updateRating: updateRating });
     var option = document.createElement('option'); option.value = game[0]; option.textContent = game[1]; bugGame.appendChild(option);
   });
 
   document.getElementById('catalog-tools').hidden = false;
   var expanded = false;
+  var series = [
+    { name: 'The Beyond Files', prefix: 'the-beyond-files-' },
+    { name: 'Hollow Pines', prefix: 'hollow-pines-' },
+    { name: 'Wick and Cinder', prefix: 'wick-and-cinder' }
+  ];
+  series.forEach(function (group) {
+    group.element = document.createElement('details');
+    group.element.className = 'series';
+    var summary = document.createElement('summary');
+    var preview = document.createElement('img');
+    var member = cards.find(function (card) { return card.game[0].indexOf(group.prefix) === 0; });
+    preview.src = 'images/games/' + member.game[0] + '.jpg';
+    preview.alt = group.name + ' preview';
+    preview.width = 960; preview.height = 600; preview.loading = 'lazy';
+    summary.appendChild(preview);
+    group.label = document.createElement('span');
+    summary.appendChild(group.label);
+    group.element.appendChild(summary);
+    group.chapters = document.createElement('div');
+    group.chapters.className = 'games';
+    group.element.appendChild(group.chapters);
+  });
   function filterGames() {
     var query = search.value.trim().toLowerCase();
     var filtering = !!(query || genreSelect.value || mobileSelect.value);
     var count = 0;
     var focused = document.activeElement;
-    cards.slice().sort(function (first, second) {
+    cards.filter(function (card) { return card.genre !== 'Chat'; }).sort(function (first, second) {
+      if (first.index < 3 || second.index < 3) return first.index < 3 && second.index < 3 ? first.index - second.index : first.index < 3 ? -1 : 1;
       return (ratings[second.game[0]] || 0) - (ratings[first.game[0]] || 0) || first.index - second.index;
     }).forEach(function (card, rank) {
       (rank < 3 ? featured : more).appendChild(card.element);
@@ -198,6 +221,17 @@
       card.element.hidden = !match;
       if (match) count++;
     });
+    series.forEach(function (group) {
+      var members = cards.filter(function (card) { return card.game[0].indexOf(group.prefix) === 0; });
+      members.sort(function (first, second) { return first.game[0].localeCompare(second.game[0], undefined, { numeric: true }); });
+      members.forEach(function (card) { group.chapters.appendChild(card.element); });
+      var matches = members.filter(function (card) { return !card.element.hidden; }).length;
+      group.element.hidden = !matches;
+      group.label.textContent = group.name + ' | ' + members.length + ' chapters';
+      if (filtering) group.element.open = true;
+      more.appendChild(group.element);
+    });
+    document.getElementById('start-here').hidden = filtering;
     more.hidden = !filtering && !expanded;
     toggle.hidden = filtering;
     toggle.setAttribute('aria-expanded', String(expanded));

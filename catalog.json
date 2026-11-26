@@ -1,8 +1,8 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "Professor Zappatronic",
   "url": "https://zappatronic.com/",
-  "email": "professorzappatronic@gmail.com",
+  "contactForm": "https://forms.gle/7H8YxdxEwokMFHxQA",
   "ratings": "Personal browser-local ratings; not community averages",
   "games": [
     {
@@ -294,7 +294,7 @@
     {
       "slug": "walker",
       "name": "Walker",
-      "description": "Roam an open world on foot or by vehicle, discover landmarks and explore hidden caves.",
+      "description": "Explore one open world on foot or by vehicle, with landmarks and hidden caves. Unlike WorldWalker, this is focused on a single landscape.",
       "genre": "Adventure",
       "mobileSupport": "unknown",
       "controls": null,
@@ -305,7 +305,7 @@
     {
       "slug": "wick-and-cinder-3",
       "name": "Wick and Cinder 3",
-      "description": "Guide Wick and his lantern-moth companion through a world of shards, sparks and lost light.",
+      "description": "A real-time 3D action adventure with jumping, gliding and spark skills. Different from the turn-based Wick and Cinder III tactics game.",
       "genre": "Adventure",
       "mobileSupport": "unknown",
       "controls": null,
@@ -349,7 +349,7 @@
     {
       "slug": "worldwalker",
       "name": "WorldWalker",
-      "description": "Explore worlds, find landmarks and take your pack into new adventures beyond the horizon.",
+      "description": "Generate and explore planetary worlds with landing and survival systems. Unlike Walker, the adventure starts with a globe rather than one fixed landscape.",
       "genre": "Adventure",
       "mobileSupport": "unknown",
       "controls": null,
@@ -360,7 +360,7 @@
     {
       "slug": "worldsmith",
       "name": "Worldsmith",
-      "description": "Shape a planet, found a realm and guide its future through decrees and rival kingdoms.",
+      "description": "A 2D map and realm simulator: shape terrain, found a capital and guide kingdoms through decrees. Worldsmith Globe instead adds 3D landing and survival.",
       "genre": "Creative",
       "mobileSupport": "unknown",
       "controls": null,
@@ -382,7 +382,7 @@
     {
       "slug": "wick-and-cinder-iii",
       "name": "Wick and Cinder III",
-      "description": "Reunite two heroes in a turn-based tactics puzzle with movement, teamwork and undoable turns.",
+      "description": "A turn-based grid tactics puzzle with two heroes, teamwork and undoable turns. Not an older version of the real-time 3D Wick and Cinder 3.",
       "genre": "Puzzle",
       "mobileSupport": "unknown",
       "controls": null,
@@ -424,28 +424,6 @@
       "image": "https://zappatronic.com/images/games/total-mayhem.jpg"
     },
     {
-      "slug": "claude-in-claude",
-      "name": "Claude in Claude",
-      "description": "Try a simple chat interface designed to send your questions to Claude.",
-      "genre": "Chat",
-      "mobileSupport": "unknown",
-      "controls": "Keyboard text input",
-      "threeDimensional": false,
-      "url": "https://spaceturismo.github.io/claude-in-claude/",
-      "image": "https://zappatronic.com/images/games/claude-in-claude.jpg"
-    },
-    {
-      "slug": "claude-in-claude-demo-mode",
-      "name": "Claude in Claude - Demo Mode",
-      "description": "Explore a local chat demonstration with simulated replies and no API calls.",
-      "genre": "Chat",
-      "mobileSupport": "unknown",
-      "controls": "Keyboard text input",
-      "threeDimensional": false,
-      "url": "https://spaceturismo.github.io/claude-in-claude-demo-mode/",
-      "image": "https://zappatronic.com/images/games/claude-in-claude-demo-mode.jpg"
-    },
-    {
       "slug": "hollowmere",
       "name": "Hollowmere",
       "description": "Recover five candles from a haunted village while watching the creature that moves when you look away.",
@@ -477,6 +455,19 @@
       "threeDimensional": true,
       "url": "https://spaceturismo.github.io/wumble-and-tink/",
       "image": "https://zappatronic.com/images/games/wumble-and-tink.jpg"
+    }
+  ],
+  "apps": [
+    {
+      "slug": "claude-in-claude-demo-mode",
+      "name": "Claude in Claude - Demo Mode",
+      "description": "Explore a local chat demonstration with simulated replies and no API calls.",
+      "genre": "Chat",
+      "mobileSupport": "unknown",
+      "controls": "Keyboard text input",
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/claude-in-claude-demo-mode/",
+      "image": "https://zappatronic.com/images/games/claude-in-claude-demo-mode.jpg"
     }
   ],
   "minigames": [

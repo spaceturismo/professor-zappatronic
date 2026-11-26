@@ -2,6 +2,8 @@
   'use strict';
   var groups = {
     games: ['games'],
+    apps: ['apps'],
+    music: ['music'],
     minigames: ['minigames'],
     'latest-drops': ['latest-drops'],
     bio: ['bio', 'channels'],
@@ -10,7 +12,14 @@
   var navigation = document.querySelector('nav[aria-label="Sections"]');
   var sections = Array.from(document.querySelectorAll('main > section'));
   var hero = document.querySelector('.hero');
+  var header = document.querySelector('header');
+  function sizeHeader() {
+    document.documentElement.style.scrollPaddingTop = (header.getBoundingClientRect().height + 16) + 'px';
+  }
+  sizeHeader();
+  new ResizeObserver(sizeHeader).observe(header);
   function route() {
+    sizeHeader();
     var target = location.hash.slice(1) || 'games';
     var group = Object.keys(groups).find(function (name) {
       return groups[name].indexOf(target) !== -1;

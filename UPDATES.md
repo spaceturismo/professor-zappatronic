@@ -1,8 +1,18 @@
 # Homepage Updates
 
+## Visitor Improvements
+
+Start here pins Pixel Omniverse, Freddles After Dark and Heartbox Dodge 3D Expanded ahead of personal rating sorting. The cache warning was removed. Existing screenshots and genre filters remain. Beyond Files, Hollow Pines and Wick and Cinder have expandable chapter groups; filters open matching chapters. Similar titles remain because their mechanics differ, with distinctions in their descriptions.
+
+Music has its own view with three existing YouTube releases. Favicon and Open Graph share-image metadata reuse an existing game preview. Business inquiries use the existing feedback form, not a newly provisioned form service. Bug reports still use mailto and are not private server-side submissions.
+
+Only Claude in Claude Demo Mode is listed. No embedded key was found in the integration-dependent original; it is omitted because it is not a standalone public chat app. Minigame challenge targets are editorial goals, not fabricated Professor records or prefilled personal bests. TikTok account renaming requires account access; the current working handle is preserved.
+
 ## Navigation and Sound
 
-With JavaScript enabled, the top navigation opens five views: Games, Minigames, Latest drops, About (bio and channels), and Contact (business and feedback). Games is the default. Hash links and browser history still work; the logo returns to the intro/home section. The empty Donate section was removed. Without JavaScript, the sections remain readable on one page.
+The Apps view contains Claude in Claude and its local demo, separated from the 41 games. Apps use Open app links and never appear in game search or genre filters. The readable HTML catalog has a dedicated HTML Apps heading. JSON catalog version 2 separates `games` and `apps` arrays.
+
+With JavaScript enabled, the top navigation opens six views: Games, Apps, Minigames, Latest drops, About (bio and channels), and Contact (business and feedback). Games is the default. Hash links and browser history still work; the logo returns to the intro/home section. The empty Donate section was removed. Without JavaScript, the sections remain readable on one page.
 
 Interface sound is opt-in, low-volume Web Audio synthesis for actions, the Reflex Zap ready cue, and minigame success cues. The checkbox remembers the preference locally and can mute the interface. Audio is initialized after interaction. Keypad and external media retain their independent audio controls.
 
@@ -24,7 +34,7 @@ Latest drops combines game updates, site announcements, YouTube uploads, and Tik
 
 Four distinct minigames are available: Reflex Zap (reaction timing), Spark Catcher (timed target tapping), Circuit Pairs (memory matching), and Keypad (secret-code discovery and story puzzles). Keypad is imported from Downloads/Keypad.html with only mobile container-width corrections and embedded from minigames/keypad.html, with a full-game link. Circuit Pairs resets pending mismatch timers on restart. Target Rush was removed because its mechanics overlapped with Spark Catcher.
 
-TikTok remains linked as `@dahgoat0001`. Automatic individual TikTok posts require TikTok Display API approval and an OAuth connection with `video.list` permission, or a trusted third-party feed service. Keep access and refresh tokens in server-side secrets, never in published JavaScript or JSON. A profile link is not an automatic video feed.
+TikTok is linked as `@professorzappatronic`, using the profile URL supplied by the owner. Curated video IDs are preserved. Automatic individual TikTok posts require TikTok Display API approval and an OAuth connection with `video.list` permission, or a trusted third-party feed service. Keep access and refresh tokens in server-side secrets, never in published JavaScript or JSON. A profile link is not an automatic video feed.
 
 Genres are editorial categories. Control labels appear only where confirmed; no broad mobile, multiplayer, or completion claims are made.
 
