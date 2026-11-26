@@ -16,16 +16,17 @@ const friendly = variable('mobileFriendly');
 const desktop = variable('desktopOnly');
 const controls = variable('controls');
 const dimensions = variable('threeDimensional');
+const catalogUrls = variable('catalogUrls');
 const games = variable('games').map(([slug, name]) => ({
   slug, name, description: context.window.gameBlurbs[slug],
   genre: Object.keys(genres).find(genre => genres[genre].includes(slug)) || 'Adventure',
   mobileSupport: friendly.includes(slug) ? 'friendly' : desktop.includes(slug) ? 'desktop' : 'unknown',
   controls: controls[slug] || null,
   threeDimensional: dimensions.includes(slug),
-  url: 'https://spaceturismo.github.io/' + slug + '/',
+  url: catalogUrls[slug] || 'https://spaceturismo.github.io/' + slug + '/',
   image: 'https://zappatronic.com/images/games/' + slug + '.jpg'
 }));
-assert.equal(games.length, 42);
+assert.equal(games.length, 46);
 const minigames = [
   { name: 'Reflex Zap', mechanic: 'Reaction timing', url: 'https://zappatronic.com/#minigames', requiresJavaScript: true },
   { name: 'Spark Catcher', mechanic: 'Timed target tapping', url: 'https://zappatronic.com/#minigames', requiresJavaScript: true },
@@ -34,8 +35,9 @@ const minigames = [
 ];
 const youtube = JSON.parse(fs.readFileSync(path.join(root, 'youtube-updates.json'), 'utf8'));
 const updates = JSON.parse(fs.readFileSync(path.join(root, 'game-updates.json'), 'utf8'));
-const apps = games.filter(game => game.genre === 'Chat');
-const playable = games.filter(game => game.genre !== 'Chat');
+const appSlugs = variable('appSlugs');
+const apps = games.filter(game => appSlugs.includes(game.slug));
+const playable = games.filter(game => !appSlugs.includes(game.slug));
 const data = { version: 2, name: 'Professor Zappatronic', url: 'https://zappatronic.com/', contactForm: 'https://forms.gle/7H8YxdxEwokMFHxQA', ratings: 'Personal browser-local ratings; not community averages', games: playable, apps, minigames, gameUpdates: updates, youtube };
 fs.writeFileSync(path.join(root, 'catalog.json'), JSON.stringify(data, null, 2) + '\n');
 function escape(value) {
@@ -47,7 +49,7 @@ function renderListing(entries) {
 const listing = renderListing(playable);
 const appListing = renderListing(apps);
 const fallback = '<!-- readable-catalog:start -->\n<noscript><section aria-label="Full game catalog">' + listing + '</section></noscript>\n<!-- readable-catalog:end -->';
-const schema = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: data.name, url: data.url, mainEntity: { '@type': 'ItemList', itemListElement: games.map((game, index) => ({ '@type': 'ListItem', position: index + 1, item: { '@type': game.genre === 'Chat' ? 'SoftwareApplication' : 'VideoGame', name: game.name, description: game.description, url: game.url, image: game.image, genre: game.genre } })) } };
+const schema = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: data.name, url: data.url, mainEntity: { '@type': 'ItemList', itemListElement: games.map((game, index) => ({ '@type': 'ListItem', position: index + 1, item: { '@type': appSlugs.includes(game.slug) ? 'SoftwareApplication' : 'VideoGame', name: game.name, description: game.description, url: game.url, image: game.image, genre: game.genre } })) } };
 const metadata = '<!-- catalog-schema:start -->\n<link rel="alternate" type="application/json" href="catalog.json" title="Professor Zappatronic catalog">\n<script type="application/ld+json">' + JSON.stringify(schema).replace(/</g, '\\u003c') + '</script>\n<!-- catalog-schema:end -->';
 let html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 assert(html.includes('<!-- readable-catalog:start -->'));

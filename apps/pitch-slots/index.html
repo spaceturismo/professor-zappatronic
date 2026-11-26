@@ -1,0 +1,1381 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Pitch Slots</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one pitch card with an ingredient toggle strip, up to eleven lockable rows (each with a searchable picker), a highlighter-yellow pitch band, and saved pitches below. */
+:root{
+  --bg:#e9ecf5; --surface:#f8f9ff; --ink:#161a33; --muted:#555c82; --line:#cfd4e8;
+  --edge:#161a33; --accent:#2b44ff; --accent-ink:#ffffff; --hi:#ffd84a; --hi-ink:#161a33;
+  --f-display:'Unbounded',system-ui,sans-serif;
+  --f-body:'Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1124; --surface:#171b36; --ink:#eceffd; --muted:#a0a7cf; --line:#2b3162;
+    --edge:#5461b8; --accent:#93a2ff; --accent-ink:#0e1124; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1124; --surface:#171b36; --ink:#eceffd; --muted:#a0a7cf; --line:#2b3162;
+  --edge:#5461b8; --accent:#93a2ff; --accent-ink:#0e1124; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--f-body); font-size:16px; line-height:1.5;
+  padding-block:28px 56px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header.top{display:flex;flex-direction:column;gap:8px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(1.6rem,4.5vw,2.25rem);line-height:1.1;margin:0;text-wrap:balance}
+.sub{margin:0;color:var(--muted);max-width:60ch}
+.count{margin:0;font-family:var(--f-mono);font-size:.78rem;letter-spacing:.04em;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.deck{border:2px solid var(--edge);background:var(--surface);border-radius:8px;box-shadow:6px 6px 0 var(--edge);overflow:hidden}
+.deck-head{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;padding:18px;border-bottom:1px solid var(--line)}
+.title{font-family:var(--f-display);font-weight:700;font-size:clamp(1.35rem,4.6vw,2.2rem);line-height:1.12;margin:0;min-width:0;text-wrap:balance;overflow-wrap:anywhere}
+
+.chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid var(--line)}
+.chips .label{margin-right:4px}
+.chip{font:inherit;font-size:.85rem;font-weight:500;padding:.25rem .75rem;border:1.5px solid var(--line);border-radius:999px;background:transparent;color:var(--muted);cursor:pointer}
+.chip:hover{border-color:var(--edge)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.chip.tpl{font-weight:600;border-color:var(--edge);color:var(--ink)}
+.chip.tpl[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tpl-note{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--bg);font-size:.92rem;color:var(--muted)}
+.tpl-note span{flex:1 1 18rem;min-width:0}
+.row.blank .val{color:var(--muted);font-style:italic;font-weight:500}
+
+.row{display:grid;grid-template-columns:9rem minmax(0,1fr) auto;grid-template-areas:"label val acts" "pick pick pick";align-items:center;gap:8px 16px;padding:12px 18px;border-bottom:1px solid var(--line)}
+.label{grid-area:label;font-family:var(--f-mono);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.val{grid-area:val;min-width:0;font-weight:600;font-size:clamp(1.05rem,2.4vw,1.3rem);line-height:1.3;overflow-wrap:anywhere}
+.acts{grid-area:acts;display:flex;gap:6px}
+.row.locked .label{color:var(--accent)}
+.row.rolling .val{color:var(--muted)}
+
+.icon{display:inline-grid;place-items:center;width:38px;height:38px;padding:0;border:1.5px solid var(--line);border-radius:6px;background:transparent;color:var(--ink);cursor:pointer}
+.icon:hover:not(:disabled){border-color:var(--edge)}
+.icon:disabled{opacity:.35;cursor:not-allowed}
+.icon[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.icon[aria-expanded="true"]{border-color:var(--edge);background:var(--line)}
+.lock .open{display:block}.lock .closed{display:none}
+.lock[aria-pressed="true"] .open{display:none}.lock[aria-pressed="true"] .closed{display:block}
+
+.picker{grid-area:pick;display:flex;flex-direction:column;gap:8px;padding:4px 0 6px}
+.picker .label{display:block;margin-bottom:4px}
+.pick-list{max-height:14rem;overflow:auto;border:1.5px solid var(--line);border-radius:6px;background:var(--bg);display:flex;flex-direction:column}
+.opt{font:inherit;font-size:.95rem;text-align:left;padding:.45rem .75rem;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.opt:last-child{border-bottom:0}
+.opt:hover{background:var(--line)}
+.opt.custom{color:var(--accent);font-weight:600}
+.pick-meta{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+
+.pitch{background:var(--hi);color:var(--hi-ink);padding:20px 18px;border-top:2px solid var(--edge);display:flex;flex-direction:column;gap:8px}
+.pitch .label{color:var(--hi-ink);opacity:.75}
+.pitch p{margin:0;font-size:1.12rem;line-height:1.55;max-width:62ch}
+
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:16px 18px;border-top:2px solid var(--edge);background:var(--surface)}
+.btn{font:inherit;font-weight:600;padding:.65rem 1.05rem;border:2px solid var(--edge);border-radius:6px;background:var(--surface);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:.6rem}
+.btn:hover{background:var(--line)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08);background:var(--accent)}
+.btn.sm{padding:.35rem .7rem;font-size:.88rem;border-width:1.5px}
+.btn.ghost{border-color:var(--line)}
+kbd{font-family:var(--f-mono);font-size:.72rem;border:1px solid currentColor;border-radius:3px;padding:0 5px;opacity:.8}
+.status{flex:1 1 14rem;min-height:1.4em;font-size:.9rem;color:var(--muted)}
+
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.favs{display:flex;flex-direction:column;gap:6px}
+.favs h2{font-family:var(--f-display);font-weight:600;font-size:1.05rem;margin:0 0 6px}
+.favs h2 span{font-family:var(--f-mono);font-weight:500;font-size:.8rem;color:var(--muted);margin-left:8px}
+.fav-list{list-style:none;margin:0;padding:0}
+.fav{display:flex;flex-direction:column;gap:6px;padding:16px 0;border-top:1px solid var(--line)}
+.fav-title{font-family:var(--f-display);font-weight:600;font-size:1rem;margin:0;overflow-wrap:anywhere}
+.fav-pitch{margin:0;max-width:70ch;color:var(--ink)}
+.fav-note{margin:0;max-width:70ch;color:var(--muted);font-size:.92rem}
+.fav-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.empty{margin:0;padding:16px 0;border-top:1px solid var(--line);color:var(--muted);max-width:60ch}
+
+.edit-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;padding:4px 0}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field.wide,.edit-form .fav-pitch,.edit-form .fav-btns,.edit-form .fav-note{grid-column:1/-1}
+.field label{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.field input,.field textarea,.picker input{font:inherit;width:100%;padding:.5rem .65rem;border:1.5px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);resize:vertical}
+.field input:focus-visible,.field textarea:focus-visible,.picker input:focus-visible{outline:3px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.edit-preview{background:var(--hi);color:var(--hi-ink);padding:12px 14px;border-radius:6px}
+.picker .fresh{align-self:flex-start}
+.label .cnt{display:block;margin-top:2px;font-size:.68rem;letter-spacing:.02em;text-transform:none;color:var(--muted);font-variant-numeric:tabular-nums}
+.title-wrap{flex:1 1 14rem;min-width:0}
+.title-input{font-family:var(--f-display);font-weight:700;font-size:1.25rem;width:100%;padding:.4rem .6rem;border:2px solid var(--edge);border-radius:6px;background:var(--bg);color:var(--ink)}
+.title-input:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.title-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end}
+.sel{font:inherit;font-size:.88rem;padding:.35rem .5rem;border:1.5px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.sel:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+.top-actions{display:flex;flex-wrap:wrap;gap:8px}
+.welcome{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;padding:12px 16px;border:2px solid var(--edge);border-radius:8px;background:var(--hi);color:var(--hi-ink)}
+.welcome p{margin:0;flex:1 1 18rem;min-width:0}
+.welcome .btn{background:var(--surface);color:var(--ink)}
+.tour-hl{outline:3px solid var(--accent);outline-offset:-3px;border-radius:6px}
+.btn.tour-hl{outline-offset:3px}
+.tour{position:fixed;z-index:20;left:max(16px, env(safe-area-inset-left, 0px));right:max(16px, env(safe-area-inset-right, 0px));bottom:calc(12px + env(safe-area-inset-bottom, 0px));max-width:520px;margin-inline:auto;padding:16px;border:2px solid var(--edge);border-radius:8px;background:var(--surface);box-shadow:6px 6px 0 var(--edge);display:flex;flex-direction:column;gap:8px}
+.tour h3{font-family:var(--f-display);font-weight:600;font-size:1.05rem;margin:0}
+.tour p{margin:0;font-size:.97rem}
+.tour-top,.tour-nav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tour-step{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+body.tour-open{padding-block-end:320px}
+
+@media (max-width:560px){
+  .row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"label label" "val acts" "pick pick";gap:4px 12px}
+  .deck{box-shadow:4px 4px 0 var(--edge)}
+  .deck-head{flex-direction:column}
+  .edit-form{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<main class="wrap">
+  <header class="top">
+    <h1>Pitch Slots</h1>
+    <p class="sub">Roll up to twenty-five ingredients into one game pitch. Turn ingredients on or off, lock the ones you like, or pick an exact value yourself.</p>
+    <p class="count" id="count"></p>
+    <div class="top-actions">
+      <button class="btn sm ghost" type="button" id="tourBtn">How it works</button>
+    </div>
+    <div class="welcome" id="welcome" hidden>
+      <p><strong>New here?</strong> Take a 30-second tour of the controls. You can skip it, and the "How it works" button brings it back.</p>
+      <button class="btn sm primary" type="button" id="welcomeStart">Start the tour</button>
+      <button class="btn sm" type="button" id="welcomeSkip">No thanks</button>
+    </div>
+  </header>
+
+  <section class="deck" aria-label="Current game pitch">
+    <div class="deck-head">
+      <div class="title-wrap">
+        <h2 class="title" id="title"></h2>
+        <input class="title-input" type="text" id="titleInput" maxlength="90" aria-label="Edit title" hidden>
+      </div>
+      <div class="title-tools">
+        <select class="sel" id="titleStyle" aria-label="Title style">
+          <option value="any">Any title style</option>
+          <option value="short">Short</option>
+          <option value="the">The ... of ...</option>
+          <option value="subtitle">With subtitle</option>
+          <option value="phrase">Journey phrase</option>
+          <option value="question">Question</option>
+        </select>
+        <button class="btn sm ghost" type="button" id="newTitle">Roll title</button>
+        <button class="btn sm ghost" type="button" id="titleLock" aria-pressed="false">Lock title</button>
+        <button class="btn sm ghost" type="button" id="titleEdit">Edit title</button>
+      </div>
+    </div>
+    <div class="chips" id="tpls" role="group" aria-label="Starting templates">
+      <span class="label">Templates</span>
+    </div>
+    <div class="tpl-note" id="tplNote" hidden>
+      <span id="tplText"></span>
+      <button class="btn sm ghost" type="button" id="tplClear">Clear template</button>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Ingredients to include">
+      <span class="label">Ingredients</span>
+    </div>
+    <div id="rows"></div>
+    <div class="pitch">
+      <span class="label">The pitch</span>
+      <p id="pitch"></p>
+    </div>
+    <div class="actions">
+      <button class="btn primary" type="button" id="rollAll">Roll all <kbd>R</kbd></button>
+      <button class="btn" type="button" id="copy">Copy pitch</button>
+      <button class="btn" type="button" id="save">Save</button>
+      <span class="status" id="status" role="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <section class="favs" aria-label="Saved pitches">
+    <h2>Saved pitches<span id="favCount"></span></h2>
+    <div id="favs"></div>
+  </section>
+</main>
+
+<div class="tour" id="tour" role="dialog" aria-label="Quick tour" hidden>
+  <div class="tour-top">
+    <span class="tour-step" id="tourStep"></span>
+    <button class="btn sm ghost" type="button" id="tourClose">Close tour</button>
+  </div>
+  <h3 id="tourTitle"></h3>
+  <p id="tourBody"></p>
+  <div class="tour-nav">
+    <button class="btn sm ghost" type="button" id="tourBack">Back</button>
+    <button class="btn sm primary" type="button" id="tourNext">Next</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var D = {
+    tone: {label:'Tone', chip:'Tone', items:[
+      'melancholy','darkly funny','gently surreal','frantic','cozy','eerie','triumphant','bittersweet','deadpan','whimsical',
+      'tense','wistful','chaotic','meditative','absurd','hopeful','gritty','dreamlike','mischievous','solemn',
+      'sunny','uneasy','tender','bombastic','lonely','playful','ominous','nostalgic','strange','heartfelt','sarcastic','hushed',
+      'rowdy','stormy','giddy','hypnotic','spooky','rebellious','cheeky','windswept','electric','grumpy','majestic','fragile',
+      'joyful','suspicious','sleepy','moonlit','feverish','cinematic','quirky','earnest']},
+    genre: {label:'Genre', chip:'Genre', items:[
+      'roguelike deckbuilder','cozy farming sim','puzzle platformer','tower defense game','narrative adventure','turn-based tactics game',
+      'survival horror game','rhythm game','walking sim','bullet-hell shooter','city builder','idle clicker',
+      'metroidvania','arcade racer','social deduction party game','text adventure','stealth game','trading card battler',
+      'open-world exploration game','management sim','twin-stick shooter','detective mystery','auto-battler','physics sandbox',
+      'point-and-click adventure','4X strategy game','dungeon crawler','fighting game','platform fighter','battle royale',
+      'cooking game','dating sim','escape room game','hidden-object game','match-three puzzler','word game',
+      'trivia game','boss rush','extraction shooter','hack-and-slash','souls-like','life sim',
+      'pet-raising sim','space trading sim','flight sim','tactical roguelite','base-building survival game','crafting sandbox',
+      'immersive sim','programming puzzle game','rail shooter','endless runner','golf-style physics game','pinball game',
+      'sports management sim','card-based RPG','interactive fiction','time-loop mystery','courtroom drama','heist game',
+      'tycoon game','art-making toy','collect-a-thon platformer','asymmetric horror game','cooperative party game','tiny ecosystem simulator',
+      'deckbuilding city builder','rhythm roguelike','narrative survival game','shooter-puzzle hybrid','racing roguelite','fishing game',
+      'gardening puzzle game','mystery visual novel','tactical card game','tile-laying game','parkour game','skateboarding game',
+      'monster-collecting RPG','interactive documentary','zero-player game','digital board game','spy thriller','cozy horror game',
+      'sci-fi trading sim','alchemy sandbox','logistics puzzle game','archaeology sim','theater-management sim','lighthouse-keeping sim',
+      'one-room puzzle game','open-ended toy','daily puzzle game','team-based tactics game','coaching sim']},
+    platform: {label:'Platform', chip:'Platform', items:[
+      'phones','a web browser','a handheld console','a living-room console','desktop PCs','a smartwatch','VR headsets','a tabletop with printed cards',
+      'a smart speaker','a retro arcade cabinet','a TV with phones as controllers','a shared office screen','a pocket-sized handheld','a tablet on a kitchen counter',
+      'a text-message thread','a spreadsheet','a terminal window','e-readers','a car’s dashboard screen','a wall projector at a party',
+      'a single shared laptop','a pair of walkie-talkies','a pinball-style table','a drawing tablet','a set of smart lights','an old flip phone',
+      'a handheld with two screens','a jukebox','a cash register','a kids’ tablet','a museum kiosk','a classroom smartboard',
+      'a streaming overlay','a group chat','a pair of earbuds','a watch face','a printed zine','a deck of cards plus an app',
+      'a boardroom TV','a fridge door display','a podcast player','an e-ink screen','a theme park queue screen','a bus-stop display',
+      'a web page with no scripting','a coin-operated kiosk']},
+    role: {label:'You play as', chip:'Role', items:[
+      'a retired lighthouse keeper','a clumsy apprentice necromancer','a delivery drone with a conscience','a swarm of crows',
+      'the last bus driver in town','a sentient houseplant','a night-shift baker','a ghost bound to a single armchair',
+      'a deep-sea cable repair crew','a disgraced court jester','a lost tourist who is secretly royalty','a pocket-sized dragon',
+      'a traveling cartographer','a failing radio host','a tide-pool crab with big plans','an overworked wedding planner',
+      'an exiled weather forecaster','a hand-me-down robot butler','a village’s only blacksmith','a librarian with a magic stamp',
+      'a fox who runs a ferry','a junior detective and their talking cat','a janitor on a space station','a stage magician with real powers',
+      'a retired space pilot','a wandering bard','a clone who knows they are a clone','a mail carrier in a haunted town',
+      'a tiny knight riding a snail','a stray cat with a map','a museum night guard','an amateur kite maker',
+      'a witch running a laundromat','a cartographer of dreams','a rookie park ranger','a debt collector with a soft heart',
+      'a rat in a restaurant kitchen','a monk learning to cook','a traveling chess hustler','a starship’s only plumber',
+      'an amateur archaeologist','a pirate who gets seasick','a sentient vending machine','a storm chaser',
+      'a farmer with a very old scarecrow','a courier on a hoverboard','a one-person circus','a robot learning to garden',
+      'a kid with an enormous umbrella','a retired superhero','a cursed sword with opinions','a village elder in training',
+      'a mushroom forager','a deep-space tour guide','a smuggler of rare spices','a fire watcher on a tall tower',
+      'a reluctant dragon tamer','a mime who can’t stay quiet','a thief with a conscience','a train conductor',
+      'a bored god of small things','a puppet who cut their strings','a sewer mapmaker','a chef who cooks only for ghosts',
+      'an apprentice clockmaker','a lost astronaut’s loyal dog',
+      'a sleepy bear who runs an inn','a ghost hunter who is scared of ghosts','a cloud shepherd','a bridge troll on a deadline',
+      'a coin that wants to be spent wisely','a dungeon’s only janitor','a young wizard’s overworked familiar','a gardener of impossible plants',
+      'a rebel librarian','a golem learning manners','a salvager of drowned cities','a shy kraken',
+      'a beekeeper in a haunted orchard','a lamplighter in a city without night','an inventor with too many ideas','a trader of lost things',
+      'a messenger pigeon with a grudge','a stagehand running the whole show','a hermit crab collecting homes','a stand-in for a very famous hero',
+      'a tailor for giants','a sailor with a talking compass','a small god of a single hill','a radio operator at the end of the world',
+      'a night nurse in a haunted hospital','a forest spirit on a day off','a toymaker whose toys come alive','a wind-up robot with one more hour',
+      'a very old turtle with a very big plan','a seed trying to become a forest']},
+    setting: {label:'Setting', chip:'Setting', items:[
+      'on a train that never stops','inside a greenhouse orbiting a dying star','in a flooded medieval city','at a seaside amusement park in the off-season',
+      'on a generation ship with one working elevator','inside a giant’s coat pocket','in a mountain village stuck in a permanent eclipse','beneath a sprawling night market',
+      'in a library that rearranges itself','across a chain of floating islands','in a 1970s shopping mall','inside a snow globe on a mantelpiece',
+      'on the last day of a long summer','in a city built on a sleeping whale','at a lighthouse on the edge of the map','inside an abandoned video rental store',
+      'on a desert highway with no exits','in a clockwork town that runs down at night','aboard a pirate ship that is also a restaurant','in a monastery carved into a glacier',
+      'within a dream shared by a whole village','on a moon-sized trash heap','in an orchard where the seasons shuffle','under a city of glass domes',
+      'on a space station that is slowly tipping over','in a city where it always rains','at the bottom of a drained ocean','inside a giant clock tower',
+      'on the back of a migrating mountain','in a town where everyone has the same dream','at a train station between worlds','in a desert of broken glass',
+      'inside a computer from 1989','in a hotel with infinite floors','on a farm at the end of the universe','in a village built into a giant tree',
+      'inside a lunchbox','on a ferry crossing a haunted lake','in a bazaar that appears once a year','in the ruins of a theme park',
+      'at a research outpost in Antarctica','in a school after dark','at a fair that never closes','in a cave of glowing mushrooms',
+      'on a mountain railway in the clouds','inside a painting','in a kingdom made entirely of paper','in a post-apocalyptic garden center',
+      'at a drive-in theater on the edge of the world','on a raft drifting through a flooded forest','in a lab that runs experiments on itself','in a village of floating houses',
+      'in the belly of a sleeping machine','on a street where every door leads somewhere else','in an airship graveyard','in a bakery at the center of a labyrinth',
+      'in a seaside town stuck at dusk','inside a music box','on a rooftop garden above the clouds','in a courthouse built over a swamp',
+      'across a patchwork of tiny planets','in an underground city lit by fungi','at the last diner on the highway','at a ski resort during an avalanche warning',
+      'on a bridge that connects two warring kingdoms','inside a lighthouse made of ice','in a tide-locked city on the edge of day and night','in a village where it never stops snowing',
+      'on a cargo ship full of secrets','inside a dead god’s dream','at a mountaintop observatory','in a swamp that hums at night',
+      'in a mansion with too many clocks','across a desert of sleeping machines','in the attic of an old house','on a space elevator that is stuck',
+      'at the edge of a waterfall that never ends','in a night garden lit only by fireflies','inside a hollow planet','in a floating market above a canyon',
+      'at a mining colony on a comet','in a town of identical houses','on a battlefield turned into a park','inside a giant’s kitchen',
+      'beneath a frozen lake','in a canal city built on stilts','in an archive buried under a glacier','at a crossroads where every road is a different season']},
+    mechanic: {label:'Core mechanic', chip:'Mechanic', items:[
+      'trade favors instead of items','rewind exactly ten seconds','swap places with any object you touch','rearrange the map’s tiles',
+      'cook meals that change the rules','tame and breed odd creatures','draw routes that others must follow','bargain with enemies instead of fighting them',
+      'collect memories and spend them as ammo','flip gravity with a single dial','grow plants that solve puzzles','stack tiny helpers into towers',
+      'replay your past runs as allies','forge weapons from found trash','rent out your abilities by the hour','redraw the level with a stick of chalk',
+      'rewrite signs that characters obey','tune a radio to reveal hidden paths','borrow the senses of nearby animals','build machines from borrowed furniture',
+      'trap sounds in jars and release them later','steer storms toward your enemies','copy the last move your opponent made','shrink and grow by eating',
+      'solve crimes by rearranging evidence','manage a team of ghosts','paint over the world to change it','grow a garden that rewrites the map',
+      'lure enemies away with carefully placed noises','swap bodies with strangers','write spells by combining words','summon helpers by drawing on walls',
+      'fold the map like a sheet of paper','run a shop that sells to the enemy','dress your characters to change their abilities','talk to objects to learn their secrets',
+      'chain tiny explosions into huge combos','carry a lantern that reveals hidden layers of the world','pilot a giant machine with clumsy controls','navigate by reading constellations',
+      'train a flock of birds to carry messages','negotiate with a council of animals','blend potions to match moods','slow time by holding your breath',
+      'split into several copies of yourself','bounce between mirrors','hack machines by solving small logic puzzles','pass notes without being caught',
+      'recruit stray robots','harvest light and spend it as currency','weave stories that become real','dig tunnels that fill in behind you',
+      'follow footprints back through time','broadcast a pirate radio show to rally followers','juggle three jobs at once','play instruments to open doors',
+      'mimic the moves of nearby creatures','grapple between floating islands','assemble tiny dioramas that change the world','draft a deck from the rooms you explore',
+      'catch falling objects before they break','whisper commands to a crowd','bend light to open doors','reorder the days of the week',
+      'trade places with your reflection','tag walls with symbols that change the rules','sculpt the terrain with your hands','host dinner parties to settle conflicts',
+      'steal abilities by bumping into enemies','balance a tower of unlikely objects','pilot a swarm of tiny drones','use sound waves to push things around',
+      'set traps that other players can trigger','tilt the whole world like a marble maze','combine two rooms into one','stitch together a map from torn pages',
+      'bargain with the weather','nudge fate with tiny coin flips','send letters that arrive in the past','sing to wake up sleeping machines',
+      'pull threads that unravel the level','bounce a ball between friends and foes','play cards that rewrite the board','sketch doors onto blank walls']},
+    twist: {label:'Twist', chip:'Twist', items:[
+      'your inventory is also your health bar','the world forgets everything each night','a second player is secretly sabotaging you','time only moves when you move',
+      'every enemy was once your ally','the soundtrack is built from your mistakes','other players’ past runs share your levels','your tools wear out in real-time minutes',
+      'everyone you help gets slightly worse at something','the camera is controlled by someone else','the rules change at every sunrise','winning makes the next level harder for everyone',
+      'your companion remembers things you don’t','each death rewrites a piece of the story','the map is drawn by your own footsteps','the narrator is clearly lying to you',
+      'every shop sells only what you just lost','you age a year with every mistake','the game keeps playing while you’re away','a rival ghost hunts your best score',
+      'the world shrinks whenever you rest','item names swap on every run','your shadow acts on its own','one door locks forever after each level',
+      'the map is slightly different every time you look','allies leave if you never speak to them','your abilities are borrowed from the last person you met','the clock only ticks while you’re in danger',
+      'every victory costs you a memory','the enemy learns from your best strategy','the interface exists as a physical object in the world','you can only move on the beat',
+      'the camera slowly rotates','the final boss is the tutorial','your choices are voted on by an audience','it rains items, and most of them are cursed',
+      'the game patches itself to be harder','each save file starts a new rumor','your companion is secretly the antagonist','gravity shifts after every jump',
+      'the sun sets in real time','you can never stop moving','everyone speaks in rhyme','your map is a paper sketch that tears when you hurry',
+      'every character has one secret you can learn only once','your reflection gives bad advice','progress is stored as a recipe','you have to lose a fight to win the game',
+      'the hero keeps forgetting the goal','the controls swap every minute','two characters share one set of controls','the world is slowly being erased behind you',
+      'the whole game takes place in a single minute','every NPC remembers one thing about you','your name changes whenever you win','power-ups are borrowed and must be returned',
+      'the map is also the menu','the most helpful tool is also the most dangerous','all enemies are friendly until you win','the tutorial is never completely over',
+      'your allies cheat when you aren’t looking','the world grows while you sleep','new rules appear in the credits','the exit moves each time you get close',
+      'everything you collect slowly rots','you play the same day with different information','the best strategy is to do nothing','every rest makes the monsters stronger',
+      'your character is one of many players’ characters','you can pause time, but only once per level','the walls listen and repeat what you say','the music stops when you cheat']},
+    goal: {label:'Goal', chip:'Goal', items:[
+      'escape before the last lamp goes out','deliver one fragile package across the map','rebuild a town that no one remembers','earn the trust of an entire forest',
+      'find out who is rewriting the signs','win a championship without ever attacking','bring everyone home from a failed expedition','collect seven stories worth telling',
+      'finish a masterpiece before the festival ends','survive until the first snow','find the source of a strange music','keep a tiny garden alive through the long night',
+      'solve a decades-old mystery in one evening','return a stolen sunrise','get a message to someone on the other side of the world','make peace between two feuding neighbors',
+      'become the best-known liar in town','open every door in a hotel with infinite floors','map a world that keeps moving','save a friend from their own memories',
+      'pay off a debt owed to a mountain','escape a time loop with a better ending','teach a robot to laugh','build a bridge across a bottomless canyon',
+      'throw the greatest party in the universe','reach the top of a tower that grows each night','clear your name before the trial','find a village that keeps moving',
+      'stay awake until sunrise','collect enough light to wake the moon','win over a very picky dragon','keep a promise made a hundred years ago',
+      'learn every recipe in the kingdom','get the whole town to the festival on time','protect a single candle through a storm','repair a machine nobody understands',
+      'find out why the stars went quiet','trade up from a paperclip to something spectacular','give a lost ghost a proper goodbye','reunite a scattered orchestra',
+      'win a race against your own shadow','plant a forest on a barren moon','teach the village to read before winter','find the right words for a letter',
+      'guide a lost whale home','clear a haunted house room by room','fix every clock before midnight','lead a parade through an impossible city',
+      'outsmart a very patient thief','return to the place you started, changed','paint the sky a new color','keep a secret for a whole season',
+      'find the missing page of an ancient book','make friends with every creature on the island','win a game of chance without cheating','stop a flood with nothing but kindness',
+      'get a very large cat out of a very small tree','light every lamp before the fog arrives','arrange a perfect wedding in a haunted castle','grow the tallest sunflower in the world']},
+    opposition: {label:'Opposition', chip:'Opposition', items:[
+      'a bureaucracy that rewrites its own forms','a rival who copies every move you make','weather with strong opinions','your own past selves',
+      'a council of grumpy ghosts','a landlord who owns time itself','a swarm of overly polite robots','a mountain that rearranges itself',
+      'a rival bakery with better lighting','an ocean that remembers every wrong','a monster who is mostly lonely','a cult of cheerful accountants',
+      'a crowd that boos your mistakes','a clock that keeps stealing minutes','statues that move when you blink','an AI that insists it’s helping',
+      'a pack of deer that run the town','the town’s rules, which nobody wrote down','a theater full of harsh critics','a thief who always arrives one second ahead',
+      'overly tidy vines that want a neat yard','a rumor that grows louder each day','an army that forgot why it’s fighting','a train timetable with no mercy',
+      'a tide that comes in too fast','a fog that erases roads','your own tools, which have moods','a dragon who is just very tired',
+      'a rival adventurer with better luck','a haunted spreadsheet','a mob of enthusiastic fans','the last of a very old curse',
+      'an ice shelf that is slowly melting','a master chef who hates everything','a toll booth that wants your name','a storm with a grudge',
+      'a rival guild of retired heroes','a mischievous forest that moves the paths','a vending machine that only takes secrets','a very strict librarian',
+      'a flock of seagulls with a plan','a creeping silence','a time-traveling tax collector','a mirror image that acts first',
+      'the ghosts of former customers','a bridge that keeps changing its mind','a locked door with a long memory','a never-ending winter',
+      'a puppet master with a thousand strings','rival dreamers who steal your sleep','a self-driving cart that refuses orders','an old curse written in tiny print',
+      'a debt that doubles every night','a sky that falls in pieces','a very fast snail','a wall of loud, curious pigeons']},
+    look: {label:'Look', chip:'Look', items:[
+      'hand-painted watercolor backgrounds','chunky low-poly dioramas','cut-paper collage','black-and-white ink linework',
+      'CRT scanlines and neon glow','clay-model 3D','isometric pixel art','typewriter text and ink blots',
+      'stained-glass shapes','blueprint grid lines','crayon drawings','flat vector shapes in bold colors',
+      'woodcut prints','pastel gradients and soft lighting','grainy 16mm film','a four-shade green handheld palette',
+      'tiny 32×32 pixel art','cel-shaded 3D','chalkboard doodles','origami folds',
+      'embroidered fabric','retro vector wireframes','ASCII characters','muted earth tones with one bright accent',
+      'tilt-shift miniature scenes','storybook illustrations','paper-doll cutouts','neon cyberpunk signage',
+      'sun-faded postcards','sketchbook pencil lines','plastic toy bricks','watercolor-and-pen comics',
+      'stop-motion puppets','vaporwave pastels','hand-lettered signs everywhere','monochrome with a single spot color',
+      'high-contrast silhouettes','paper lanterns and soft shadows','sparkling night-sky blues','rough linocut shapes',
+      'soft felt-and-yarn textures','neon outlines on black','warm sunset gradients','airbrushed chrome',
+      'torn-poster graffiti','delicate gold-leaf details','scribbled margins and doodles','sea-glass colors',
+      'low-resolution video-call visuals','grainy newspaper halftones','glowing circuit-board lines','soft-focus dreamy pastels',
+      'ceramic tiles and mosaics','hand-sewn patchwork','ink-wash landscapes','toy-box primary colors',
+      'art-deco geometric patterns','x-ray style bones and wires','minimal shapes and big color fields','warped funhouse-mirror perspectives']},
+    constraint: {label:'Constraint', chip:'Constraint', items:[
+      'one-button controls','three colors only','no text anywhere','two players on one keyboard','no combat','everything on a single screen',
+      'a world seeded by today’s date','playable with the screen off','under 10 MB total','finished within 48 hours','64×64 pixel art only','sessions under five minutes',
+      'no menus or HUD','mouse only','ten unique assets at most','only sounds you record yourself','one-thumb phone controls','one hand-drawn level',
+      'runs in a browser tab','no randomness','arrow keys only','a single recurring character design',
+      'no jumping','no enemies, only obstacles','a single dial for all controls','no save system, only a daily run','two-minute runs','a soundtrack played on one instrument',
+      'only text and sound','five words or fewer per line of dialogue','shared-screen couch play','turn-based only','real-time only','a tiny 160×144 screen',
+      'a whole game built from one tile','no fail state','one life, no continues','assets drawn by hand and scanned','one shared world for all players','one sentence of story, total',
+      'a keyboard and no mouse','vertical phone orientation','tutorials that never use words','no left turns','a 1-bit palette','runs on a ten-year-old laptop',
+      'offline-only','a fifteen-minute story','a fixed camera angle','no inventory screen','one single boss',
+      'a single verb for the whole game','built in a weekend','a ten-minute playable demo','one sprite sheet only',
+      'no color, only light and dark','everything controlled by voice','no numbers shown anywhere','a hard cap of one hundred lines of code',
+      'no tutorial at all','runs on a smartwatch','only free-to-use assets','every level fits in a tweet',
+      'a fixed number of moves per level','every character is a circle','a ban on the color red','no backtracking',
+      'a single song, looped','a timer on every decision','made for public transit','no UI overlays']},
+    perspective: {label:'Camera', chip:'Camera', items:[
+      'top-down','side-scrolling','first-person','third-person','isometric','fixed-camera','2D','3D','over-the-shoulder','vertical-scrolling',
+      'split-screen','text-based','map-based','diorama-style','menu-driven','rotating-camera','free-roaming','tile-based','side-on','bird’s-eye']},
+    players: {label:'Players', chip:'Players', items:[
+      'solo play','two players on one couch','four friends online','a room full of party guests','one player and a backseat advisor','two rivals',
+      'asynchronous play between friends','massive online crowds','a family around a dinner table','a device passed hand to hand','a team of six against one','one player and one narrator',
+      'pairs working in secret','a whole classroom at once','long-distance couples','strangers matched for one minute']},
+    resource: {label:'Currency', chip:'Currency', items:[
+      'tiny favors','spare minutes','stolen light','borrowed names','pocket lint','secrets','rumors','old coins that remember',
+      'candle wax','good weather','stories','seeds','postage stamps','echoes','buttons and thread','sea glass',
+      'small kindnesses','lost socks','bottled lightning','heartbeats']},
+    progression: {label:'Progression', chip:'Progression', items:[
+      'unlock new senses instead of new abilities','a map that fills in as you tell stories','skills that fade unless you practice','a skill tree that grows like a real tree',
+      'rank up by helping strangers','level up by giving things away','a story that branches with every meal','mastery of a single tool over time',
+      'a town that grows with your reputation','permanent upgrades after each loss','a collection that tells its own story','relationships that deepen through shared chores',
+      'an unlockable language','new rooms that open as you learn the rules','a garden that remembers every season','gear that carries the history of past owners']},
+    failure: {label:'When you fail', chip:'Failure', items:[
+      'the level rebuilds itself around the mistake','you lose a day, not a life','a friend takes your place','the world gets slightly kinder',
+      'the story continues without you for a while','you restart with one new memory','a ghost of your attempt remains','nothing is lost, but everything is remembered',
+      'a stranger finishes the job and you owe them one','the map rearranges to hide your mistake','you earn a clue instead of a penalty','your shadow tries again without you',
+      'the sun sets early','the townsfolk write songs about it','your next attempt starts exactly where you stopped','the world pretends it never happened']},
+    session: {label:'Session length', chip:'Session', items:[
+      'five-minute bursts','one long evening','about an hour in a single sitting','a ten-minute daily ritual','a slow burn over a week','open-ended with no real finish',
+      'thirty-second rounds you can repeat forever','a full afternoon','one commute','a lunch break','a weekend binge','a short story you finish in one go']},
+    soundtrack: {label:'Soundtrack', chip:'Soundtrack', items:[
+      'a lone cello that follows you','a drum machine that reacts to danger','field recordings of the real world','lo-fi beats with one instrument missing',
+      'a choir of tiny voices','silence broken only by footsteps','a jazz quartet that improvises with you','chiptune melodies in minor keys',
+      'ambient drones from old radios','a music box that winds down as time runs out','a full orchestra that plays only when you succeed','whistled melodies from nearby characters',
+      'rain and distant thunder','a marching band that keeps falling out of step','harp glissandos for every discovery','a bassline built from your footsteps']},
+    ending: {label:'Ending', chip:'Ending', items:[
+      'bittersweet and open-ended','a quiet sunrise','a huge party','the credits roll over your best moments',
+      'the world resets, but you remember','the game ends when you decide it does','a surprise that recontextualizes everything','you hand your tools to someone new',
+      'everyone you met returns for one last scene','a single long take of the whole journey','a postcard from everyone you helped','you return home and nothing has changed',
+      'the final level is the first one again','a letter to your future self','the tutorial narrator thanks you','a slow fade to a starry sky']},
+    era: {label:'Time period', chip:'Era', items:[
+      'the Bronze Age','ancient Egypt','the Middle Ages','the Renaissance','the age of sail','the Victorian era','the Roaring Twenties','the 1950s',
+      'the 1970s','the 1980s','the 1990s','the near future','a distant post-human future','a thousand years after the collapse','the dawn of the space age','an alternate 1800s with steam computers',
+      'a timeless fairy-tale past','the last summer before the war','an age of airships','the final decade before the sun dies','the era of giant machines','a time before names','the golden age of radio','the age of discovery']},
+    companion: {label:'Companion', chip:'Companion', items:[
+      'a talking compass','a one-eyed raven','a retired squire with bad knees','a very opinionated lamp','a stray robot dog','a sarcastic spellbook','a nervous ghost','a sleepy dragon the size of a cat',
+      'a rival who keeps switching sides','a map that gives bad directions','a tiny storm cloud','a talking sword with stage fright','a mimic disguised as a chair','a goat with a mysterious past','a former villain in disguise','a cheerful skeleton',
+      'a lighthouse that follows you','a pocket-sized god','a penguin in a trench coat','an overenthusiastic intern','a mechanical owl','a floating jellyfish lantern','a sentient backpack','a suspiciously helpful stranger']},
+    ability: {label:'Special ability', chip:'Ability', items:[
+      'stop time for three seconds','walk through walls you have already walked around','talk to anything with a face','copy the last thing you touched','turn your shadow into a bridge','rewind one mistake per day','call a storm','swap places with your reflection',
+      'see five seconds into the future','shrink to the size of a button','borrow someone else’s luck','paint doors on blank walls','hear secrets through floors','float when nobody is looking','split into three identical copies','turn light into sound',
+      'pull objects out of maps','freeze water with a whisper','make anyone forget the last minute','glide on paper wings']},
+    hazard: {label:'Constant hazard', chip:'Hazard', items:[
+      'rising water','a creeping fog','falling stars','a slowly collapsing floor','rolling boulders on a schedule','swarms of paper wasps','a tide that never quite leaves','lights that go out without warning',
+      'static that scrambles the map','crumbling bridges','a cold that spreads from the edges','traps left by past players','a patrolling searchlight','gravity wells that move','an alarm that attracts worse things','wild weather swings',
+      'a hunger meter that is also a fuel gauge','a clock that bills you for time','poisonous music','a floor that remembers your footsteps']},
+    collectible: {label:'You collect', chip:'Collectible', items:[
+      'lost buttons','pressed flowers','strange coins','postcards from nowhere','tiny keys','weather in jars','forgotten names','broken clocks',
+      'postage stamps from imaginary countries','old maps with missing corners','feathers of every color','songs in music boxes','recipes from the dead','sea glass','teeth of friendly monsters','shadows in lockets',
+      'pieces of a shattered mirror','stars in jars','letters never sent','rumors written on napkins','unusual pebbles','badges from vanished clubs']},
+    hook: {label:'The hook', chip:'Hook', items:[
+      'every level is the same day, but more complicated','the tutorial never ends','the hero is a side character','the whole game is a single conversation','a farming game where the crops fight back','the villain wrote the tutorial','you play the game another player is losing','every ending is chosen by the previous player',
+      'a heist, but you are the vault','the map is the main character','a quiet game with one very loud moment','a puzzle game that is secretly a love letter','a cozy game with a sinister basement','a sports game with no winner','the best strategy is kindness','you only get one save slot for the whole game',
+      'a rhythm game where the beat has opinions','the game remembers your name','you play as the last pick on every team','a mystery where the clues expire']}
+  };
+  var ORDER = ['tone','perspective','genre','platform','players','role','companion','setting','era','mechanic','ability','twist','goal','opposition','hazard','resource','collectible','progression','failure','session','look','soundtrack','ending','hook','constraint'];
+  var DEFAULT_ON = {tone:false,perspective:false,genre:true,platform:false,players:false,role:true,setting:true,mechanic:true,twist:true,goal:true,opposition:false,resource:false,progression:false,failure:false,session:false,look:false,soundtrack:false,ending:false,constraint:true,companion:false,era:false,ability:false,hazard:false,collectible:false,hook:false};
+
+  // Templates: fixed rows start locked, blank rows wait for you, pools bias what rolls.
+  var TPL = {
+    anime: {name:'Anime', blurb:'Big feelings, signature moves, and a rival. Locked rows set the style; blank rows are yours to fill or roll.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','look','soundtrack','ending'],
+      fixed:{look:'bold cel-shaded art with dramatic speed lines', soundtrack:'a soaring orchestral theme with a belting rock vocal'},
+      blank:['role','opposition','ending'],
+      pools:{
+        tone:['earnest','bombastic','heartfelt','giddy','tense','hopeful','nostalgic','triumphant'],
+        genre:['turn-based tactics game','trading card battler','fighting game','monster-collecting RPG','dating sim','mystery visual novel','boss rush','card-based RPG'],
+        role:['a transfer student with a hidden power','a rookie pilot of a giant robot','a ramen cook who is secretly a legendary swordsman','a magical girl running late for exams','a wandering ronin with a talking sword','the school council president and secret vigilante','a delivery kid with a pet spirit','a reluctant chosen one'],
+        setting:['at an academy floating above the clouds','in a seaside town during the summer festival','inside a giant robot hangar','in a city with a shrine on every rooftop','on a school trip that goes wrong','at a tournament held once a century','in a train station where spirits wait'],
+        mechanic:['charge a signature move by protecting friends','call out attack names to power them up','power up by keeping a promise','fuse with a partner for combo attacks','train in short montages between battles','win rivals over with a shared meal','trade rival cards after every duel'],
+        twist:['your rival is secretly your biggest fan','the power of friendship is a literal resource','the tournament arc never ends','your sensei keeps vanishing mid-lesson','the villain just wants to retire','the final boss is a childhood friend','your power only works when you are embarrassed'],
+        goal:['win the national tournament','protect the school festival','master a forbidden technique','find the missing eighth classmate','beat your rival just once','save the town before the cherry blossoms fall'],
+        opposition:['a rival academy with matching jackets','an ancient sealed evil','a rival who always arrives with dramatic wind','a student council with secret powers','a dark lord with a tragic backstory','a corporation selling fake destiny'],
+        ending:['a cherry-blossom farewell','a rooftop sunset with your whole squad','a post-credits scene that teases a sequel','a promise to meet again next spring','the school bell rings one final time']}},
+    noir: {name:'Noir', blurb:'Rain, lies, and one last case. Locked rows set the mood; blank rows are the mystery.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','look','soundtrack'],
+      fixed:{look:'high-contrast black and white with venetian-blind shadows', soundtrack:'a smoky saxophone and rain on the window'},
+      blank:['role','twist','goal'],
+      pools:{
+        tone:['melancholy','darkly funny','tense','sleepless','solemn','sarcastic','uneasy'],
+        genre:['detective mystery','interactive fiction','point-and-click adventure','stealth game','heist game','courtroom drama','time-loop mystery'],
+        role:['a washed-up private eye','a night-shift jazz singer','a newspaper photographer with a bad habit','a pawnbroker who knows too much','a rookie cop on the wrong beat','a taxi driver who sees everything'],
+        setting:['in a city where it always rains','in a nightclub that never closes','in a harbor town full of smugglers','in a rooming house with thin walls','at a newsroom after midnight','in a hotel where every guest is lying'],
+        mechanic:['solve crimes by rearranging evidence','read people by their tells','tail suspects without being noticed','play poker to get answers','bluff witnesses with half-true stories','piece together a timeline from torn notes'],
+        twist:['the client is the culprit','every witness remembers a different night','the case you are solving was your own','your partner has been dead for years','the city rearranges itself to hide the truth','the narrator is clearly lying to you'],
+        goal:['find a missing person before dawn','clear your name before the trial','recover a stolen necklace','uncover who really runs the city','close one last case','find out who is sending the letters'],
+        opposition:['a mayor with too many friends','a rival detective on the take','a crime family with polite manners','a cop who burns the evidence','a femme fatale with her own plan','a fog that erases roads']}},
+    cyber: {name:'Cyberpunk', blurb:'Neon, debt, and corporate rain. Locked rows set the look; blank rows are the job.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','look','soundtrack'],
+      fixed:{look:'neon outlines on black', soundtrack:'synth arpeggios and distant sirens'},
+      blank:['role','goal'],
+      pools:{
+        tone:['gritty','electric','uneasy','rebellious','sarcastic','lonely'],
+        genre:['immersive sim','stealth game','tactical roguelite','heist game','twin-stick shooter','programming puzzle game','point-and-click adventure'],
+        role:['a street hacker with a borrowed face','a courier on a hoverboard','a rogue maintenance robot','a corporate intern who saw too much','a noodle-stand cook with a past','a freelance memory thief'],
+        setting:['in a megacity of neon rain','on the 200th floor of a corporate arcology','in a black market under the monorail','in a server farm cooled by a river','in an alley of vending-machine shrines','in a city that bills you for air'],
+        mechanic:['hack machines by solving small logic puzzles','rewire gadgets mid-chase','trade memories for cash','swap bodies with strangers','jack into a rival’s dream','steal data from crowds by bumping into them'],
+        twist:['your implants show ads at the worst moments','your boss is an AI','every contract has a clause that betrays you','your memories are rented','your best friend is a firmware update','the city is a simulation of itself'],
+        goal:['erase your debt','expose the mayor’s secret','deliver one package to the top floor','steal back your own memories','shut down the sky ads','escape the city grid'],
+        opposition:['a megacorp with a friendly mascot','an AI that insists it is helping','debt collectors on drones','a rival crew with better gear','a surveillance state that is always smiling']}},
+    cosmic: {name:'Cosmic horror', blurb:'Something vast is listening. Locked rows set the dread; blank rows are what you have yet to learn.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','look','soundtrack'],
+      fixed:{look:'murky watercolor with unsettling details', soundtrack:'low drones and a distant foghorn'},
+      blank:['twist','opposition'],
+      pools:{
+        tone:['ominous','uneasy','hushed','dreamlike','strange','solemn'],
+        genre:['survival horror game','walking sim','interactive fiction','detective mystery','asymmetric horror game','cozy horror game'],
+        role:['a retired lighthouse keeper','a field linguist','a night-shift archivist','a salvage diver','a small-town radio host','a graduate student with a notebook'],
+        setting:['in a fishing village that does not sleep','at an observatory pointed at the wrong star','inside a flooded library','on an island that appears at low tide','in a monastery under the sea','in a town where the stars are too close'],
+        mechanic:['record and decode strange sounds','keep a lantern lit against the dark','spend sanity to see hidden truths','map the thing in the walls','trade knowledge for safety','collect fragments of a forbidden text'],
+        twist:['the more you learn, the less the interface makes sense','your notes rewrite themselves','the monster is only visible in photographs','every ally is slightly wrong','the stars rearrange when you blink','the thing you are hunting has been hunting you'],
+        goal:['decode the signal before the tide','find your missing colleague','seal the door beneath the lighthouse','survive until dawn','map the creature’s shape without seeing it','leave town before the bell tolls thirteen'],
+        opposition:['something vast beneath the harbor','a cult of friendly neighbors','a silence that spreads','the sea itself','a book that wants to be read']}},
+    fairy: {name:'Fairy tale', blurb:'Woods, wishes, and rules with prices. Locked rows set the storybook; blank rows are the tale.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','look','soundtrack'],
+      fixed:{look:'storybook illustrations', soundtrack:'a music box and a lone flute'},
+      blank:['role','goal'],
+      pools:{
+        tone:['whimsical','wistful','mischievous','hopeful','tender','playful'],
+        genre:['narrative adventure','point-and-click adventure','puzzle platformer','interactive fiction','collect-a-thon platformer','walking sim'],
+        role:['a woodcutter’s youngest apprentice','a goose girl with a secret','a tailor of impossible garments','a very small knight','a baker whose bread can talk','a lost sibling with a battered boot'],
+        setting:['in a forest where the paths shuffle','in a castle made of gingerbread','at the edge of a well that grants wishes','in a village under a sleeping giant','in a kingdom made entirely of paper','on a road that leads to three different endings'],
+        mechanic:['bargain with talking animals','solve riddles to cross bridges','spin straw into useful tools','follow breadcrumbs back through time','trade a wish for a favor','break curses by finishing old chores'],
+        twist:['every wish has a price tag','the villain is only following the rules','the happily ever after is the first level','the wicked stepmother is your best ally','the narrator keeps taking sides','you only get three tries'],
+        goal:['break the curse before midnight','win a riddle contest against a troll','cross the forest with the last loaf of bread','find the third brother','wake the sleeping kingdom','bring back the prince’s stolen voice'],
+        opposition:['a witch with a surprising sense of humor','a troll who collects tolls in riddles','wolves with excellent manners','a king who loves rules','a mirror that insists on honesty']}},
+    western: {name:'Space western', blurb:'Dust, debts, and a town with one well. Locked rows set the frontier; blank rows are the showdown.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','look','soundtrack'],
+      fixed:{look:'sun-faded postcards', soundtrack:'twangy guitar and distant harmonica'},
+      blank:['goal','opposition'],
+      pools:{
+        tone:['wistful','deadpan','gritty','solemn','sunny','lonely'],
+        genre:['turn-based tactics game','management sim','open-world exploration game','trading card battler','space trading sim','extraction shooter'],
+        role:['a drifter with a stolen starship','a bounty hunter with a soft spot','a frontier doctor','a saloon pianist on a space station','the sheriff of a one-ship town','a prospector with a robot mule'],
+        setting:['on a dusty moon with one saloon','at a mining colony on a comet','at a frontier trading post at the edge of the map','on a train crossing a ringed planet','in a boomtown built around a single water well','on a desert highway with no exits'],
+        mechanic:['duel by reading your opponent’s tells','haggle in the saloon for rumors','track outlaws through drifting space debris','ride a hover-horse across canyons','lasso asteroids','draw cards to decide who shoots first'],
+        twist:['the outlaw is the only honest person in town','the sheriff has a price on their own head','water is the real currency','every gun has exactly one bullet left','the stagecoach never arrives','a ghost town keeps repopulating'],
+        goal:['bring in the outlaw alive','deliver the payroll across hostile territory','defend the town’s last well','find the lost vein of silver','settle an old score','buy the saloon before sundown'],
+        opposition:['a railroad baron with a robot army','a gang that is mostly cousins','a drought','a rival bounty hunter','a ghost sheriff','a sandstorm with a name']}},
+    wuxia: {name:'Wuxia', blurb:'Mist, duels, and old promises. Locked rows set the ink; blank rows are the path.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','look','soundtrack'],
+      fixed:{look:'ink-wash landscapes', soundtrack:'guzheng and a slow drum'},
+      blank:['role','twist'],
+      pools:{
+        tone:['solemn','tender','triumphant','melancholy','meditative','serene'],
+        genre:['fighting game','hack-and-slash','rhythm game','metroidvania','turn-based tactics game','souls-like'],
+        role:['a wandering swordsman with a broken blade','a tea-house keeper who is secretly a master','a disciple who failed the exam','a courier carrying a sealed scroll','a retired assassin','a healer with a hundred needles'],
+        setting:['in a bamboo forest above the mist','at a mountain monastery','in a river town during the lantern festival','on a bridge between rival schools','in a tea house on the old road','at a tournament held atop a cliff'],
+        mechanic:['duel by matching your opponent’s rhythm','channel breath into a single strike','learn techniques by watching others','balance on bamboo and rooftops','brew tea that changes the fight','challenge masters to earn their style'],
+        twist:['the legendary sword was never real','your teacher is your rival','your greatest technique is doing nothing','the villain was your first friend','each duel is fought without a blow','the tournament has no winner'],
+        goal:['avenge your teacher without drawing a sword','deliver the scroll to the mountain','master the hundredth form','find the hidden valley','win the tournament by losing','reunite two feuding schools'],
+        opposition:['a rival sect with mirror techniques','a warlord with a rotten smile','a master who never speaks','a storm that follows you','bandits with excellent manners']}},
+    cozy: {name:'Cozy village', blurb:'Small stakes, warm light, good neighbors. Locked rows set the comfort; blank rows are your day.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','look','soundtrack'],
+      fixed:{look:'soft felt-and-yarn textures', soundtrack:'a gentle guitar and a crackling fire'},
+      blank:['goal','twist'],
+      pools:{
+        tone:['cozy','gentle','sunny','heartfelt','sleepy','tender'],
+        genre:['cozy farming sim','life sim','cooking game','gardening puzzle game','pet-raising sim','crafting sandbox'],
+        role:['a night-shift baker','a gardener of impossible plants','a sleepy bear who runs an inn','a retired mail carrier','the village’s only potter','a lantern maker'],
+        setting:['in a village built into a giant tree','in a bakery at the center of a labyrinth','on a farm at the end of the universe','in a mountain village in the first week of snow','at a lakeside inn in the off-season','on a rooftop garden above the clouds'],
+        mechanic:['tend plants that grow in real time','trade recipes with neighbors','decorate a home to attract guests','brew tea that matches the weather','mend things for the whole village','write letters that change someone’s day'],
+        twist:['nothing bad ever happens, but the seasons change too fast','the villagers know a secret about you','your pets run the town council','your shop is also a time machine','every guest leaves something behind','the kettle only boils if you listen'],
+        goal:['host the harvest festival','learn every neighbor’s favorite meal','repair the old clock tower','keep the lantern lit through winter','finish a quilt for the whole town','open the inn by spring'],
+        opposition:['a rainstorm that arrives right on cue','a very persistent raccoon','a grumpy neighbor with a soft side','a missing family recipe','a snowdrift in the doorway']}},
+    gothic: {name:'Gothic mystery', blurb:'Candles, portraits, and a house with opinions. Locked rows set the gloom; blank rows are the secret.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','look','soundtrack'],
+      fixed:{look:'woodcut prints', soundtrack:'a distant organ and creaking floorboards'},
+      blank:['twist','goal'],
+      pools:{
+        tone:['ominous','solemn','eerie','melancholy','hushed','uneasy'],
+        genre:['detective mystery','escape room game','survival horror game','point-and-click adventure','interactive fiction','hidden-object game'],
+        role:['a governess with a ledger','a groundskeeper with a lantern','a young heir to a haunted estate','an apothecary','a village priest with doubts','a ghost hunter who is scared of ghosts'],
+        setting:['in a mansion with too many clocks','in a moorland village under fog','in a cathedral with a missing bell','in a cemetery where the names rearrange','in a chapel at the edge of a cliff','in an inn where every room is haunted'],
+        mechanic:['restore memories by touching objects','light candles to reveal hidden doors','collect letters to piece together a family history','bargain with ghosts for answers','decode portraits that change when you look away','ring bells in the right order'],
+        twist:['the ghost is the only living person in the house','the heir has been dead for years','every portrait is a different version of you','the staff are all one person','the diary is written in your hand','the house only exists at night'],
+        goal:['break the family curse','find the last will','discover why the bell tolls','survive three nights in the manor','free the ghost trapped in the mirror','finish the portrait'],
+        opposition:['a butler who knows everything','a curse written into the stonework','a fog that hides the stairs','a family that smiles too much','a storm that locks the doors','the manor itself']}},
+    arcade: {name:'Retro arcade', blurb:'One more coin, one more run. Locked rows set the cabinet; blank rows are the high score.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','look','soundtrack'],
+      fixed:{look:'chunky pixels with CRT scanlines', soundtrack:'chiptune melodies in minor keys'},
+      blank:['role','goal'],
+      pools:{
+        tone:['bombastic','playful','frantic','giddy','nostalgic','chaotic'],
+        genre:['bullet-hell shooter','arcade racer','endless runner','pinball game','boss rush','match-three puzzler','twin-stick shooter'],
+        role:['a pixel hero with three lives','a ghost in a maze','a spaceship pilot with one button','a high-score chaser','a tiny robot in a claw machine','a paddle with a dream'],
+        setting:['inside a cabinet that is slightly broken','at a mall arcade on a Saturday night','in a maze with secret exits','on a leaderboard that is also a city','inside a pinball machine','on a scrolling highway at midnight'],
+        mechanic:['chain combos to keep the multiplier alive','dodge in rhythm to the beat','collect power-ups that expire in seconds','bounce shots off the walls','push your luck for a bigger bonus','memorize patterns and then break them'],
+        twist:['the high score is held by your future self','the game gets faster whenever you do well','the boss is your last high score','a second player appears halfway through','the credits are the final level','every continue costs a memory'],
+        goal:['beat the high score by one point','reach the last stage on a single coin','clear the screen of invaders','survive the boss pattern','get your initials on the board','find the secret level'],
+        opposition:['a boss that learns your patterns','a clock that always wins','a swarm that gets faster','a cabinet that glitches on purpose','a rival with perfect timing']}},
+    postapoc: {name:'Post-apocalypse', blurb:'Overgrown ruins and small kindnesses. Locked rows set the ruin; blank rows are your survival plan.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','companion','hazard','look','soundtrack'],
+      fixed:{look:'overgrown ruins in washed-out pastels', soundtrack:'a lone guitar and wind through broken glass'},
+      blank:['role','goal'],
+      pools:{
+        tone:['wistful','hopeful','lonely','gritty','tender'],
+        genre:['base-building survival game','crafting sandbox','management sim','walking sim','tactical roguelite'],
+        role:['a scavenger with a map of old shops','a radio operator in a bunker','a gardener of the last greenhouse','a courier between settlements','a former chef feeding the neighborhood'],
+        setting:['in a flooded subway with a thriving market','in a shopping mall overgrown with vines','on a highway convoy that never stops','in a town built inside a dry reservoir','at a rooftop farm above the ruins'],
+        mechanic:['scavenge ruins for parts and stories','trade supplies between wary settlements','repair old machines with improvised parts','grow crops where nothing should grow','broadcast hope on a hand-cranked radio'],
+        twist:['the old world still sends occasional messages','every settlement remembers a different catastrophe','the last map is slowly redrawing itself','the safest place is also the loneliest','your supplies are also your memories'],
+        goal:['reach the rumored seed vault','reconnect two isolated towns','restart the old power station','find the source of the strange broadcasts','plant a forest in the ruins'],
+        opposition:['a toll-keeper on every bridge','a storm season that arrives early','rival scavengers with fewer scruples','an automated factory still making the wrong things','a sickness that spreads through rumors'],
+        companion:['a stray dog with a radio collar','a repair drone with a mind of its own','a child who remembers the old songs','a very old tortoise'],
+        hazard:['acid rain on a schedule','crumbling overpasses','roaming dust storms','spreading ash']}},
+    pirate: {name:'Pirate', blurb:'Salt, rumors, and a ship with opinions. Locked rows set the sea; blank rows are your course.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','companion','hazard','look','soundtrack'],
+      fixed:{look:'hand-painted watercolor sea charts and storm skies', soundtrack:'sea shanties and creaking timber'},
+      blank:['goal','twist'],
+      pools:{
+        tone:['mischievous','triumphant','bombastic','giddy','tense'],
+        genre:['open-world exploration game','management sim','trading card battler','heist game','crafting sandbox'],
+        role:['a pirate who gets seasick','a cartographer on the wrong ship','a cook with a secret recipe','a stowaway with a talking parrot','a navigator who hears the sea'],
+        setting:['aboard a pirate ship that is also a restaurant','in a harbor town where rum is currency','on an island that moves at night','in a storm that never ends','beneath a lighthouse owned by smugglers'],
+        mechanic:['steer by the stars and rumors','board rival ships with swinging ropes','bargain with harbor masters','bury treasure and sell the maps','win crews over with songs'],
+        twist:['the treasure map is a love letter','the ship is the real captain','every island is the same island','the parrot is the ship’s accountant','the crew votes on every decision'],
+        goal:['find the treasure of a legendary cook','reunite a scattered fleet','pay off a debt to the sea','win the pirate court case','outrun the navy until sunrise'],
+        opposition:['a navy with a very long memory','a rival captain with a better hat','a kraken with strong opinions','a mutiny planned in the galley','a lighthouse keeper who sells secrets'],
+        companion:['a parrot who knows too much','a ship’s cat with a map tattoo','a one-legged navigator','a cheerful mermaid guide'],
+        hazard:['whirlpools at the map edges','fog banks that hide reefs','sudden calms','cannon fire from nowhere']}},
+    hero: {name:'Superhero', blurb:'Capes, secret identities, and unreasonable responsibilities. Locked rows set the style; blank rows are the day.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','companion','hazard','look','soundtrack'],
+      fixed:{look:'comic halftones with bold outlines', soundtrack:'a heroic brass fanfare'},
+      blank:['role','opposition'],
+      pools:{
+        tone:['bombastic','earnest','sarcastic','triumphant','heartfelt'],
+        genre:['platform fighter','beat-em-up','tactical roguelite','card-based RPG','open-world exploration game'],
+        role:['a rookie hero with unreliable powers','a retired superhero','a sidekick promoted by accident','a villain trying to go straight','a hero’s overworked accountant'],
+        setting:['in a city that is rebuilt every week','on the rooftops of a very tall city','at a hero headquarters with terrible plumbing','in the quiet suburb of a supervillain','during the annual hero convention'],
+        mechanic:['juggle saving the day and a day job','combine powers with other heroes','keep a secret identity from nosy neighbors','train in short montages','rescue civilians while limiting collateral damage'],
+        twist:['your powers are rented','the villain is your landlord','everyone knows your secret identity but pretends not to','your power grows when you tell the truth','the city has its own opinions about you'],
+        goal:['stop the villain’s big announcement','rescue the city before the credits','save a date night','win back the public’s trust','pass your hero license exam'],
+        opposition:['a villain with a very strict schedule','a rival hero with better press','a city council that bans capes','a robot army that wants your approval','a nemesis who is also your neighbor'],
+        companion:['a loyal sidekick in a rented suit','a talking pigeon informant','a retired mentor','a robot butler'],
+        hazard:['falling debris','rooftop crowds','villain announcements','runaway traffic']}},
+    mecha: {name:'Mecha', blurb:'Giant machines, tiny cockpits, big feelings. Locked rows set the steel; blank rows are the sortie.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','companion','hazard','look','soundtrack'],
+      fixed:{look:'bold cel-shaded art with heavy machinery detail', soundtrack:'thundering drums and a soaring synth lead'},
+      blank:['role','goal'],
+      pools:{
+        tone:['bombastic','tense','heartfelt','solemn','triumphant'],
+        genre:['turn-based tactics game','boss rush','twin-stick shooter','management sim','card-based RPG'],
+        role:['a rookie pilot of a giant robot','a mechanic who knows every bolt','a retired ace','a pilot who is secretly a child','an AI that learned to dream'],
+        setting:['in a hangar on a floating fortress','in a city flattened by the last war','on a training ground at the edge of space','in a mining colony with one working mech','in the shadow of a giant shrine'],
+        mechanic:['customize your mech with salvaged parts','sync emotions with your machine','combine robots into one giant form','repair under fire','call out attacks to power them up'],
+        twist:['the mech is afraid of the dark','your co-pilot is the enemy commander','the war ended years ago','the cockpit is bigger than the mech','every upgrade makes the machine more stubborn'],
+        goal:['protect the last city','win the championship battle','bring the prototype home','end the war without firing a shot','repair your mech before dawn'],
+        opposition:['an enemy ace with a tragic past','a corporation selling the war','a rogue AI fleet','a mountain-sized war machine','an old rival with a newer mech'],
+        companion:['a mechanic with a toolbox the size of a car','a tiny support drone','a veteran pilot who hums','a cargo-bay cat'],
+        hazard:['overheating engines','falling debris','low ammunition','cascading system failures']}},
+    school: {name:'School days', blurb:'Clubs, exams, and the weirdest school year. Locked rows set the mood; blank rows are the semester.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','companion','hazard','look','soundtrack'],
+      fixed:{look:'sketchbook pencil lines with soft color washes', soundtrack:'a cheerful piano and school-bell chimes'},
+      blank:['goal','twist'],
+      pools:{
+        tone:['playful','nostalgic','heartfelt','chaotic','sunny'],
+        genre:['dating sim','life sim','management sim','mystery visual novel','rhythm game'],
+        role:['a transfer student with a secret','the school newspaper editor','a club president with one member','a substitute teacher','a student council treasurer'],
+        setting:['at a school with a secret basement','during the last week before graduation','at a festival where every club has a stall','in a school that rearranges its halls','during a never-ending snow day'],
+        mechanic:['balance classes, clubs, and friendships','solve mysteries around campus','run a club on a tiny budget','pass notes without being caught','plan the perfect festival booth'],
+        twist:['everyone is secretly in a different club','the exam is graded by the principal’s cat','the school mascot runs the council','time resets every Friday','your locker leads somewhere else'],
+        goal:['win the school festival','save the club from being shut down','pass the final exam','find the missing yearbook','make the team before the bell'],
+        opposition:['a rival club with better funding','a very strict hall monitor','a substitute teacher who knows too much','an exam that changes every hour','a vice principal with a whistle'],
+        companion:['a best friend with a camera','a school cat who attends class','a quiet classmate who knows everything','a talking locker'],
+        hazard:['pop quizzes','hallway rush hour','the cafeteria line','a closing bell']}},
+    fantasy: {name:'High fantasy', blurb:'Prophecies, taverns, and dragons with schedules. Locked rows set the realm; blank rows are the quest.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','companion','hazard','look','soundtrack'],
+      fixed:{look:'painterly landscapes with warm light', soundtrack:'a sweeping orchestra with a lone flute'},
+      blank:['role','goal'],
+      pools:{
+        tone:['triumphant','solemn','whimsical','hopeful','ominous'],
+        genre:['turn-based tactics game','dungeon crawler','card-based RPG','open-world exploration game','hack-and-slash'],
+        role:['a farmhand who found a sword','an apprentice wizard','a bard with a secret','a knight who is afraid of heights','a dragon’s accountant'],
+        setting:['in a kingdom of floating castles','in a tavern at the crossroads of realms','in a forest older than the stars','at a mountain pass with a toll troll','in a city built into a dragon’s skeleton'],
+        mechanic:['recruit a party of mismatched heroes','cast spells by combining runes','negotiate with dragons','explore ruins for forgotten lore','forge legendary gear from found parts'],
+        twist:['the prophecy has a typo','the dark lord is just lonely','the sword has opinions','the chosen one quit last week','the map only works at dusk'],
+        goal:['return the crown before the coronation','close the portal before midnight','find the three missing runes','deliver a message to a sleeping giant','win the tournament of heroes'],
+        opposition:['a dark lord with a legal team','a dragon with a hoard of debt','a cursed forest that rearranges itself','a rival party with better gear','a prophecy that keeps changing'],
+        companion:['a talking sword with stage fright','a sleepy dragon the size of a cat','a bard who narrates your mistakes','a pack mule with a plan'],
+        hazard:['cursed fog','falling rocks in a mountain pass','wandering monsters at dusk','magic storms']}},
+    spy: {name:'Spy thriller', blurb:'Gadgets, cover stories, and one tuxedo. Locked rows set the style; blank rows are the mission.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','companion','hazard','look','soundtrack'],
+      fixed:{look:'sleek graphic shapes in black and red', soundtrack:'a brassy jazz theme with a walking bassline'},
+      blank:['goal','opposition'],
+      pools:{
+        tone:['tense','darkly funny','sarcastic','cinematic','uneasy'],
+        genre:['stealth game','heist game','immersive sim','detective mystery','tactical roguelite'],
+        role:['a retired spy turned baker','a double agent who forgot which side they are on','a gadget maker','a diplomat with a secret','a rookie agent on their first day'],
+        setting:['at a grand hotel on the eve of a treaty','on a train crossing the border','in a casino with too many cameras','at an embassy during a masquerade','in a quiet town that is entirely a front'],
+        mechanic:['blend into crowds with disguises','trade secrets at dead drops','hack gadgets on the fly','tail targets without being noticed','charm guards into lowering their guard'],
+        twist:['your handler is a vending machine','every agent is secretly the same agent','the mission was a test','your cover story is better than your real life','the villain is also undercover'],
+        goal:['retrieve the stolen formula','stop the treaty from being signed','find the mole before midnight','deliver a message without being seen','escape with the briefcase'],
+        opposition:['an enemy agency with better coffee','a mole in your own office','a rival agent with a better tuxedo','a mastermind with a very long monologue','a security system with trust issues'],
+        companion:['a gadget-loving quartermaster','a suspiciously friendly bartender','a trained pigeon courier','a rival turned reluctant partner'],
+        hazard:['laser grids','patrolling guards','alarm systems','cameras in every corner']}},
+    deepsea: {name:'Deep sea', blurb:'Pressure, bioluminescence, and quiet company. Locked rows set the dark; blank rows are the dive.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','companion','hazard','look','soundtrack'],
+      fixed:{look:'bioluminescent glow in deep teal darkness', soundtrack:'low whale songs and distant sonar pings'},
+      blank:['role','twist'],
+      pools:{
+        tone:['hushed','eerie','meditative','wistful','uneasy'],
+        genre:['survival horror game','walking sim','crafting sandbox','tiny ecosystem simulator','open-world exploration game'],
+        role:['a deep-sea cable repair crew','a marine biologist with a lost sub','a lighthouse keeper beneath the waves','a salvage diver','an aquarium night guard'],
+        setting:['at the bottom of a drained ocean','in a research station on the trench floor','in a sunken city lit by jellyfish','inside a whale-sized submarine','in a coral reef town'],
+        mechanic:['map the trench with sonar pulses','harvest light from deep-sea creatures','repair a failing habitat under pressure','befriend glowing fish','dive carefully while the oxygen ticks'],
+        twist:['the sea is slowly rising inside the station','the creatures are copying your habits','every dive changes the map','the surface is the real danger','your sonar hears things that are not there'],
+        goal:['find the lost expedition','repair the station before the pressure shifts','map the whole trench','return a stolen pearl to the sea','reach the surface before dawn'],
+        opposition:['pressure that grows with every level','an enormous shape that follows you','a failing air supply','a rival salvage crew','a current that carries you away'],
+        companion:['a glowing jellyfish lantern','a patient octopus','a sonar-loving dolphin','a diver’s radio voice'],
+        hazard:['crushing depth','dwindling oxygen','strong currents','sudden silt storms']}},
+    space: {name:'Space opera', blurb:'Fleets, empires, and one stubborn crew. Locked rows set the scale; blank rows are the campaign.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','companion','hazard','look','soundtrack'],
+      fixed:{look:'sweeping starfields in jewel tones', soundtrack:'a thundering orchestra with choral swells'},
+      blank:['role','opposition'],
+      pools:{
+        tone:['triumphant','bombastic','solemn','hopeful','bittersweet'],
+        genre:['4X strategy game','space trading sim','tactical roguelite','management sim','flight sim'],
+        role:['the captain of a very small ship','a diplomat between warring empires','a navigator with a broken map','an engineer who keeps the engines humming','a stowaway prince'],
+        setting:['aboard a flagship on the edge of a nebula','in a city-sized space station','on a trade route between dying stars','in a fleet that never lands','at a border outpost between empires'],
+        mechanic:['command a crew of mismatched specialists','negotiate treaties in tense meetings','chart jump routes through unstable space','trade goods between wary colonies','fight fleet battles with clever formations'],
+        twist:['the empire has been dead for a century','your ship is the last of its class','every treaty is secretly the same one','the enemy fleet is your own','the stars are slowly going out'],
+        goal:['unite the fleets before the war','deliver the treaty before the deadline','find the lost homeworld','protect the colony ship','keep the engines alive until the next star'],
+        opposition:['an empire with endless paperwork','a rival fleet with better ships','a warlord with a very good voice','a rogue AI governor','a nebula that eats signals'],
+        companion:['a ship AI with strong opinions','a cheerful alien engineer','a navigator who sings','a loyal cargo bot'],
+        hazard:['asteroid fields','solar flares','failing life support','hostile patrols']}},
+    folk: {name:'Folk horror', blurb:'Harvest festivals and rules nobody explains. Locked rows set the unease; blank rows are the secret.',
+      on:['tone','genre','role','setting','mechanic','twist','goal','opposition','companion','hazard','look','soundtrack'],
+      fixed:{look:'woodcut prints with a muted harvest palette', soundtrack:'a droning fiddle and distant choir'},
+      blank:['twist','goal'],
+      pools:{
+        tone:['uneasy','eerie','ominous','sunny','hushed'],
+        genre:['survival horror game','detective mystery','walking sim','interactive fiction','hidden-object game'],
+        role:['a visiting researcher','a new schoolteacher in a quiet village','a hired groundskeeper','a lost traveler','a documentary filmmaker'],
+        setting:['in a village preparing for the harvest festival','in a farmstead surrounded by tall corn','in a hamlet where nobody leaves','at a hilltop shrine with fresh offerings','in an inn that only has one room'],
+        mechanic:['learn village customs without breaking them','collect folk tales to piece together the truth','trade favors with suspicious neighbors','follow strange rituals from a distance','decipher the meaning of every scarecrow'],
+        twist:['everyone is far too welcoming','the festival has no end date','the scarecrows are always one step closer','the village has your name on a list','the rules change but nobody says so'],
+        goal:['leave before the festival ends','find the missing researcher','learn what the harvest really is','deliver a letter to the elder','survive the longest night'],
+        opposition:['a village with very warm smiles','a festival that will not end','scarecrows that never blink','a crop that grows too fast','a very polite elder'],
+        companion:['a stray dog who refuses to enter the church','a nervous child who knows the rules','a local guide who hums','a crow that follows you'],
+        hazard:['fog on the road','bells that ring at the wrong times','crops that close in','a lantern that dims']}}
+  };
+  var tplEls = {};
+
+  // GEN-START: every ingredient has a generator built from shared word banks, at least 10^10 combinations each.
+  function an(w){ return /^[aeiou]/i.test(w) ? 'an' : 'a'; }
+  function s3(v){
+    var p = v.split(' '), w = p[0];
+    if(/(s|sh|ch|x|z)$/.test(w)) w += 'es';
+    else if(/[^aeiou]y$/.test(w)) w = w.slice(0, -1) + 'ies';
+    else w += 's';
+    p[0] = w; return p.join(' ');
+  }
+  function pl(n){
+    var p = n.split(' '), w = p[p.length - 1];
+    if(/(s|sh|ch|x|z)$/.test(w)) w += 'es';
+    else if(/[^aeiou]y$/.test(w)) w = w.slice(0, -1) + 'ies';
+    else w += 's';
+    p[p.length - 1] = w; return p.join(' ');
+  }
+  function P(parts, fmt){
+    var size = parts.reduce(function(n, p){ return n * p.length; }, 1);
+    return { size: size, make: function(){ return fmt.apply(null, parts.map(rand)); } };
+  }
+  var W = {
+    adj: ['grumpy','retired','overworked','cheerful','nearsighted','exiled','reluctant','sleepless','magnificent','tiny','haunted','ambitious','bankrupt','secretive','enormous','clumsy','fearless','homesick','superstitious','ageless','cursed','forgetful','famous','disguised','stubborn','polite','abandoned','glittering','flooded','windswept','frozen','overgrown','floating','bustling','crumbling','sunlit','miniature','forgotten','neon-lit','upside-down','mossy','moonlit','glass','paper','clockwork','cozy','sprawling','hollow','rusted','quiet','hidden','borrowed','tilted','singing','golden','silver','crimson','velvet','whispering','restless','ancient','brittle','cunning','drowsy','eager','fickle','gentle','hungry','idle','jolly','keen','lonely','mighty','nimble','odd','patient','quirky','radiant','shy','thoughtful','unlucky','vivid','weary','young','zealous','anxious','bold','curious','dusty','elegant','fragile','grand','humble','icy','jaded','kind','lazy','merry','noble','obedient','peculiar','rowdy','scrappy','tender','unruly','vast','wicked','wobbly','yellowed','bright','calm','dim','early','faded','giddy','heavy','jagged','knotted','loud','muddy','narrow','open','pale','rough','salty','tidy','upbeat','warm','woolly','bouncy','creaky','drifting','echoing','flickering','gleaming','humming','inky','jingling','lopsided','murmuring','nameless','orbiting','prickly','rattling','shimmering','tangled','unseen','wandering','weathered','amber','cobalt','scarlet','ivory','emerald','ochre','plum','teal'],
+    cre: ['baker','cartographer','lighthouse keeper','ferry pilot','locksmith','beekeeper','courier','inventor','ghost','dragon','robot','fox','crow','knight','wizard','mechanic','chef','diplomat','librarian','sailor','tailor','pilot','detective','gardener','astronomer','janitor','bard','thief','scribe','medic','poet','miner','bus driver','shepherd','translator','clockmaker','stagehand','bounty hunter','apprentice','mushroom farmer','owl','badger','otter','heron','hedgehog','goat','snail','turtle','moth','beetle','jellyfish','octopus','pelican','raven','magpie','penguin','bear','rabbit','mole','ferret','falcon','blacksmith','potter','weaver','sculptor','painter','juggler','magician','acrobat','clown','mayor','sheriff','judge','banker','merchant','peddler','innkeeper','bartender','waiter','farmer','miller','shopkeeper','tinker','gravedigger','nurse','doctor','teacher','student','professor','scientist','engineer','architect','builder','carpenter','plumber','driver','conductor','captain','admiral','pirate','smuggler','spy','soldier','guard','hermit','nomad','pilgrim','prince','princess','queen','giant','goblin','troll','elf','dwarf','witch','golem','mermaid','sprite','imp','spirit','phantom','scarecrow','puppet','statue','automaton','clone','android','alien','astronaut'],
+    obj: ['lantern','key','map','compass','clock','mirror','kettle','umbrella','button','ribbon','thimble','locket','candle','bell','whistle','ladder','bridge','gate','door','window','staircase','trumpet','drum','violin','harp','music box','telescope','microscope','typewriter','camera','radio','telephone','telegram','postcard','letter','parcel','suitcase','trunk','basket','barrel','bottle','jar','teapot','spoon','fork','plate','lamp','torch','mask','hat','scarf','glove','boot','coat','cloak','crown','sword','shield','arrow','hammer','wrench','saw','shovel','rake','bucket','broom','kite','balloon','sail','anchor','oar','net','rope','chain','lock','coin','ticket','stamp','badge','medal','trophy','painting','vase','rug','curtain','pillow','blanket','quilt','sketchbook','notebook','diary','scroll','tome','ledger','almanac','riddle','recipe','sandwich','pie','loaf','apple','pear','acorn','pinecone','seed','flower','feather','shell','pebble','crystal','gear','spring','lever','engine','boiler','valve','antenna','battery','circuit','cable','screen','keyboard','joystick','cartridge','tape','record','jukebox','vending machine','streetlamp','signpost','weathervane','windmill','tent','hammock','raft','canoe','carriage','wagon','bicycle','sled','skateboard'],
+    plc: ['lighthouse','harbor','train station','library','night market','ferry','observatory','greenhouse','clock tower','space station','monastery','hotel','canal city','island','mountain village','cathedral','desert outpost','airship','workshop','carnival','orchard','volcano','bakery','research station','attic','rooftop','cave','crossroads','cargo ship','museum','swamp village','ski lodge','underground city','floating market','theater','border crossing','school','snow globe','lakeside inn','tower','castle','fortress','palace','temple','shrine','ruin','mine','quarry','farm','ranch','vineyard','meadow','forest','jungle','tundra','glacier','canyon','valley','plateau','reef','lagoon','waterfall','marsh','dune','oasis','cliff','cove','pier','dock','shipyard','foundry','factory','warehouse','arcade','casino','circus','stadium','laboratory','hospital','prison','courthouse','town hall','post office','bank','diner','cafe','tavern','bathhouse','barbershop','bookshop','pawnshop','junkyard','graveyard','playground','aquarium','zoo','planetarium','subway','tunnel','canal','aqueduct','highway','roadside motel','truck stop','treehouse','cabin','cottage','mansion','manor','apartment block','rooftop garden','spaceport','moon base','comet camp','sky bridge'],
+    abs: ['memory','silence','rumor','secret','promise','debt','luck','courage','patience','reputation','shadow','echo','dream','rhythm','balance','harmony','curiosity','nostalgia','mystery','destiny','honor','trust','kindness','fear','hope','laughter','gossip','fame','hunger','thirst','loneliness','pride','regret','wonder','boredom','mischief','justice','mercy','anger','joy','sorrow','wisdom','folly','fortune','fate','time','gravity','momentum','tension','warmth','chill','glow','hush','whisper','rumble','melody','verse','legend','myth','story','history','future','tradition','ritual','custom','habit','instinct','intuition','imagination','ambition','loyalty','betrayal','friendship','rivalry','romance','grudge','forgiveness','freedom','order','chaos','calm','nature','magic','music','light','dark','speed','stillness','distance','hospitality','suspicion','confidence','humor','grace'],
+    vrb: ['repair','borrow','trade','forge','tame','steal','rewrite','summon','bottle','conduct','smuggle','map','tune','collect','swap','grow','weave','befriend','decode','rebuild','bend','guard','deliver','hide','polish','chase','follow','sell','bake','paint','carry','steer','lure','mend','invent','teach','rescue','sketch','lift','recruit','bury','unearth','outsmart','charm','tickle','scare','soothe','bribe','interrogate','interview','photograph','translate','memorize','forget','remember','inherit','adopt','arrest','free','trap','tow','launch','ignite','extinguish','soak','dry','freeze','melt','fold','unfold','stack','scatter','gather','sort','count','measure','weigh','price','auction','rent','lend','return','bargain with','argue with','dance with','whisper to','sing to','wave at','compete with','escort','ferry','ship','mail','broadcast','record','replay','rewind','shuffle'],
+    time: ['at midnight','before dawn','at sunset','after the rain','during a storm','on a quiet Sunday','at high tide','in the middle of winter','just before the festival','during the long summer','at the stroke of noon','on the last night of the year','as the lights go out','while the town sleeps','before the first snow','after the last train','on market day','during the harvest','in the dead of night','at the break of day','before anyone wakes up','while the kettle boils','between two heartbeats','under a full moon','in the first week of spring','during a blackout','on the longest day','after the credits roll','before the curtain rises','while the music plays','as the bells ring','at closing time','at opening time','during the parade','on payday','on a rainy Tuesday','during an eclipse','at the edge of autumn','as the fog rolls in','while the clock is stopped','after everyone has left','during a power cut','before the ice melts','after the flood','at the turn of the tide','in a borrowed hour','on an extra day of the week','during the quiet hour','as the sun refuses to set','after supper','before breakfast','at teatime','while nobody is looking','during the intermission','before the deadline','at the eleventh hour','as the snow begins','when the stars come out','when the wind changes','whenever it rains','whenever someone whistles','every third night','once a week','twice a day','every full moon','once per year','at random','without warning','on short notice','in slow motion','after a very long day','when the tide is out','as the engine starts','as the engine stops','at the last minute','at first light'],
+    how: ['without being seen','one careful step at a time','by shouting at the right moment','using only what you carry','to pay off an old debt','to keep your friends safe','in rhythm with the music','to confuse your rivals','by trial and a lot of error','when nobody is looking','to unlock a better ending','to survive the night','to impress a critic','with a very limited supply','to protect something small','with a lot of patience','as quietly as possible','as loudly as possible','before it is too late','with help from a stranger','against all advice','while singing softly','by following the rules exactly','by breaking the rules politely','with your eyes closed','using only one hand','in the wrong order','in the right order','for a very small reward','for the sake of a rumor','on a dare','as a favor','to win a bet','for a friend of a friend','while a crowd watches','while someone else takes credit','with a borrowed tool','with an unreliable map','with an old recipe','with only a hunch','at great personal cost','to settle an old score','to make amends','to earn a place at the table','to prove a point','to avoid a fine','for a better view','for no obvious reason','as part of an elaborate plan','by accident, mostly','by design, mostly','with perfect timing','with terrible timing','by candlelight','by moonlight','in total silence','in a hurry','at a snail’s pace','without asking permission','after asking permission twice','while pretending to be someone else','under a false name','in a very large hat','on a very small boat','with an audience of pigeons','as a long overdue favor','to get a better ending','to make a good story','to leave a better world','with the help of a goat','without a single word','after a short nap','to the beat of a drum','with tremendous enthusiasm','with mild disappointment','as if nothing happened'],
+    color: ['crimson','scarlet','vermilion','amber','gold','saffron','ochre','olive','emerald','jade','teal','turquoise','cobalt','indigo','violet','plum','magenta','rose','peach','cream','ivory','pearl','silver','slate','charcoal','ink black','rust','copper','bronze','sand','moss','sage','mint','sea-foam','sky blue','midnight blue','lavender','lilac','coral','salmon','mustard','burgundy','maroon','tangerine','lemon','lime','forest green','ash gray','fog white','dusk pink','dawn orange','storm gray','bone white','wine red','denim blue','sunflower yellow','mahogany','chestnut','cocoa'],
+    adv: ['slightly','deeply','gloriously','quietly','dangerously','tenderly','relentlessly','strangely','wildly','softly','pleasantly','uncomfortably','hopelessly','cheerfully','grimly','boldly','playfully','achingly','absurdly','bitterly','brightly','calmly','deliciously','eerily','fiercely','gently','happily','intensely','joyfully','kindly','lazily','madly','nervously','openly','proudly','reluctantly','sweetly','truly','unbearably','vaguely'],
+    prep: ['in','at','inside','beneath','above','near','within','on the edge of'],
+    group: ['a gang of','a union of','a swarm of','a council of','a cult of','a crowd of','an army of','a family of','a flock of','a guild of'],
+    med: ['hand-painted watercolors','pixel art','paper cutouts','chalk drawings','low-poly 3D','woodcut prints','ink linework','felt and yarn','neon vector shapes','claymation','stained glass','blueprint lines','crayon scribbles','oil paint','airbrushed chrome','charcoal sketches','mosaic tiles','cel-shaded 3D','embroidery','collage','1-bit dithering','pastel gradients','silhouettes','isometric dioramas','comic halftones','tapestry weave','ceramic glaze','x-ray visuals','storybook illustration','linocut'],
+    ins: ['inspired by 1970s travel posters','inspired by old maps','inspired by children’s books','inspired by silent films','inspired by sailing charts','inspired by street signs','inspired by comic strips','inspired by museum dioramas','inspired by pulp paperbacks','inspired by stage sets','inspired by postage stamps','inspired by seed packets'],
+    instr: ['cello','toy piano','chiptune band','children’s choir','saxophone','steel drum','theremin','accordion','drum machine','string quartet','music box','banjo','pipe organ','field recording','harp','brass band','lo-fi synth','kalimba','marimba','church bell','whistled melody','out-of-tune piano','flute','modular synth','ukulele','slide guitar','glass harmonica','tuba','bowed saw','vinyl crackle'],
+    view: ['top-down','side-scrolling','first-person','isometric','third-person','fixed','over-the-shoulder','vertical-scrolling','split-screen','map-based','diorama-style','text-based','tile-based','free-roaming','rotating','tilt-shift','zoomed-out','security-camera','wide-angle','cinematic'],
+    mod: ['cozy','tense','tiny','cooperative','competitive','procedural','hand-crafted','turn-based','real-time','narrative-driven','physics-based','one-screen','asymmetric','daily','endless','story-rich','experimental','puzzle-heavy','minimalist','chaotic','social','survival','stealthy','rhythmic','deckbuilding','looping','exploration-first','tactical','arcade-style','open-ended'],
+    base: ['platformer','roguelike','puzzle game','dating sim','city builder','farming sim','shooter','racing game','adventure','strategy game','card game','sandbox','mystery game','tower defense game','management sim','simulation','party game','RPG','metroidvania','detective game','word game','fighting game','sports game','trading game','cooking game','horror game','heist game','rhythm game','dungeon crawler','walking sim','visual novel','tycoon game','auto-battler','toy','idle game','crafting game','fishing game','deckbuilder','racing roguelite','exploration game'],
+    dev: ['phone','tablet','handheld','browser tab','console','smartwatch','laptop','TV','kiosk','VR headset','pair of earbuds','projector','deck of cards','e-reader','radio','jukebox','scoreboard','calculator','smart speaker','mini arcade cabinet','spare monitor','set of walkie-talkies','printed booklet','group chat','pocket console'],
+    ctx: ['in a waiting room','on a long train ride','at a family gathering','in a library','at a bus stop','for a classroom','at a tiny cafe','in a car','at a party','in the dark','for long-distance friends','on a lunch break','in an airport','on a camping trip','for a museum visit'],
+    pn: ['one player','two players','three friends','four friends','a whole family','a classroom','a party of eight','strangers online','a pair of rivals','a team of five','two partners','a crowd of twenty'],
+    ph: ['taking turns','all at once','passing one device around','on separate screens','in secret teams','across time zones','on one couch','sharing one keyboard','with one narrator','in short rounds','in a relay','cooperating against the game','with hidden roles','asynchronously','across a table'],
+    unit: ['seconds','minutes','hours','evenings','days','weeks','lunch breaks','commutes'],
+    style: ['with a clear ending','that can be paused anytime','with a satisfying run each time','that builds over days','with no real finish','with a new surprise each visit','with a saved state you can resume','in short bursts','in one go','that rewards patience','that rewards speed','that ends when the candle burns out'],
+    period: ['Victorian city','medieval kingdom','Bronze Age village','1920s jazz era','1950s suburb','1980s mall culture','1990s internet cafe era','age of sail','space-race era','airship age','steam age','gilded age','dark age','golden age','ice age','stone age'],
+    num: []
+  };
+  for(var ni = 2; ni <= 99; ni++) W.num.push(String(ni));
+  W.toneadj = D.tone.items.concat(W.adj);
+  var GEN = {
+    role: P([W.adj, W.cre, W.vrb, W.obj, W.how], function(a, c, v, o, h){ return an(a) + ' ' + a + ' ' + c + ' who ' + s3(v) + ' ' + an(o) + ' ' + o + ' ' + h; }),
+    setting: P([W.prep, W.adj, W.plc, W.time, W.adj, W.obj], function(p, a, pc, t, a2, o){ return p + ' ' + an(a) + ' ' + a + ' ' + pc + ' ' + t + ', beside ' + an(a2) + ' ' + a2 + ' ' + o; }),
+    mechanic: P([W.vrb, W.adj, W.obj, W.obj, W.how], function(v, a, o, o2, h){ return v + ' the ' + a + ' ' + o + ' using ' + an(o2) + ' ' + o2 + ' ' + h; }),
+    twist: P([W.adj, W.obj, W.vrb, W.cre, W.time], function(a, o, v, c, t){ return 'the ' + a + ' ' + o + ' ' + s3(v) + ' the ' + c + ' ' + t; }),
+    goal: P([W.vrb, W.adj, W.obj, W.adj, W.cre, W.time], function(v, a, o, a2, c, t){ return v + ' the ' + a + ' ' + o + ' for ' + an(a2) + ' ' + a2 + ' ' + c + ' ' + t; }),
+    opposition: P([W.group, W.adj, W.cre, W.vrb, W.obj, W.how], function(g, a, c, v, o, h){ return g + ' ' + a + ' ' + pl(c) + ' who ' + v + ' ' + pl(o) + ' ' + h; }),
+    look: P([W.med, W.adj, W.obj, W.color, W.color, W.ins], function(m, a, o, c1, c2, i){ return m + ' with ' + a + ' ' + pl(o) + ', in a palette of ' + c1 + ' and ' + c2 + ', ' + i; }),
+    soundtrack: P([W.adj, W.instr, W.vrb, W.obj, W.how, W.time], function(a, i, v, o, h, t){ return an(a) + ' ' + a + ' ' + i + ' that ' + s3(v) + ' ' + an(o) + ' ' + o + ' ' + h + ' ' + t; }),
+    ending: P([W.adj, W.cre, W.vrb, W.adj, W.obj, W.time], function(a, c, v, a2, o, t){ return 'the ' + a + ' ' + c + ' ' + s3(v) + ' the ' + a2 + ' ' + o + ' ' + t; }),
+    genre: P([W.mod, W.base, W.adj, W.base, W.adj, W.obj], function(m, b, a, b2, a2, o){ return m + ' ' + b + ' crossed with ' + an(a) + ' ' + a + ' ' + b2 + ', built around ' + an(a2) + ' ' + a2 + ' ' + o; }),
+    platform: P([W.adj, W.dev, W.ctx, W.adj, W.cre, W.how], function(a, d, c, a2, cr, h){ return an(a) + ' ' + a + ' ' + d + ' ' + c + ', shared with ' + an(a2) + ' ' + a2 + ' ' + cr + ' ' + h; }),
+    players: P([W.pn, W.ph, W.adj, W.cre, W.vrb, W.obj], function(n, h, a, c, v, o){ return n + ' ' + h + ', plus ' + an(a) + ' ' + a + ' ' + c + ' who ' + s3(v) + ' ' + pl(o); }),
+    resource: P([W.adj, W.adj, W.obj, W.vrb, W.obj], function(a, a2, o, v, o2){ return a + ' ' + a2 + ' ' + pl(o) + ', earned whenever you ' + v + ' the ' + o2; }),
+    progression: P([W.abs, W.vrb, W.adj, W.obj, W.how], function(ab, v, a, o, h){ return 'grow your ' + ab + ' whenever you ' + v + ' ' + an(a) + ' ' + a + ' ' + o + ' ' + h; }),
+    failure: P([W.adj, W.cre, W.vrb, W.obj, W.how, W.abs, W.time], function(a, c, v, o, h, ab, t){ return 'the ' + a + ' ' + c + ' ' + s3(v) + ' your ' + o + ' ' + h + ', and the ' + ab + ' is restored ' + t; }),
+    session: P([W.num, W.unit, W.style, W.time, W.adj, W.cre], function(n, u, s, t, a, c){ return 'about ' + n + ' ' + u + ' ' + s + ', best enjoyed ' + t + ' with ' + an(a) + ' ' + a + ' ' + c; }),
+    tone: P([W.adv, W.toneadj, W.adv, W.toneadj, W.adv, W.toneadj], function(x1, a1, x2, a2, x3, a3){ return x1 + ' ' + a1 + ', ' + x2 + ' ' + a2 + ', and ' + x3 + ' ' + a3; }),
+    constraint: P([W.obj, W.num, W.adj, W.obj, W.abs, W.vrb, W.obj], function(o, n, a, o2, ab, v, o3){ return 'no ' + pl(o) + ', only ' + n + ' ' + a + ' ' + pl(o2) + ', and every ' + ab + ' must ' + v + ' ' + an(o3) + ' ' + o3; }),
+    era: P([W.adj, W.period, W.time, W.adj, W.cre, W.obj], function(a, p, t, a2, c, o){ return an(a) + ' ' + a + ' ' + p + ' ' + t + ', ruled by ' + an(a2) + ' ' + a2 + ' ' + c + ', in the age of ' + pl(o); }),
+    companion: P([W.adj, W.cre, W.plc, W.vrb, W.obj], function(a, c, p, v, o){ return an(a) + ' ' + a + ' ' + c + ' from ' + an(p) + ' ' + p + ', who ' + s3(v) + ' ' + pl(o); }),
+    ability: P([W.vrb, W.adj, W.obj, W.adj, W.cre, W.how], function(v, a, o, a2, c, h){ return v + ' ' + an(a) + ' ' + a + ' ' + o + ' of any ' + a2 + ' ' + c + ', ' + h; }),
+    hazard: P([W.adj, W.obj, W.vrb, W.cre, W.time], function(a, o, v, c, t){ return a + ' ' + pl(o) + ' that ' + v + ' the ' + c + ' ' + t; }),
+    collectible: P([W.adj, W.adj, W.obj, W.abs, W.how], function(a, a2, o, ab, h){ return a + ' ' + a2 + ' ' + pl(o) + ', each marked with ' + an(ab) + ' ' + ab + ', ' + h; }),
+    hook: P([W.adj, W.plc, W.adj, W.cre, W.vrb, W.obj], function(a, p, a2, c, v, o){ return 'imagine ' + an(a) + ' ' + a + ' ' + p + ' meets ' + an(a2) + ' ' + a2 + ' ' + c + ' who ' + s3(v) + ' ' + pl(o); }),
+    perspective: P([W.view, W.vrb, W.adj, W.obj, W.time, W.how], function(vw, v, a, o, t, h){ return vw + ' camera that ' + s3(v) + ' the ' + a + ' ' + o + ' ' + t + ' ' + h; })
+  };
+  // GEN-END
+
+  var TA = ['Hollow','Gilded','Quiet','Static','Paper','Tidal','Borrowed','Midnight','Rusted','Velvet','Glass','Wandering','Salted','Ember','Sleepless','Crooked',
+    'Pale','Tiny','Brass','Feral','Distant','Lonely','Patient','Sunken','Amber','Burnt','Cobalt','Drifting','Faded','Gentle','Hidden','Iron','Jagged','Knotted',
+    'Lucky','Mossy','Narrow','Orbiting','Painted','Restless','Silver','Thorned','Unlit','Violet','Weathered','Wild','Yellow','Frozen','Humming','Marbled'];
+  var TB = ['Lantern','Orchard','Signal','Harbor','Engine','Choir','Tide','Ledger','Compass','Kite','Parade','Archive','Garden','Station','Furnace','Atlas',
+    'Circuit','Ferry','Bell','Meadow','Relay','Carnival','Beacon','Toll','Almanac','Bridge','Cellar','Dynamo','Echo','Foundry','Gallery','Hearth','Inlet','Junction',
+    'Kingdom','Lighthouse','Market','Nest','Observatory','Pantry','Quarry','Radio','Ship','Theater','Union','Vault','Workshop','Yard','Zephyr','Canopy'];
+
+  var KEY = 'pitch-slots-favorites';
+  var ONKEY = 'pitch-slots-ingredients';
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function $(s){ return document.querySelector(s); }
+  function rand(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+  function article(s){ return /^[aeiou]/i.test(s) ? 'An' : 'A'; }
+  function pickDifferent(list, cur){ if(list.length < 2) return list[0]; var v; do { v = rand(list); } while(v === cur); return v; }
+  var TA_X = ['Scarlet','Opal','Faithful','Wayward','Slender','Candlelit','Gleaming','Rambling','Whispering','Ashen','Bright','Dusky','Evergreen','Forsaken','Gossamer','Haunting','Ivory','Jubilant','Kindled','Luminous','Muffled','Nameless','Ochre','Pewter','Rippling','Shimmering','Tangled','Umber','Vagabond','Willowy'];
+  var TB_X = ['Marionette','Cathedral','Greenhouse','Tidepool','Carousel','Telegram','Schooner','Lamplighter','Orchid','Winter','Moth','Crown','Raven','Mirage','Locksmith','Paperboat','Cartographer','Foxglove','Sparrow','Thimble','Fog','Embers','Postmaster','Clocktower','Wildfire','Kettle','Starling','Mosaic','Bonfire','Tinderbox','Weathervane','Stairwell','Snowfall','Pendulum','Rooftop','Lullaby','Mooring','Skylight','Driftwood','Tangle'];
+  var TSUB = ['A Quiet Reckoning','Rise of the Tide','The Long Night','Tales of Salt and Smoke','A Small Rebellion','Before the Thaw','The Final Season','An Unfinished Map','Echoes of Tomorrow','A Story in Three Doors','Last Light','The Borrowed Years','Every Promise','A Game of Patience','The Slow Return','What the River Kept'];
+  var TITLE_STYLES = ['short','the','subtitle','phrase','question'];
+  function makeTitle(style){
+    style = style || 'any';
+    if(style === 'any') style = rand(['short','short','the','the','subtitle','phrase','question']);
+    var A = TA.concat(TA_X), B = TB.concat(TB_X);
+    var a = rand(A), b = rand(B), c; do { c = rand(B); } while(c === b);
+    var r = Math.random();
+    if(style === 'short'){ return r < 0.25 ? b : (r < 0.5 ? b + ' & ' + c : a + ' ' + b); }
+    if(style === 'the'){
+      if(r < 0.3) return 'The ' + a + ' ' + b;
+      if(r < 0.55) return 'The Last ' + b;
+      if(r < 0.8) return 'The ' + b + ' of ' + c;
+      return 'The ' + b + ' Who Was ' + rand(['Late','Lost','Kind','Quiet','Forgotten']);
+    }
+    if(style === 'subtitle'){ return a + ' ' + b + ': ' + rand(TSUB); }
+    if(style === 'phrase'){
+      return rand(['Beyond the','Under the','Return to the','Escape from the','Night at the','Keeper of the','Songs of the','Letters from the','Last Train to the','Tales from the','Inside the','Across the']) + ' ' + b;
+    }
+    return rand(['Who Stole the ' + b + '?','Where Did the ' + b + ' Go?','Can You Save the ' + b + '?','Who Is Afraid of the ' + b + '?','What Happened to the ' + b + '?','Is the ' + b + ' Still Open?']);
+  }
+  function sci(n){
+    if(n < 1e6) return n.toLocaleString('en-US');
+    var e = Math.floor(Math.log10(n));
+    return (n / Math.pow(10, e)).toFixed(1) + '×10^' + e;
+  }
+  function fmtPlain(n){ return sci(n); }
+  function fmt(n){
+    if(n < 1e9) return n.toLocaleString('en-US');
+    var e = Math.floor(Math.log10(n)); var m = n / Math.pow(10, e);
+    return m.toFixed(1) + ' × 10<sup>' + e + '</sup>';
+  }
+  function pitchText(v){
+    var head = v.genre || 'game';
+    if(v.tone) head = v.tone + ' ' + head;
+    var s1 = article(head) + ' ' + head;
+    if(v.platform) s1 += ' for ' + v.platform;
+    if(v.role){ s1 += ' where you play as ' + v.role + (v.setting ? ' ' + v.setting : ''); }
+    else if(v.setting){ s1 += ' set ' + v.setting; }
+    if(v.era) s1 += ', set in ' + v.era;
+    var out = [s1 + '.'];
+    if(v.mechanic){ out.push('You ' + v.mechanic + (v.twist ? ', but ' + v.twist : '') + '.'); }
+    else if(v.twist){ out.push('The catch: ' + v.twist + '.'); }
+    if(v.goal) out.push('Your goal: ' + v.goal + '.');
+    if(v.opposition) out.push('Standing in your way: ' + v.opposition + '.');
+    if(v.hazard) out.push('Constant hazard: ' + v.hazard + '.');
+    if(v.companion) out.push('Your companion: ' + v.companion + '.');
+    if(v.ability) out.push('You can ' + v.ability + '.');
+    if(v.collectible) out.push('You collect: ' + v.collectible + '.');
+    if(v.resource) out.push('Currency: ' + v.resource + '.');
+    if(v.progression) out.push('Progression: ' + v.progression + '.');
+    if(v.failure) out.push('When you fail, ' + v.failure + '.');
+    if(v.perspective) out.push('Camera: ' + v.perspective + '.');
+    if(v.players) out.push('Players: ' + v.players + '.');
+    if(v.session) out.push('Session length: ' + v.session + '.');
+    if(v.look) out.push('Look and feel: ' + v.look + '.');
+    if(v.soundtrack) out.push('Soundtrack: ' + v.soundtrack + '.');
+    if(v.ending) out.push('Ending: ' + v.ending + '.');
+    if(v.hook) out.push('The hook: ' + v.hook + '.');
+    if(v.constraint) out.push('Constraint: ' + cap(v.constraint) + '.');
+    return out.join(' ');
+  }
+
+  var state = { vals:{}, locked:{}, on:{}, blank:{}, template:null, title:'', titleLocked:false, titleStyle:'any', editingTitle:false };
+  var timers = {};
+  var rowEls = {};
+  var favs = [];
+  var statusTimer = null;
+  var editingId = null;
+
+  function currentVals(){
+    var o = {};
+    ORDER.forEach(function(k){ if(state.on[k]) o[k] = state.blank[k] ? '______' : state.vals[k]; });
+    return o;
+  }
+
+  // The pool an ingredient rolls from: the template's themed list if it has one, else everything.
+  function pool(k){
+    var t = state.template ? TPL[state.template] : null;
+    return (t && t.pools && t.pools[k]) || D[k].items;
+  }
+  // The picker shows themed options first, then the full list.
+  function allItems(k){
+    var p = pool(k);
+    if(p === D[k].items) return p;
+    return p.concat(D[k].items.filter(function(x){ return p.indexOf(x) === -1; }));
+  }
+  // Generated options only join the roll when no template is biasing the row.
+  function poolSize(k){
+    var p = pool(k);
+    return p.length + (GEN[k] && p === D[k].items ? GEN[k].size : 0);
+  }
+  function drawValue(k, cur){
+    var g = GEN[k];
+    if(g && pool(k) === D[k].items && Math.random() < 0.6){
+      var v = g.make(); if(v !== cur) return v;
+    }
+    return pickDifferent(pool(k), cur);
+  }
+  function paintTpl(){
+    var t = state.template ? TPL[state.template] : null;
+    Object.keys(tplEls).forEach(function(key){
+      tplEls[key].setAttribute('aria-pressed', state.template === key ? 'true' : 'false');
+    });
+    $('#tplNote').hidden = !t;
+    if(t) $('#tplText').textContent = t.name + ' template. ' + t.blurb + ' Roll all fills the blanks.';
+  }
+  function applyTemplate(key){
+    var t = TPL[key];
+    ORDER.forEach(function(k){ clearTimer(k); closePicker(k); });
+    state.template = key;
+    var blanks = 0;
+    ORDER.forEach(function(k){
+      var inT = t.on.indexOf(k) !== -1;
+      state.on[k] = inT; state.locked[k] = false; state.blank[k] = false;
+      state.vals[k] = rand(pool(k));
+      if(!inT) return;
+      if(t.fixed && t.fixed[k]){ state.vals[k] = t.fixed[k]; state.locked[k] = true; }
+      else if(t.blank && t.blank.indexOf(k) !== -1){ state.blank[k] = true; blanks++; }
+    });
+    if(!state.titleLocked) state.title = makeTitle(state.titleStyle);
+    paint();
+    say(t.name + ' loaded with ' + blanks + ' blank row' + (blanks === 1 ? '' : 's') + '. Roll or pick to fill them.');
+  }
+
+  var LOCK = '<svg class="open" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg>' +
+             '<svg class="closed" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+  var DICE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-3.5L4 9"/><path d="M4 4v5h5"/><path d="M4 13a8 8 0 0 0 14.5 3.5L20 15"/><path d="M20 20v-5h-5"/></svg>';
+  var LIST = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>';
+
+  function say(msg){
+    var el = $('#status'); el.textContent = msg || '';
+    clearTimeout(statusTimer);
+    if(msg) statusTimer = setTimeout(function(){ el.textContent = ''; }, 4000);
+  }
+
+  function clearTimer(k){
+    var t = timers[k];
+    if(t){ clearInterval(t.iv); clearTimeout(t.to); timers[k] = null; rowEls[k].el.classList.remove('rolling'); }
+  }
+
+  function paint(){
+    var total = 1;
+    ORDER.forEach(function(k){
+      var r = rowEls[k];
+      var on = !!state.on[k];
+      r.el.hidden = !on;
+      r.chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if(on) total *= poolSize(k);
+      r.el.classList.toggle('blank', !!state.blank[k]);
+      r.cnt.textContent = pool(k) !== D[k].items ? pool(k).length + ' themed options' : '≈ ' + sci(poolSize(k)) + ' options';
+      if(!timers[k]) r.val.textContent = state.blank[k] ? 'Blank. Roll or pick one.' : cap(state.vals[k]);
+      var lk = !!state.locked[k];
+      r.el.classList.toggle('locked', lk);
+      r.lock.setAttribute('aria-pressed', lk ? 'true' : 'false');
+      r.reroll.disabled = lk;
+    });
+    paintTpl();
+    var tl = $('#titleLock');
+    tl.setAttribute('aria-pressed', state.titleLocked ? 'true' : 'false');
+    tl.textContent = state.titleLocked ? 'Title locked' : 'Lock title';
+    $('#title').textContent = state.title;
+    $('#pitch').textContent = pitchText(currentVals());
+    $('#count').innerHTML = fmt(total) + ' possible pitches, before titles';
+  }
+
+  function roll(keys, withTitle){
+    keys = keys.filter(function(k){ return state.on[k] && !state.locked[k]; });
+    if(!keys.length){ say('Every visible row is locked. Unlock one to roll.'); return; }
+    keys.forEach(function(k, i){
+      clearTimer(k);
+      var src = pool(k);
+      var fin = drawValue(k, state.vals[k]);
+      state.blank[k] = false;
+      if(reduce){ state.vals[k] = fin; return; }
+      var r = rowEls[k];
+      r.el.classList.add('rolling');
+      var iv = setInterval(function(){ r.val.textContent = cap(rand(src)); }, 70);
+      var to = setTimeout(function(){
+        clearInterval(iv); timers[k] = null; r.el.classList.remove('rolling');
+        state.vals[k] = fin; state.blank[k] = false; paint();
+      }, 380 + i*110);
+      timers[k] = { iv:iv, to:to };
+    });
+    if(withTitle && !state.titleLocked) state.title = makeTitle(state.titleStyle);
+    paint();
+    say('');
+  }
+
+  function selectNode(node){
+    try {
+      var rg = document.createRange(); rg.selectNodeContents(node);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(rg);
+    } catch(e){}
+  }
+  function copyText(text, node){
+    function fail(){ selectNode(node); say('Copy was blocked here. The text is selected, so press Ctrl/Cmd+C.'); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ say('Copied to clipboard.'); }, fail);
+    } else { fail(); }
+  }
+
+  function loadFavs(){
+    try { var raw = localStorage.getItem(KEY); var a = raw ? JSON.parse(raw) : []; return Array.isArray(a) ? a : []; }
+    catch(e){ return []; }
+  }
+  function persist(){
+    try { localStorage.setItem(KEY, JSON.stringify(favs)); return true; } catch(e){ return false; }
+  }
+  function saveOn(){ try { localStorage.setItem(ONKEY, JSON.stringify(state.on)); } catch(e){} }
+  function loadOn(){
+    try {
+      var o = JSON.parse(localStorage.getItem(ONKEY) || 'null');
+      if(o && typeof o === 'object' && ORDER.some(function(k){ return o[k]; })){
+        ORDER.forEach(function(k){ state.on[k] = !!o[k]; });
+        return;
+      }
+    } catch(e){}
+    ORDER.forEach(function(k){ state.on[k] = DEFAULT_ON[k]; });
+  }
+
+  function save(){
+    var vals = currentVals();
+    var pitch = pitchText(vals);
+    if(favs.some(function(f){ return f.pitch === pitch && f.title === state.title; })){ say('That pitch is already saved.'); return; }
+    favs.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), title: state.title, pitch: pitch, vals: vals });
+    favs = favs.slice(0, 60);
+    var ok = persist();
+    renderFavs();
+    say(ok ? 'Saved in this browser.' : 'Saved for this visit only. Your browser blocked storage.');
+  }
+
+  function openFav(f){
+    ORDER.forEach(function(k){
+      clearTimer(k);
+      var v = f.vals && f.vals[k];
+      state.on[k] = !!v;
+      if(v) state.vals[k] = v;
+      state.locked[k] = false;
+      state.blank[k] = false;
+    });
+    if(!ORDER.some(function(k){ return state.on[k]; })){ state.on.genre = true; }
+    state.title = f.title;
+    saveOn();
+    paint();
+    $('.deck').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    say('Loaded into the card above.');
+  }
+
+  function editForm(f){
+    var li = document.createElement('li'); li.className = 'fav';
+    var form = document.createElement('form'); form.className = 'edit-form';
+    var inputs = {};
+    var vals0 = f.vals || {};
+    function field(id, label, value, multi, wide){
+      var w = document.createElement('div'); w.className = 'field' + (wide ? ' wide' : '');
+      var l = document.createElement('label'); l.textContent = label; l.htmlFor = 'edit-' + f.id + '-' + id;
+      var i = document.createElement(multi ? 'textarea' : 'input');
+      i.id = 'edit-' + f.id + '-' + id;
+      if(multi){ i.rows = 2; } else { i.type = 'text'; }
+      i.value = value || '';
+      i.addEventListener('input', preview);
+      w.appendChild(l); w.appendChild(i); form.appendChild(w); inputs[id] = i;
+    }
+    field('title', 'Title', f.title, false, true);
+    ORDER.forEach(function(k){ field(k, D[k].label, vals0[k], false, false); });
+    field('note', 'Notes', f.note, true, true);
+    var hint = document.createElement('p'); hint.className = 'fav-note';
+    hint.textContent = 'Leave an ingredient empty to drop it from the pitch.';
+    form.appendChild(hint);
+    var pv = document.createElement('p'); pv.className = 'fav-pitch edit-preview';
+    form.appendChild(pv);
+    function collect(){
+      var vals = {};
+      ORDER.forEach(function(k){ var t = inputs[k].value.trim(); if(t) vals[k] = t; });
+      if(!Object.keys(vals).length){ vals = Object.assign({}, vals0); }
+      return { title: inputs.title.value.trim() || f.title, vals: vals, note: inputs.note.value.trim() };
+    }
+    function preview(){ pv.textContent = pitchText(collect().vals); }
+    preview();
+    var btns = document.createElement('div'); btns.className = 'fav-btns';
+    function mk(label, type, cls, fn){
+      var b = document.createElement('button'); b.type = type; b.className = cls; b.textContent = label;
+      if(fn) b.addEventListener('click', fn); btns.appendChild(b);
+    }
+    mk('Save changes', 'submit', 'btn sm primary');
+    mk('Save as copy', 'button', 'btn sm', function(){
+      var c = collect();
+      favs.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), title: c.title, pitch: pitchText(c.vals), vals: c.vals, note: c.note });
+      editingId = null;
+      var ok = persist(); renderFavs();
+      say(ok ? 'Saved as a new pitch. The original is unchanged.' : 'Saved for this visit only. Your browser blocked storage.');
+    });
+    mk('Cancel', 'button', 'btn sm ghost', function(){ editingId = null; renderFavs(); });
+    form.appendChild(btns);
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var c = collect();
+      f.title = c.title; f.vals = c.vals; f.note = c.note; f.pitch = pitchText(c.vals);
+      editingId = null;
+      var ok = persist(); renderFavs();
+      say(ok ? 'Changes saved.' : 'Changes kept for this visit only. Your browser blocked storage.');
+    });
+    li.appendChild(form);
+    return li;
+  }
+
+  function renderFavs(){
+    var box = $('#favs'); box.textContent = '';
+    $('#favCount').textContent = favs.length ? '(' + favs.length + ')' : '';
+    if(!favs.length){
+      var p = document.createElement('p'); p.className = 'empty';
+      p.textContent = 'Nothing saved yet. Press Save on a pitch you want to keep. Saved pitches stay in this browser.';
+      box.appendChild(p); return;
+    }
+    var ul = document.createElement('ul'); ul.className = 'fav-list';
+    favs.forEach(function(f){
+      if(f.id === editingId){ ul.appendChild(editForm(f)); return; }
+      var li = document.createElement('li'); li.className = 'fav';
+      var h = document.createElement('h3'); h.className = 'fav-title'; h.textContent = f.title;
+      var p = document.createElement('p'); p.className = 'fav-pitch'; p.textContent = f.pitch;
+      var note = null;
+      if(f.note){ note = document.createElement('p'); note.className = 'fav-note'; note.textContent = f.note; }
+      var btns = document.createElement('div'); btns.className = 'fav-btns';
+      function mk(label, fn){ var b = document.createElement('button'); b.type = 'button'; b.className = 'btn sm ghost'; b.textContent = label; b.addEventListener('click', fn); btns.appendChild(b); }
+      mk('Edit', function(){ editingId = f.id; renderFavs(); });
+      mk('Open', function(){ openFav(f); });
+      mk('Copy', function(){ copyText(f.title + '\n' + f.pitch, p); });
+      mk('Remove', function(){
+        favs = favs.filter(function(x){ return x.id !== f.id; });
+        if(editingId === f.id) editingId = null;
+        persist(); renderFavs(); say('Removed.');
+      });
+      li.appendChild(h); li.appendChild(p); if(note) li.appendChild(note); li.appendChild(btns); ul.appendChild(li);
+    });
+    box.appendChild(ul);
+  }
+
+  // Picker: browse every option for a row, filter it, or type a custom value
+  function closePicker(k){
+    var r = rowEls[k]; r.picker.hidden = true; r.pick.setAttribute('aria-expanded', 'false');
+  }
+  function renderPick(k){
+    var r = rowEls[k];
+    var q = r.pInput.value.trim(), ql = q.toLowerCase();
+    var list = r.pList; list.textContent = '';
+    var all = (r.showGen && GEN[k] && r.genItems) ? r.genItems : allItems(k);
+    var items = all.filter(function(it){ return !ql || it.toLowerCase().indexOf(ql) !== -1; });
+    if(q && !all.some(function(it){ return it.toLowerCase() === ql; })){
+      var cb = document.createElement('button'); cb.type = 'button'; cb.className = 'opt custom';
+      cb.textContent = 'Use “' + q + '” as typed';
+      cb.addEventListener('click', function(){ choose(k, q); });
+      list.appendChild(cb);
+    }
+    items.forEach(function(it){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = cap(it);
+      b.addEventListener('click', function(){ choose(k, it); });
+      list.appendChild(b);
+    });
+    var extra = GEN[k] ? ' Plus about ' + fmtPlain(GEN[k].size) + ' generated combinations.' : '';
+    r.pMeta.textContent = r.showGen
+      ? 'Showing ' + items.length + ' freshly generated ideas. Press the button again for 12 more.'
+      : items.length + ' of ' + all.length + ' curated options' + (state.template && pool(k) !== D[k].items ? ', template picks first' : '') + '.' + extra + ' Enter picks the first match.';
+  }
+  function openPicker(k){
+    ORDER.forEach(function(x){ if(x !== k) closePicker(x); });
+    var r = rowEls[k];
+    r.picker.hidden = false; r.pick.setAttribute('aria-expanded', 'true');
+    r.showGen = false; r.pInput.value = ''; renderPick(k); r.pInput.focus();
+  }
+  function choose(k, val){
+    clearTimer(k);
+    state.vals[k] = val; state.locked[k] = true; state.blank[k] = false;
+    closePicker(k); paint();
+    say(D[k].label + ' set and locked. Unlock it to let it roll again.');
+  }
+
+  // Build chips and rows
+  var chipsEl = $('#chips');
+  var rowsEl = $('#rows');
+  ORDER.forEach(function(k){
+    var chip = document.createElement('button'); chip.type = 'button'; chip.className = 'chip';
+    chip.textContent = D[k].chip; chip.setAttribute('aria-pressed', 'false');
+    chip.addEventListener('click', function(){
+      var n = ORDER.filter(function(x){ return state.on[x]; }).length;
+      if(state.on[k] && n <= 1){ say('Keep at least one ingredient on.'); return; }
+      state.on[k] = !state.on[k];
+      if(!state.on[k]){ clearTimer(k); closePicker(k); }
+      saveOn(); paint();
+    });
+    chipsEl.appendChild(chip);
+
+    var el = document.createElement('div'); el.className = 'row';
+    el.innerHTML = '<span class="label"><span class="lbl"></span><span class="cnt"></span></span><span class="val"></span><span class="acts">' +
+      '<button class="icon pick" type="button" aria-expanded="false">' + LIST + '</button>' +
+      '<button class="icon lock" type="button" aria-pressed="false">' + LOCK + '</button>' +
+      '<button class="icon reroll" type="button">' + DICE + '</button></span>' +
+      '<div class="picker" hidden><div><label class="label"></label><input type="text" autocomplete="off" placeholder="Filter the list or type your own"></div>' +
+      '<button class="btn sm ghost fresh" type="button">Show 12 fresh ideas</button>' +
+      '<div class="pick-list"></div><span class="pick-meta"></span></div>';
+    el.querySelector('.lbl').textContent = D[k].label;
+    var pick = el.querySelector('.pick'), lock = el.querySelector('.lock'), reroll = el.querySelector('.reroll');
+    var picker = el.querySelector('.picker'), pInput = picker.querySelector('input');
+    var fresh = picker.querySelector('.fresh'); fresh.hidden = !GEN[k];
+    fresh.addEventListener('click', function(){
+      var seen = {}, out = [], tries = 0;
+      while(out.length < 12 && tries++ < 200){ var s = GEN[k].make(); if(!seen[s]){ seen[s] = 1; out.push(s); } }
+      var rr = rowEls[k]; rr.genItems = out; rr.showGen = true; rr.pInput.value = ''; renderPick(k);
+    });
+    pInput.id = 'pick-' + k;
+    var pl = picker.querySelector('label'); pl.htmlFor = pInput.id; pl.textContent = 'Choose ' + D[k].label.toLowerCase();
+    pick.setAttribute('aria-label', 'Choose ' + D[k].label);
+    lock.setAttribute('aria-label', 'Lock ' + D[k].label);
+    reroll.setAttribute('aria-label', 'Reroll ' + D[k].label);
+    pick.addEventListener('click', function(){ if(picker.hidden){ openPicker(k); } else { closePicker(k); } });
+    lock.addEventListener('click', function(){ state.locked[k] = !state.locked[k]; paint(); });
+    reroll.addEventListener('click', function(){ roll([k], false); });
+    pInput.addEventListener('input', function(){ rowEls[k].showGen = false; renderPick(k); });
+    pInput.addEventListener('keydown', function(e){
+      if(e.key === 'Escape'){ closePicker(k); pick.focus(); }
+      else if(e.key === 'Enter'){
+        e.preventDefault();
+        var q = pInput.value.trim().toLowerCase();
+        var m = allItems(k).filter(function(it){ return !q || it.toLowerCase().indexOf(q) !== -1; });
+        if(m.length){ choose(k, m[0]); } else if(q){ choose(k, pInput.value.trim()); }
+      }
+    });
+    rowsEl.appendChild(el);
+    rowEls[k] = { showGen: false, genItems: null, cnt: el.querySelector('.cnt'), el: el, val: el.querySelector('.val'), lock: lock, reroll: reroll, pick: pick, picker: picker, pInput: pInput, pList: picker.querySelector('.pick-list'), pMeta: picker.querySelector('.pick-meta'), chip: chip };
+  });
+
+  // Optional tour: offered on first visit, skippable, and reopenable from the header
+  var TOUR = [
+    { sel:'#rollAll', title:'Roll a whole pitch', body:'Press Roll all, or hit R, to draw a full pitch. Each row picks from curated options plus at least ten billion generated combinations, and the small count under each row name shows its size.' },
+    { sel:'.deck-head', title:'Roll or write your title', body:'Roll title gives a new one in the style you pick. Lock title keeps it when you Roll all. Edit title lets you type your own, which locks it automatically.' },
+    { sel:'#rows .row:not([hidden])', title:'Control each row', body:'The list button lets you browse, search, type your own, or see 12 fresh ideas. Lock keeps a row as it is. The arrows reroll only that row.' },
+    { sel:'#chips', title:'Choose your ingredients', body:'Turn any of the 25 ingredients on or off. Fewer make a short pitch, more make a detailed one. Your choice is remembered.' },
+    { sel:'#tpls', title:'Start from a template', body:'Templates like Noir or Anime lock in a few signature rows, leave some blank for you to fill, and theme the rest.' },
+    { sel:'.actions', title:'Copy and save', body:'Copy the pitch to paste anywhere, or Save it to the list below. Saved pitches stay in this browser.' },
+    { sel:'.favs', title:'Revisit saved pitches', body:'Open loads a pitch back into the card. Edit lets you change the title, any ingredient, and add notes. Save as copy keeps the original.' }
+  ];
+  var tourI = 0;
+  function tourSeen(){ try { return localStorage.getItem('pitch-slots-tour') === 'done'; } catch(e){ return false; } }
+  function markTour(){ try { localStorage.setItem('pitch-slots-tour', 'done'); } catch(e){} }
+  function tourClear(){ var h = document.querySelector('.tour-hl'); if(h) h.classList.remove('tour-hl'); }
+  function tourShow(i){
+    tourClear();
+    tourI = Math.max(0, Math.min(TOUR.length - 1, i));
+    var s = TOUR[tourI], el = document.querySelector(s.sel);
+    if(el){
+      el.classList.add('tour-hl');
+      el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+    }
+    $('#tourStep').textContent = 'Step ' + (tourI + 1) + ' of ' + TOUR.length;
+    $('#tourTitle').textContent = s.title;
+    $('#tourBody').textContent = s.body;
+    $('#tourBack').disabled = tourI === 0;
+    $('#tourNext').textContent = tourI === TOUR.length - 1 ? 'Done' : 'Next';
+  }
+  function tourStart(){
+    $('#welcome').hidden = true; markTour();
+    $('#tour').hidden = false; document.body.classList.add('tour-open');
+    tourShow(0); $('#tourNext').focus();
+  }
+  function tourEnd(){
+    $('#tour').hidden = true; document.body.classList.remove('tour-open');
+    tourClear(); markTour();
+  }
+  $('#tourBtn').addEventListener('click', tourStart);
+  $('#welcomeStart').addEventListener('click', tourStart);
+  $('#welcomeSkip').addEventListener('click', function(){ $('#welcome').hidden = true; markTour(); });
+  $('#tourClose').addEventListener('click', tourEnd);
+  $('#tourBack').addEventListener('click', function(){ tourShow(tourI - 1); });
+  $('#tourNext').addEventListener('click', function(){ if(tourI >= TOUR.length - 1){ tourEnd(); } else { tourShow(tourI + 1); } });
+  $('#welcome').hidden = tourSeen();
+
+  // Template chips
+  var tplsEl = $('#tpls');
+  Object.keys(TPL).forEach(function(key){
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'chip tpl';
+    b.textContent = TPL[key].name; b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', function(){ applyTemplate(key); });
+    tplsEl.appendChild(b); tplEls[key] = b;
+  });
+  $('#tplClear').addEventListener('click', function(){
+    state.template = null; paint(); say('Template cleared. Rolling draws from every option again.');
+  });
+
+  // Initial state: a finished idea, no animation
+  loadOn();
+  ORDER.forEach(function(k){ state.vals[k] = rand(D[k].items); });
+  state.title = makeTitle();
+  paint();
+  favs = loadFavs();
+  renderFavs();
+
+  $('#rollAll').addEventListener('click', function(){ roll(ORDER, true); });
+  $('#newTitle').addEventListener('click', function(){ state.title = makeTitle(state.titleStyle); paint(); say(state.titleLocked ? 'Rolled a new title. It is still locked against Roll all.' : ''); });
+  $('#titleStyle').addEventListener('change', function(){
+    state.titleStyle = this.value; state.title = makeTitle(state.titleStyle); paint();
+  });
+  $('#titleLock').addEventListener('click', function(){ state.titleLocked = !state.titleLocked; paint(); });
+  function endTitleEdit(commit){
+    if(!state.editingTitle) return;
+    state.editingTitle = false;
+    var inp = $('#titleInput'), v = inp.value.trim();
+    inp.hidden = true; $('#title').hidden = false;
+    if(commit && v && v !== state.title){ state.title = v; state.titleLocked = true; say('Title set and locked, so Roll all keeps it.'); }
+    paint();
+  }
+  $('#titleEdit').addEventListener('click', function(){
+    if(state.editingTitle){ endTitleEdit(true); return; }
+    state.editingTitle = true;
+    var inp = $('#titleInput'); inp.value = state.title; inp.hidden = false; $('#title').hidden = true; inp.focus(); inp.select();
+  });
+  $('#titleInput').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); endTitleEdit(true); }
+    else if(e.key === 'Escape'){ e.stopPropagation(); endTitleEdit(false); }
+  });
+  $('#titleInput').addEventListener('blur', function(){ endTitleEdit(true); });
+  $('#copy').addEventListener('click', function(){ copyText(state.title + '\n' + pitchText(currentVals()), $('#pitch')); });
+  $('#save').addEventListener('click', save);
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && !$('#tour').hidden){ tourEnd(); return; }
+    if(e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+    if(e.key && e.key.toLowerCase() === 'r' && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)){ roll(ORDER, true); }
+  });
+})();
+</script>
+
+</body></html>

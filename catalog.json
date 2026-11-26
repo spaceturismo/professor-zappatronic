@@ -72,17 +72,6 @@
       "image": "https://zappatronic.com/images/games/hyper-twilight-chapter-1.jpg"
     },
     {
-      "slug": "math-meadow",
-      "name": "Math Meadow",
-      "description": "Explore a colorful collection of math activities and practice your number skills through play.",
-      "genre": "Education",
-      "mobileSupport": "friendly",
-      "controls": null,
-      "threeDimensional": false,
-      "url": "https://spaceturismo.github.io/math-meadow/",
-      "image": "https://zappatronic.com/images/games/math-meadow.jpg"
-    },
-    {
       "slug": "rift-racer-3d",
       "name": "Rift Racer 3D",
       "description": "Race through shifting dimensions and chase your previous lap across dozens of tracks.",
@@ -459,6 +448,17 @@
   ],
   "apps": [
     {
+      "slug": "math-meadow",
+      "name": "Math Meadow",
+      "description": "Explore a colorful collection of math activities and practice your number skills through play.",
+      "genre": "Education",
+      "mobileSupport": "friendly",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/math-meadow/",
+      "image": "https://zappatronic.com/images/games/math-meadow.jpg"
+    },
+    {
       "slug": "claude-in-claude-demo-mode",
       "name": "Claude in Claude - Demo Mode",
       "description": "Explore a local chat demonstration with simulated replies and no API calls.",
@@ -468,6 +468,50 @@
       "threeDimensional": false,
       "url": "https://spaceturismo.github.io/claude-in-claude-demo-mode/",
       "image": "https://zappatronic.com/images/games/claude-in-claude-demo-mode.jpg"
+    },
+    {
+      "slug": "business-plan-maker",
+      "name": "Business Plan Maker",
+      "description": "Build a business plan from your idea, market, team and finances, with a printable 12-month forecast.",
+      "genre": "Business",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://spaceturismo.github.io/business-plan-maker/",
+      "image": "https://zappatronic.com/images/games/business-plan-maker.jpg"
+    },
+    {
+      "slug": "beat-painter",
+      "name": "Beat Painter",
+      "description": "Arrange music with instrument patterns and song parts, then import, export or keep your creations in the browser.",
+      "genre": "Music",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://zappatronic.com/apps/beat-painter/index.html",
+      "image": "https://zappatronic.com/images/games/beat-painter.jpg"
+    },
+    {
+      "slug": "pitch-slots",
+      "name": "Pitch Slots",
+      "description": "Generate creative pitches, reroll or lock individual choices, edit titles and save your favorite ideas.",
+      "genre": "Ideas",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://zappatronic.com/apps/pitch-slots/index.html",
+      "image": "https://zappatronic.com/images/games/pitch-slots.jpg"
+    },
+    {
+      "slug": "deck-studio",
+      "name": "Deck Studio",
+      "description": "Create custom cards and decks, then test them in the connected duel engine. Both parts share profiles and belong to this one app.",
+      "genre": "Cards",
+      "mobileSupport": "unknown",
+      "controls": null,
+      "threeDimensional": false,
+      "url": "https://zappatronic.com/apps/deck-studio/",
+      "image": "https://zappatronic.com/images/games/deck-studio.jpg"
     }
   ],
   "minigames": [

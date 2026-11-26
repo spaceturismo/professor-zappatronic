@@ -1,4 +1,8 @@
 window.gameBlurbs = {
+  'deck-studio': 'Create custom cards and decks, then test them in the connected duel engine. Both parts share profiles and belong to this one app.',
+  'business-plan-maker': 'Build a business plan from your idea, market, team and finances, with a printable 12-month forecast.',
+  'beat-painter': 'Arrange music with instrument patterns and song parts, then import, export or keep your creations in the browser.',
+  'pitch-slots': 'Generate creative pitches, reroll or lock individual choices, edit titles and save your favorite ideas.',
   'Pixel_Omniverse': 'Knock rivals off forest stages in a brawler packed with battles, races, bosses and more.',
   'arena-clash': 'Survive endless arena rounds with hundreds of weapons and a huge selection of battlegrounds.',
   'orb-runner': 'Collect glowing orbs and dodge rocks with mouse, touch or keyboard controls.',

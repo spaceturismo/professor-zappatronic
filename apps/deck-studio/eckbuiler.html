@@ -1,0 +1,7542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Yu-Gi-Oh! Custom Card Builder</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    min-height:100vh;
+    font-family:Arial,Helvetica,sans-serif;
+    background:radial-gradient(circle at top,#292929,#080808 75%);
+    color:white;
+    padding:20px
+}
+
+button,input,textarea,select{font-family:inherit}
+button{
+    cursor:pointer;
+    transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+button:hover:not(:disabled){
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+button:active{
+    transform: scale(.96);
+}
+
+.page{display:none}
+.page.active{
+    display:block;
+    animation: eckPageFadeIn .25s ease;
+}
+
+@keyframes eckPageFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-section{
+    transition: box-shadow .15s ease, transform .15s ease;
+}
+.form-section:hover{
+    box-shadow: 0 6px 16px rgba(0,0,0,.3);
+}
+
+.action-button,.menu-button{
+    transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+.action-button:hover:not(:disabled),.menu-button:hover:not(:disabled){
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,.35);
+}
+
+.deck-card,.my-deck-card{
+    transition: transform .15s ease, box-shadow .15s ease;
+    animation: eckCardSlideIn .2s ease;
+}
+.deck-card:hover,.my-deck-card:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0,0,0,.35);
+}
+
+@keyframes eckCardSlideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.card{
+    animation: eckCardPop .22s ease;
+}
+
+@keyframes eckCardPop {
+    0% { opacity: 0; transform: scale(.9); }
+    70% { transform: scale(1.02); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.checkbox-row{
+    transition: background .15s ease;
+}
+.checkbox-row:hover{
+    background:#222;
+}
+
+.active-deck-banner{
+    animation: eckCardSlideIn .25s ease;
+}
+
+body{
+    position: relative;
+}
+
+body::before{
+    content: "";
+    position: fixed;
+    inset: -40%;
+    z-index: -1;
+    opacity: .3;
+    filter: blur(50px);
+    pointer-events: none;
+    animation: eckGlowShift 16s linear infinite;
+    background: linear-gradient(120deg, var(--eck-glow-a,#2b6cb0), var(--eck-glow-b,#6b46c1), var(--eck-glow-c,#0e9f6e), var(--eck-glow-a,#2b6cb0));
+    background-size: 300% 300%;
+}
+
+body[data-glow="aurora"]{ --eck-glow-a:#2b6cb0; --eck-glow-b:#6b46c1; --eck-glow-c:#0e9f6e; }
+body[data-glow="inferno"]{ --eck-glow-a:#c53030; --eck-glow-b:#dd6b20; --eck-glow-c:#b7791f; }
+body[data-glow="toxic"]{ --eck-glow-a:#38a169; --eck-glow-b:#68d391; --eck-glow-c:#276749; }
+body[data-glow="cosmic"]{ --eck-glow-a:#6b46c1; --eck-glow-b:#d53f8c; --eck-glow-c:#2b6cb0; }
+
+@keyframes eckGlowShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.start-screen{
+    min-height:90vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center
+}
+
+.start-box{
+    width:100%;
+    max-width:650px;
+    padding:45px 30px;
+    background:linear-gradient(145deg,#292929,#171717);
+    border:2px solid #b98b28;
+    border-radius:20px;
+    box-shadow:0 20px 60px rgba(0,0,0,.7)
+}
+
+.start-box h1{
+    font-size:42px;
+    color:#e8c45a;
+    margin-bottom:10px;
+    text-shadow:0 3px 8px black
+}
+
+.start-box p{
+    color:#bbb;
+    font-size:18px;
+    margin-bottom:35px
+}
+
+.menu-button{
+    width:100%;
+    padding:18px;
+    margin:10px 0;
+    border:none;
+    border-radius:10px;
+    background:linear-gradient(135deg,#d6a928,#a77d18);
+    color:#111;
+    font-size:19px;
+    font-weight:bold;
+    transition:transform .15s,filter .15s
+}
+
+.menu-button:hover{
+    transform:scale(1.02);
+    filter:brightness(1.15)
+}
+
+.menu-button.secondary{
+    background:#444;
+    color:white
+}
+
+.container{
+    width:100%;
+    max-width:900px;
+    margin:auto;
+    background:#252525;
+    padding:28px;
+    border-radius:16px;
+    box-shadow:0 10px 35px rgba(0,0,0,.5)
+}
+
+h1,h2{color:#e8c45a}
+.subtitle{
+    color:#aaa;
+    text-align:center;
+    margin-bottom:25px
+}
+
+label{
+    display:block;
+    margin:17px 0 7px;
+    font-weight:bold
+}
+
+input,textarea,select{
+    width:100%;
+    padding:12px;
+    border:1px solid #555;
+    border-radius:7px;
+    background:#141414;
+    color:white;
+    font-size:16px
+}
+
+textarea{
+    min-height:130px;
+    resize:vertical
+}
+
+input:focus,textarea:focus,select:focus{
+    outline:2px solid #d6a928
+}
+
+.checkbox-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:12px 0;
+    padding:10px;
+    background:#191919;
+    border-radius:8px
+}
+
+.checkbox-row input{
+    width:auto;
+    transform:scale(1.2)
+}
+
+.checkbox-row label{
+    margin:0;
+    font-weight:normal
+}
+
+.field-hint{
+    color:#999;
+    font-size:12px;
+    margin:4px 0 12px 0;
+    line-height:1.4
+}
+
+.action-button{
+    width:100%;
+    padding:15px;
+    margin-top:18px;
+    border:none;
+    border-radius:8px;
+    background:#d6a928;
+    color:#111;
+    font-size:17px;
+    font-weight:bold
+}
+
+.action-button:hover{
+    background:#f0ca48
+}
+
+.secondary-button{
+    background:#444;
+    color:white
+}
+
+.danger-button{
+    background:#7c2020;
+    color:white
+}
+
+.form-section{
+    margin-top:25px;
+    padding:18px;
+    background:#1b1b1b;
+    border:1px solid #3b3b3b;
+    border-radius:12px
+}
+
+.form-section h3{
+    margin-top:0;
+    color:#e8c45a
+}
+
+.image-preview{
+    width:100%;
+    height:220px;
+    margin-top:12px;
+    background:linear-gradient(135deg,#444,#111);
+    border:3px solid #222;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#999;
+    overflow:hidden
+}
+
+.image-preview img{
+    width:100%;
+    height:100%;
+    object-fit:cover
+}
+
+.review-result{
+    padding:18px;
+    margin-top:15px;
+    background:#151515;
+    border-radius:10px
+}
+
+.review-good{color:#55d66b}
+.review-warning{color:#ffd34d}
+.review-bad{color:#ff5555}
+
+.review-option{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    margin:13px 0
+}
+
+.review-option input{
+    width:auto;
+    margin-top:4px
+}
+
+.review-option label{
+    margin:0;
+    font-weight:normal
+}
+
+#cardPreview{margin-top:30px}
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.card{
+    width:410px;
+    min-height:600px;
+    margin:40px auto;
+    padding:9px;
+    color:black;
+    border:5px solid #171717;
+    box-shadow:0 12px 35px rgba(0,0,0,.8)
+}
+
+.monster-card{background:#b86b35}
+.spell-card{background:#188c72}
+.trap-card{background:#a34891}
+
+.card-inner{
+    padding:7px
+}
+
+.card-name{
+    background:rgba(255,255,255,.88);
+    border:2px solid #222;
+    padding:8px;
+    font-size:21px;
+    font-weight:bold;
+    min-height:40px
+}
+
+.attribute{
+    text-align:right;
+    font-weight:bold;
+    margin:5px
+}
+
+.card-image{
+    height:205px;
+    background:linear-gradient(135deg,#444,#111);
+    border:4px solid #222;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#aaa;
+    margin:7px 0;
+    font-weight:bold;
+    overflow:hidden
+}
+
+.card-image img{
+    width:100%;
+    height:100%;
+    object-fit:cover
+}
+
+.level{
+    color:#a90000;
+    font-size:20px;
+    min-height:26px;
+    letter-spacing:2px;
+    text-shadow:0 1px 0 rgba(255,255,255,.5)
+}
+
+.card-type{
+    background:rgba(255,255,255,.9);
+    border:2px solid #222;
+    padding:7px;
+    font-weight:bold;
+    font-size:14px
+}
+
+/* Much more readable effect box */
+
+.effect{
+    background:#fff4cf;
+    border:3px solid #222;
+    padding:13px;
+    min-height:155px;
+    margin-top:5px;
+    font-size:15px;
+    line-height:1.6;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+    color:#171717
+}
+
+.effect-title{
+    font-weight:bold;
+    font-size:13px;
+    margin-bottom:7px;
+    color:#5a3200;
+    border-bottom:1px solid #9c8553;
+    padding-bottom:5px
+}
+
+/* Large ATK / DEF display */
+
+.stats{
+    display:flex;
+    justify-content:flex-end;
+    gap:18px;
+    margin-top:7px;
+    padding:8px 10px;
+    background:rgba(255,255,255,.88);
+    border:2px solid #222;
+    font-size:18px;
+    font-weight:bold
+}
+
+.stat-atk{color:#9b1515}
+.stat-def{color:#174e9b}
+
+.card-status{
+    text-align:center;
+    font-size:8px;
+    font-weight:bold;
+    letter-spacing:.5px;
+    opacity:.75;
+    margin-top:7px
+}
+
+.balanced{color:#155f24}
+.strong{color:#806000}
+.overpowered{color:#7c2020}
+
+.slider-row{
+    margin:20px 0
+}
+
+.slider-row input[type=range]{
+    padding:0
+}
+
+.hidden{
+    display:none!important
+}
+
+/* =========================================================
+   PREMADE DECKS
+========================================================= */
+
+.premade-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:18px;
+    margin:25px 0
+}
+
+.deck-card{
+    background:linear-gradient(145deg,#303030,#171717);
+    border:2px solid #444;
+    border-radius:14px;
+    padding:20px;
+    transition:transform .15s,border-color .15s,box-shadow .15s
+}
+
+.deck-card:hover{
+    transform:translateY(-4px);
+    border-color:#d6a928;
+    box-shadow:0 12px 30px rgba(0,0,0,.5)
+}
+
+.deck-card h2{
+    margin-top:0;
+    color:#e8c45a
+}
+
+.deck-description{
+    color:#aaa;
+    min-height:55px;
+    line-height:1.4
+}
+
+.deck-stats{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:6px;
+    margin:15px 0;
+    padding:10px;
+    background:#111;
+    border-radius:8px;
+    font-size:13px
+}
+
+.deck-card button{
+    margin-top:8px
+}
+
+.deck-card .use-deck{
+    background:linear-gradient(135deg,#d6a928,#a77d18);
+    color:#111
+}
+
+.deck-card .view-deck{
+    background:#444;
+    color:white
+}
+
+.selected-deck{
+    border-color:#55d66b;
+    box-shadow:0 0 15px rgba(85,214,107,.2)
+}
+
+.deck-viewer{
+    margin-top:20px;
+    padding:18px;
+    background:#111;
+    border-radius:12px;
+    border:1px solid #444
+}
+
+.deck-list{
+    list-style:none;
+    padding:0;
+    margin:0
+}
+
+.deck-list li{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 10px;
+    border-bottom:1px solid #292929
+}
+
+.deck-list li:last-child{
+    border-bottom:none
+}
+
+.deck-card-name{
+    color:#eee
+}
+
+.deck-card-count{
+    color:#e8c45a;
+    font-weight:bold
+}
+
+.active-deck-banner{
+    padding:14px;
+    margin:15px 0;
+    background:#152415;
+    border:1px solid #39753f;
+    border-radius:10px;
+    color:#7bea86
+}
+
+/* =========================================================
+   DECK BUILDER CARDS
+========================================================= */
+
+.my-deck-card{
+    background:#141414;
+    border:1px solid #444;
+    border-radius:10px;
+    padding:13px;
+    margin:10px 0
+}
+
+.my-deck-card strong{
+    color:#e8c45a
+}
+
+.deck-card-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:10px
+}
+
+.deck-card-actions button{
+    flex:1;
+    min-width:120px;
+    padding:9px;
+    border:0;
+    border-radius:7px
+}
+
+.small-gold{
+    background:#d6a928;
+    color:#111
+}
+
+.small-dark{
+    background:#444;
+    color:white
+}
+
+.small-red{
+    background:#7c2020;
+    color:white
+}
+
+/* =========================================================
+   TRIBUTE SELECTOR
+========================================================= */
+
+.tribute-card{
+    background:#181818;
+    border:2px solid #444;
+    border-radius:10px;
+    padding:12px;
+    margin:8px 0;
+    display:flex;
+    align-items:center;
+    gap:12px
+}
+
+.tribute-card.selected{
+    border-color:#d6a928;
+    background:#29220f
+}
+
+.tribute-card input{
+    width:auto
+}
+
+.tribute-card .tribute-info{
+    flex:1
+}
+
+.tribute-card .tribute-atk{
+    color:#ff7777
+}
+
+.tribute-card .tribute-def{
+    color:#77aaff
+}
+
+.tribute-warning{
+    padding:12px;
+    background:#321717;
+    border:1px solid #8a3939;
+    border-radius:8px;
+    color:#ff9999;
+    margin-bottom:12px
+}
+
+@media(max-width:500px){
+    body{padding:10px}
+    .container{padding:18px}
+    .start-box h1{font-size:30px}
+    .card{
+        width:95%;
+        min-height:auto
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- =====================================================
+     START SCREEN
+====================================================== -->
+
+<div id="startPage" class="page active">
+    <div class="start-screen">
+        <div class="start-box">
+
+            <h1>🃏 Yu-Gi-Oh!</h1>
+
+            <h2>Custom Duel System</h2>
+
+            <p>
+                Build your own cards, create decks,
+                choose premade decks, and prepare for duels.
+            </p>
+
+            <button class="menu-button"
+                    onclick="showPage('gamePage'); updateGamePage();">
+                ▶ PLAY
+            </button>
+
+            <button class="menu-button"
+                    onclick="showPage('deckPage'); updateDeckBuilderPage();">
+                🃏 DECK BUILDER
+            </button>
+
+            <button class="menu-button secondary"
+                    onclick="showPage('optionsPage'); updateOptionsPage(); renderGlowPicker(); renderSyncStatus();">
+                ⚙ OPTIONS
+            </button>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     GAME ENGINE
+====================================================== -->
+
+<div id="gamePage" class="page">
+    <div class="container">
+
+        <h1>⚔️ Game Engine</h1>
+
+        <p class="subtitle">
+            Your active deck is ready for the duel engine.
+        </p>
+
+        <div id="activeDeckInfo" class="form-section"></div>
+
+        <div class="form-section">
+
+            <h3>🎮 Duel Preparation</h3>
+
+            <p>
+                Your active deck will be used by the duel system.
+            </p>
+
+            <p>
+                Any card you create here — with its real name,
+                stats, and description — is automatically pulled
+                into the actual duel engine's Deck Maker, where
+                you can build a full deck around it and play real
+                games with it. Effect text carries over as flavor
+                only, since a duel can't safely run whatever rules
+                text you type in.
+            </p>
+
+            <button class="action-button"
+                    onclick="openPremadeDecks()">
+                📦 Choose Premade Deck
+            </button>
+
+            <button class="action-button"
+                    onclick="showPage('deckPage'); updateDeckBuilderPage();">
+                🃏 Go To Deck Builder
+            </button>
+
+            <button id="startDuelButton"
+                    class="action-button"
+                    onclick="goToDuel()">
+                ⚔️ Start Duel
+            </button>
+
+        </div>
+
+        <button class="action-button secondary-button"
+                onclick="showPage('startPage')">
+            ← Main Menu
+        </button>
+
+    </div>
+</div>
+
+
+<!-- =====================================================
+     OPTIONS
+====================================================== -->
+
+<div id="optionsPage" class="page">
+    <div class="container">
+
+        <h1>⚙ Options</h1>
+
+        <div class="form-section">
+
+            <h3>🔄 Duel Engine Sync</h3>
+
+            <p class="field-hint" id="syncStatusText">Checking…</p>
+
+        </div>
+
+        <div class="form-section">
+
+            <h3>🌈 Background Glow</h3>
+
+            <p class="field-hint">
+                A slow-shifting color layer behind everything.
+            </p>
+
+            <div id="glowPicker" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+
+        </div>
+
+        <div class="form-section">
+
+            <h3>Game Settings</h3>
+
+            <label>Player Name</label>
+
+            <input id="playerName"
+                   type="text"
+                   placeholder="Enter your name">
+
+            <div class="slider-row">
+
+                <label>Music Volume</label>
+
+                <input id="musicVolume"
+                       type="range"
+                       min="0"
+                       max="100"
+                       value="50">
+
+            </div>
+
+            <div class="slider-row">
+
+                <label>Effects Volume</label>
+
+                <input id="effectsVolume"
+                       type="range"
+                       min="0"
+                       max="100"
+                       value="70">
+
+            </div>
+
+            <div class="checkbox-row">
+
+                <input id="animations"
+                       type="checkbox"
+                       checked>
+
+                <label for="animations">
+                    Enable card animations
+                </label>
+
+            </div>
+
+            <button class="action-button"
+                    onclick="saveOptions()">
+                💾 Save Options
+            </button>
+
+        </div>
+
+
+        <div class="form-section">
+
+            <h3>🃏 Card Creator Defaults</h3>
+
+            <p class="field-hint">
+                These control how the Create Custom Card form
+                starts every time you open it.
+            </p>
+
+            <div class="checkbox-row">
+
+                <input id="defaultAiAssist"
+                       type="checkbox">
+
+                <label for="defaultAiAssist">
+                    🤖 Pre-check all "Ask AI to review" boxes
+                    by default
+                </label>
+
+            </div>
+
+            <label for="defaultLevel">Default Level</label>
+
+            <input type="number"
+                   id="defaultLevel"
+                   min="1"
+                   max="12"
+                   value="4">
+
+            <label for="defaultAttack">Default ATK</label>
+
+            <input type="number"
+                   id="defaultAttack"
+                   min="0"
+                   value="1500">
+
+            <label for="defaultDefense">Default DEF</label>
+
+            <input type="number"
+                   id="defaultDefense"
+                   min="0"
+                   value="1500">
+
+            <button class="action-button"
+                    onclick="saveOptions()">
+                💾 Save Options
+            </button>
+
+        </div>
+
+
+        <div class="form-section">
+
+            <h3>📦 Your Custom Cards</h3>
+
+            <p class="field-hint">
+                Scoped to whichever duel.html profile is
+                currently active.
+            </p>
+
+            <div id="cardDataStats" class="field-hint"></div>
+
+            <button class="action-button"
+                    onclick="exportCustomCards()">
+                ⬇️ Export My Custom Cards
+            </button>
+
+            <label for="importCardsFile">Import Custom Cards (from a previous export)</label>
+
+            <input type="file"
+                   id="importCardsFile"
+                   accept="application/json">
+
+            <button class="action-button"
+                    onclick="importCustomCardsFromFile()">
+                ⬆️ Import Cards
+            </button>
+
+            <button class="action-button secondary-button"
+                    onclick="clearAllCustomCards()">
+                🗑️ Clear All My Custom Cards
+            </button>
+
+        </div>
+
+        <button class="action-button secondary-button"
+                onclick="showPage('startPage')">
+            ← Main Menu
+        </button>
+
+    </div>
+</div>
+
+
+<!-- =====================================================
+     DECK BUILDER
+====================================================== -->
+
+<div id="deckPage" class="page">
+    <div class="container">
+
+        <h1>🃏 Deck Builder</h1>
+
+        <p class="subtitle">
+            Build your own deck or use one of the premade decks.
+        </p>
+
+        <div id="deckBuilderActiveDeck"></div>
+
+        <button class="action-button"
+                onclick="showPage('cardMakerPage'); applyCardCreatorDefaults();">
+            ✨ Create Custom Card
+        </button>
+
+        <button class="action-button"
+                onclick="showPage('savedCardsPage'); loadSavedCards();">
+            📚 My Custom Cards
+        </button>
+
+        <button class="action-button"
+                onclick="openPremadeDecks()">
+            📦 Premade Decks
+        </button>
+
+        <button class="action-button secondary-button"
+                onclick="showPage('startPage')">
+            ← Main Menu
+        </button>
+
+    </div>
+</div>
+
+
+<!-- =====================================================
+     CARD MAKER
+====================================================== -->
+
+<div id="cardMakerPage" class="page">
+    <div class="container">
+
+        <h1>🛠 Card Creator</h1>
+
+        <p class="subtitle">
+            Create Monsters, Spells and Traps.
+        </p>
+
+        <div id="cardFormError"
+             class="hidden"
+             style="background:#3a1414;border:2px solid #d64444;color:#ffb3b3;padding:14px;border-radius:8px;margin-bottom:14px;font-weight:bold;">
+        </div>
+
+        <form id="cardForm" novalidate>
+
+            <div class="form-section" id="duelTemplateSection">
+
+                <h3>📚 Start from a Duel card</h3>
+
+                <p class="field-hint" id="duelTemplateHint"></p>
+
+                <input type="text" id="duelTemplateSearch" placeholder="Search duel cards…" oninput="filterDuelTemplates()">
+
+                <select id="duelTemplatePick"></select>
+
+                <button type="button" class="secondary" onclick="loadDuelTemplate()">Load into form</button>
+
+            </div>
+
+            <div class="form-section">
+
+                <h3>📋 Basic Information</h3>
+
+                <label for="cardName">Card Name</label>
+
+                <input type="text"
+                       id="cardName"
+                       placeholder="Example: Dragon of the Burning Sky">
+
+                <div class="checkbox-row">
+
+                    <input type="checkbox" id="aiName">
+
+                    <label for="aiName">
+                        🤖 Let AI create the card name
+                    </label>
+
+                </div>
+
+                <label for="description">
+                    Card Effect / Description
+                </label>
+
+                <textarea id="description"
+                          placeholder="Describe exactly what the card does. Normal Monsters can instead use this box for their flavor text."></textarea>
+
+                <label for="cardTheme">
+                    Skill / Card Strategy
+                </label>
+
+                <input type="text"
+                       id="cardTheme"
+                       placeholder="Example: Destroy opposing monsters, summon Dragons, protect my field...">
+
+                <label for="extraDescription">
+                    Everything Else
+                </label>
+
+                <textarea id="extraDescription"
+                          placeholder="Add anything else you want the card builder to know about your card."></textarea>
+
+                <label for="cardVfx">✨ Duel Visual Effect (animation style in the Duel Engine)</label>
+
+                <select id="cardVfx" onchange="previewVfxSwatch()">
+                    <option value="">Automatic (from Attribute / card type)</option>
+                    <option value="fire">🔥 Fire</option>
+                    <option value="lightning">⚡ Lightning</option>
+                    <option value="holy">✨ Holy</option>
+                    <option value="dark">🌑 Dark</option>
+                    <option value="ice">❄️ Ice</option>
+                    <option value="nature">🌿 Nature</option>
+                    <option value="neutral">🪙 Neutral Gold</option>
+                </select>
+
+                <div id="vfxSwatch" style="height:10px;border-radius:5px;margin:6px 0;background:#333;transition:all .3s;"></div>
+
+            </div>
+
+
+            <div class="form-section">
+
+                <h3>🃏 Card Type</h3>
+
+                <label for="cardType">
+                    Choose Card Type
+                </label>
+
+                <select id="cardType">
+
+                    <option value="monster">Monster</option>
+                    <option value="spell">Spell</option>
+                    <option value="trap">Trap</option>
+                    <option value="fusion">Fusion Monster (Extra Deck)</option>
+                    <option value="synchro">Synchro Monster (Extra Deck)</option>
+                    <option value="xyz">Xyz Monster (Extra Deck)</option>
+                    <option value="link">Link Monster (Extra Deck)</option>
+
+                </select>
+
+            </div>
+
+
+            <div id="monsterOptions" class="form-section">
+
+                <h3>👹 Monster Settings</h3>
+
+                <label for="attribute">Attribute</label>
+
+                <input type="text"
+                       id="attribute"
+                       value="LIGHT"
+                       placeholder="You can enter your own Attribute">
+
+                <label for="level">Level</label>
+
+                <input type="number"
+                       id="level"
+                       min="1"
+                       max="12"
+                       value="4">
+
+                <div class="checkbox-row">
+
+                    <input type="checkbox" id="aiLevel">
+
+                    <label for="aiLevel">
+                        🤖 Ask AI to review/alter my Level
+                    </label>
+
+                </div>
+
+                <label for="monsterType">Monster Type</label>
+
+                <input type="text"
+                       id="monsterType"
+                       value="Warrior"
+                       placeholder="Example: Dragon">
+
+                <!-- NEW: Normal / Effect -->
+
+                <label for="monsterCategory">
+                    Monster Category
+                </label>
+
+                <select id="monsterCategory">
+
+                    <option value="effect">
+                        Effect Monster
+                    </option>
+
+                    <option value="normal">
+                        Normal Monster
+                    </option>
+
+                </select>
+
+                <div class="checkbox-row">
+
+                    <input type="checkbox" id="tuner">
+
+                    <label for="tuner">
+                        This monster is a Tuner
+                    </label>
+
+                </div>
+
+                <div class="checkbox-row">
+
+                    <input type="checkbox" id="isPendulum">
+
+                    <label for="isPendulum">
+                        🔮 This is a Pendulum Monster
+                    </label>
+
+                </div>
+
+                <div id="pendulumScaleRow" class="hidden">
+
+                    <label for="pendulumScale">Pendulum Scale (0–13)</label>
+
+                    <input type="number"
+                           id="pendulumScale"
+                           min="0"
+                           max="13"
+                           value="4">
+
+                    <label for="scaleEffect">🔮 Scale Effect (works in the Duel Engine)</label>
+
+                    <select id="scaleEffect">
+                        <option value="">None</option>
+                        <option value="atk200">Your monsters gain 200 ATK</option>
+                        <option value="def300">Your monsters gain 300 DEF</option>
+                        <option value="heal300">Gain 300 LP at the start of your turn</option>
+                    </select>
+
+                </div>
+
+                <label for="attack">ATK</label>
+
+                <input type="number"
+                       id="attack"
+                       min="0"
+                       value="1500">
+
+                <div class="checkbox-row">
+
+                    <input type="checkbox" id="aiAttack">
+
+                    <label for="aiAttack">
+                        🤖 Ask AI to review/alter my ATK
+                    </label>
+
+                </div>
+
+                <label for="defense">DEF</label>
+
+                <input type="number"
+                       id="defense"
+                       min="0"
+                       value="1500">
+
+                <div class="checkbox-row">
+
+                    <input type="checkbox" id="aiDefense">
+
+                    <label for="aiDefense">
+                        🤖 Ask AI to review/alter my DEF
+                    </label>
+
+                </div>
+
+                <div class="checkbox-row">
+
+                    <input type="checkbox" id="keepStats">
+
+                    <label for="keepStats">
+                        🔒 Do NOT change my Level, ATK or DEF
+                    </label>
+
+                </div>
+
+                <div class="checkbox-row">
+                    <input type="checkbox" id="isRitualMonster">
+                    <label for="isRitualMonster">
+                        🕯️ Ritual Monster — can only be summoned with a Ritual Spell
+                    </label>
+                </div>
+
+                <label for="handTrapKind">⚡ Hand Trap (works in the Duel Engine)</label>
+
+                <select id="handTrapKind">
+                    <option value="">None</option>
+                    <option value="attackNegate">Discard: negate an attack</option>
+                    <option value="directNegate">Discard: negate a direct attack</option>
+                    <option value="spellNegate">Discard: negate a Spell activation</option>
+                </select>
+
+                <label for="summonPreset">✨ On-Summon Effect (works in the Duel Engine)</label>
+
+                <select id="summonPreset">
+                    <option value="">None</option>
+                    <option value="draw1">Draw 1 card</option>
+                    <option value="heal600">Gain 600 LP</option>
+                    <option value="burn500">Inflict 500 damage</option>
+                    <option value="searchSameType">Add a same-Type monster from Deck to hand</option>
+                    <option value="reviveLow">Revive a Level 3 or lower monster from the Graveyard</option>
+                </select>
+
+                <label for="battlePreset">⚔️ Battle Effect (works in the Duel Engine)</label>
+
+                <select id="battlePreset">
+                    <option value="">None</option>
+                    <option value="burn400">When it destroys a monster: inflict 400 damage</option>
+                    <option value="heal500">When it destroys a monster: gain 500 LP</option>
+                    <option value="draw1">When it destroys a monster: draw 1 card</option>
+                </select>
+
+            </div>
+
+
+            <div id="spellOptions"
+                 class="form-section hidden">
+
+                <h3>✨ Spell Settings</h3>
+
+                <label for="spellType">
+                    Spell Type
+                </label>
+
+                <select id="spellType">
+
+                    <option>Normal Spell</option>
+                    <option>Quick-Play Spell</option>
+                    <option>Continuous Spell</option>
+                    <option>Equip Spell</option>
+                    <option>Field Spell</option>
+                    <option>Ritual Spell</option>
+
+                </select>
+
+                <label for="customSpellEffect">Duel Effect</label>
+
+                <select id="customSpellEffect">
+                    <option value="">None (flavor only)</option>
+                    <option value="heal1000">Gain 1000 LP</option>
+                    <option value="draw2">Draw 2 cards</option>
+                    <option value="burn800">Inflict 800 damage</option>
+                    <option value="destroyWeakest">Destroy the opponent's weakest monster</option>
+                    <option value="banishStrongest">Banish the opponent's strongest monster</option>
+                    <option value="sweepGraveyards">Banish both Graveyards (+200 LP per opponent card)</option>
+                    <option value="soulOffering">Banish up to 3 of your Graveyard cards, draw that many</option>
+                    <option value="voidReturn">Special Summon your best banished monster</option>
+                </select>
+
+                <label for="continuousEffect">Continuous Effect (Continuous Spells only)</label>
+
+                <select id="continuousEffect">
+                    <option value="">None</option>
+                    <option value="banner">Your monsters gain 300 ATK</option>
+                    <option value="wall">Your Defense monsters gain 500 DEF</option>
+                    <option value="totem">Gain 300 LP at the start of your turn</option>
+                    <option value="aura">Gain 400 LP at the end of your turn</option>
+                </select>
+
+                <label for="spellBonus">Equip / Field bonus (ATK and DEF, for Equip and Field Spells)</label>
+
+                <input type="number" id="spellBonus" min="0" max="2000" step="100" value="500">
+
+            </div>
+
+
+            <div id="trapOptions"
+                 class="form-section hidden">
+
+                <h3>🪤 Trap Settings</h3>
+
+                <label for="trapType">
+                    Trap Type
+                </label>
+
+                <select id="trapType">
+
+                    <option>Normal Trap</option>
+                    <option>Continuous Trap</option>
+                    <option>Counter Trap</option>
+
+                </select>
+
+                <label for="customTrapKind">Duel Effect (Normal Trap)</label>
+
+                <select id="customTrapKind">
+                    <option value="">None (flavor only)</option>
+                    <option value="negateAttack">Negate the attack</option>
+                    <option value="destroyAttacker">Destroy the attacking monster</option>
+                    <option value="reflectDamage">Negate the attack and deal its ATK as damage</option>
+                    <option value="banishAttacker">Negate the attack and banish the attacker</option>
+                    <option value="emberWard">Continuous Trap: negate, burn 500, then scorch later attackers for 300</option>
+                </select>
+
+                <div class="checkbox-row">
+                    <input type="checkbox" id="counterBurn">
+                    <label for="counterBurn">Counter Trap also deals 800 damage to the Spell's user</label>
+                </div>
+
+            </div>
+
+
+            <div id="fusionOptions"
+                 class="form-section hidden">
+
+                <h3>🌀 Fusion Settings</h3>
+
+                <p class="field-hint">
+                    Fusion Summoned using the exact named
+                    materials below — both must match real
+                    card names exactly (from your Deck Maker
+                    or another custom card).
+                </p>
+
+                <label for="fusionMaterial1">Material 1 (exact card name)</label>
+
+                <input type="text"
+                       id="fusionMaterial1"
+                       placeholder="Example: Dark Blade">
+
+                <label for="fusionMaterial2">Material 2 (exact card name)</label>
+
+                <input type="text"
+                       id="fusionMaterial2"
+                       placeholder="Example: Summoned Skull">
+
+                <label for="fusionAttribute">Attribute</label>
+
+                <input type="text"
+                       id="fusionAttribute"
+                       value="LIGHT">
+
+                <label for="fusionLevel">Level</label>
+
+                <input type="number"
+                       id="fusionLevel"
+                       min="1"
+                       max="12"
+                       value="7">
+
+                <label for="fusionMonsterType">Monster Type</label>
+
+                <input type="text"
+                       id="fusionMonsterType"
+                       value="Warrior">
+
+                <label for="fusionAttack">ATK</label>
+
+                <input type="number"
+                       id="fusionAttack"
+                       min="0"
+                       value="2500">
+
+                <label for="fusionDefense">DEF</label>
+
+                <input type="number"
+                       id="fusionDefense"
+                       min="0"
+                       value="2000">
+
+            </div>
+
+
+            <div id="synchroOptions"
+                 class="form-section hidden">
+
+                <h3>✨ Synchro Settings</h3>
+
+                <p class="field-hint">
+                    Synchro Summoned using 1 Tuner + non-Tuner
+                    monster(s) on the field with total Levels
+                    equal to the Level below.
+                </p>
+
+                <label for="synchroAttribute">Attribute</label>
+
+                <input type="text"
+                       id="synchroAttribute"
+                       value="LIGHT">
+
+                <label for="synchroLevel">Level</label>
+
+                <input type="number"
+                       id="synchroLevel"
+                       min="1"
+                       max="12"
+                       value="8">
+
+                <div class="checkbox-row">
+
+                    <input type="checkbox" id="synchroIsTuner">
+
+                    <label for="synchroIsTuner">
+                        This Synchro is also a Tuner
+                        (Synchro Tuner — can be used as
+                        material for another Synchro Summon)
+                    </label>
+
+                </div>
+
+                <div class="checkbox-row">
+
+                    <input type="checkbox" id="synchroTwoTuners">
+
+                    <label for="synchroTwoTuners">
+                        ⚡ Accel Synchro — requires 2 Tuner
+                        monsters instead of the usual 1
+                    </label>
+
+                </div>
+
+                <label for="synchroMonsterType">Monster Type</label>
+
+                <input type="text"
+                       id="synchroMonsterType"
+                       value="Dragon">
+
+                <label for="synchroAttack">ATK</label>
+
+                <input type="number"
+                       id="synchroAttack"
+                       min="0"
+                       value="2500">
+
+                <label for="synchroDefense">DEF</label>
+
+                <input type="number"
+                       id="synchroDefense"
+                       min="0"
+                       value="2000">
+
+                <label for="synchroAbility">Duel Ability</label>
+
+                <select id="synchroAbility">
+                    <option value="">None</option>
+                    <option value="lifesteal">Lifesteal — gain 500 LP on battle kill</option>
+                    <option value="resonance">Resonance — +200 ATK per other monster</option>
+                    <option value="pierce">Piercing — damage through Defense</option>
+                    <option value="starlight">Starlight — safe vs lower Levels</option>
+                </select>
+
+            </div>
+
+
+            <div id="xyzOptions"
+                 class="form-section hidden">
+
+                <h3>🌌 Xyz Settings</h3>
+
+                <p class="field-hint">
+                    Xyz Summoned using the required number of
+                    monsters on the field that are all the
+                    exact Rank/Level below.
+                </p>
+
+                <label for="xyzAttribute">Attribute</label>
+
+                <input type="text"
+                       id="xyzAttribute"
+                       value="LIGHT">
+
+                <label for="xyzRank">Rank</label>
+
+                <input type="number"
+                       id="xyzRank"
+                       min="1"
+                       max="12"
+                       value="4">
+
+                <label for="xyzMaterialCount">Materials Needed</label>
+
+                <input type="number"
+                       id="xyzMaterialCount"
+                       min="2"
+                       max="4"
+                       value="2">
+
+                <label for="xyzMonsterType">Monster Type</label>
+
+                <input type="text"
+                       id="xyzMonsterType"
+                       value="Warrior">
+
+                <label for="xyzAttack">ATK</label>
+
+                <input type="number"
+                       id="xyzAttack"
+                       min="0"
+                       value="2400">
+
+                <label for="xyzDefense">DEF</label>
+
+                <input type="number"
+                       id="xyzDefense"
+                       min="0"
+                       value="2000">
+
+                <label for="xyzAbility">Duel Ability</label>
+
+                <select id="xyzAbility">
+                    <option value="">None</option>
+                    <option value="overlayShield">Overlay Shield — detach to survive battle</option>
+                    <option value="detachBurn">Detach Burn — detach to deal 500</option>
+                    <option value="overlayDraw">Overlay Draw — detach to draw 1</option>
+                    <option value="rankStrike">Rank Strike — ATK per Rank and unit</option>
+                </select>
+
+            </div>
+
+
+            <div id="linkOptions"
+                 class="form-section hidden">
+
+                <h3>🔗 Link Settings</h3>
+
+                <p class="field-hint">
+                    Link Summoned using exactly as many monsters
+                    as the Link Rating. Link monsters have no DEF.
+                    Monsters in the arrow direction gain the Link Bonus ATK.
+                </p>
+
+                <label for="linkAttribute">Attribute</label>
+                <input type="text" id="linkAttribute" value="LIGHT">
+
+                <label for="linkRating">Link Rating (1-4)</label>
+                <input type="number" id="linkRating" min="1" max="4" value="2">
+
+                <label>Link Arrows</label>
+                <label><input type="checkbox" id="linkArrowLeft" checked> ◀ Left</label>
+                <label><input type="checkbox" id="linkArrowRight" checked> Right ▶</label>
+
+                <label for="linkBonus">Link Bonus ATK (0-1500)</label>
+                <input type="number" id="linkBonus" min="0" max="1500" step="50" value="400">
+
+                <label for="linkMonsterType">Monster Type</label>
+                <input type="text" id="linkMonsterType" value="Warrior">
+
+                <label for="linkMaterialType">Required Material Type (optional)</label>
+                <input type="text" id="linkMaterialType" value="" placeholder="e.g. Fairy — leave blank for any">
+
+                <label for="linkAttack">ATK</label>
+                <input type="number" id="linkAttack" min="0" value="1800">
+
+            </div>
+
+
+            <div id="effectBuilderSection" class="form-section hidden">
+
+                <h3>🛠 Effect Builder (plays in the Duel Engine)</h3>
+
+                <p class="field-hint">
+                    Combine up to 3 effects. Each one is a trigger plus an action —
+                    for example "When this card is summoned: draw 1 card".
+                    Your written description is still just flavor; these blocks are what actually happens.
+                </p>
+
+                <p class="field-hint" id="effectKindHint" style="color:#e0a82e;"></p>
+
+                <div id="effectRows"></div>
+
+                <div style="margin-top:10px;">
+                    <div style="display:flex;justify-content:space-between;font-size:12px;">
+                        <span>Power: <strong id="powerScoreText">0</strong> / <span id="powerLimitText">0</span></span>
+                        <span id="powerVerdict">Balanced</span>
+                    </div>
+                    <div style="height:10px;background:#222;border-radius:5px;overflow:hidden;margin-top:4px;">
+                        <div id="powerBar" style="height:10px;width:0%;background:#4caf50;transition:all .25s;"></div>
+                    </div>
+                    <p class="field-hint" id="powerHint"></p>
+                </div>
+
+            </div>
+
+
+            <div class="form-section">
+
+                <h3>🖼 Card Artwork</h3>
+
+                <label for="cardImage">
+                    Upload Your Own Image
+                </label>
+
+                <input type="file"
+                       id="cardImage"
+                       accept="image/*">
+
+                <div class="checkbox-row">
+
+                    <input type="checkbox"
+                           id="aiImage">
+
+                    <label for="aiImage">
+                        🤖 Let AI handle the artwork instead
+                    </label>
+
+                </div>
+
+                <div id="imagePreview"
+                     class="image-preview">
+                    NO IMAGE SELECTED
+                </div>
+
+            </div>
+
+
+            <button type="button"
+                    class="action-button"
+                    onclick="submitCardForReview()">
+                ⚖️ Review My Card
+            </button>
+
+            <button type="button"
+                    class="action-button secondary-button"
+                    onclick="showPage('deckPage'); updateDeckBuilderPage();">
+                ← Back to Deck Builder
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+
+<!-- =====================================================
+     FINAL REVIEW
+====================================================== -->
+
+<div id="reviewPage" class="page">
+    <div class="container">
+
+        <h1>⚖️ Final Card Review</h1>
+
+        <div id="reviewResult"
+             class="review-result">
+        </div>
+
+        <div class="form-section">
+
+            <h3>🤖 What should the AI change?</h3>
+
+            <div class="review-option">
+                <input type="checkbox" id="lessPower">
+                <label for="lessPower">
+                    Make this card less powerful
+                </label>
+            </div>
+
+            <div class="review-option">
+                <input type="checkbox" id="morePower">
+                <label for="morePower">
+                    Make this card more powerful
+                </label>
+            </div>
+
+            <div class="review-option">
+                <input type="checkbox" id="restrictions">
+                <label for="restrictions">
+                    Add restrictions to the effect
+                </label>
+            </div>
+
+            <div class="review-option">
+                <input type="checkbox" id="betterWording">
+                <label for="betterWording">
+                    Rewrite using proper Yu-Gi-Oh! wording
+                </label>
+            </div>
+
+            <div class="review-option">
+                <input type="checkbox" id="keepEffect">
+                <label for="keepEffect">
+                    Keep my original ability idea as close as possible
+                </label>
+            </div>
+
+            <div class="review-option">
+                <input type="checkbox" id="realDuel">
+                <label for="realDuel">
+                    Make this suitable for a real duel
+                </label>
+            </div>
+
+            <label for="extraChanges">
+                Other changes for the AI
+            </label>
+
+            <textarea id="extraChanges"
+                      placeholder="Tell the AI anything else you want changed..."></textarea>
+
+        </div>
+
+        <button class="action-button"
+                onclick="finalizeCard()">
+            🤖 Apply Changes & Finalize Card
+        </button>
+
+        <button class="action-button secondary-button"
+                onclick="editCard()">
+            ← Go Back & Edit Card
+        </button>
+
+    </div>
+</div>
+
+
+<!-- =====================================================
+     SAVED CARDS
+====================================================== -->
+
+<div id="savedCardsPage" class="page">
+    <div class="container">
+
+        <h1>📚 My Custom Cards</h1>
+
+        <p class="subtitle">
+            Your cards are stored locally on this device.
+        </p>
+
+        <div class="form-section">
+            <h3>📨 Share / Import Card Code</h3>
+            <p class="field-hint">
+                "Copy Code" on a card gives a text code (artwork is not included).
+                Paste a friend's code here to add their card to your collection.
+            </p>
+            <textarea id="cardCodeInput" rows="3" placeholder="Paste a card code (starts with YGC1|)"></textarea>
+            <button class="action-button" onclick="importCardCode()">📥 Import Card</button>
+        </div>
+
+        <div id="savedCardsList"></div>
+
+        <button class="action-button secondary-button"
+                onclick="showPage('deckPage'); updateDeckBuilderPage();">
+            ← Back
+        </button>
+
+    </div>
+</div>
+
+
+<!-- =====================================================
+     PREMADE DECKS
+====================================================== -->
+
+<div id="premadePage" class="page">
+    <div class="container">
+
+        <h1>📦 Premade Decks</h1>
+
+        <p class="subtitle">
+            Choose a ready-made deck to become your active deck.
+        </p>
+
+        <div id="premadeDeckList"></div>
+
+        <button class="action-button secondary-button"
+                onclick="showPage('deckPage'); updateDeckBuilderPage();">
+            ← Back to Deck Builder
+        </button>
+
+    </div>
+</div>
+
+
+<!-- =====================================================
+     TRIBUTE SELECTION PAGE
+====================================================== -->
+
+<div id="tributePage" class="page">
+    <div class="container">
+
+        <h1>🔥 Select Tributes</h1>
+
+        <p class="subtitle">
+            Choose which face-up monsters you want to Tribute.
+        </p>
+
+        <div id="tributeRequirement"
+             class="form-section">
+        </div>
+
+        <div id="tributeCandidates"></div>
+
+        <button class="action-button"
+                onclick="confirmTributes()">
+            ✅ Confirm Tributes
+        </button>
+
+        <button class="action-button secondary-button"
+                onclick="cancelTributeSelection()">
+            ← Cancel
+        </button>
+
+    </div>
+</div>
+
+
+<script>
+/*@@SHARED:BEGIN@@*/
+/* GENERATED by sync.py from shared/shared-data.json — edit that file, then run sync.py. */
+const SHARED_DATA = {
+ "triggers": {
+  "onSummon": {
+   "text": "When this card is summoned",
+   "mult": 1.0,
+   "kinds": [
+    "monster"
+   ]
+  },
+  "onAttack": {
+   "text": "When this card declares an attack",
+   "mult": 1.2,
+   "kinds": [
+    "monster"
+   ]
+  },
+  "onDestroyBattle": {
+   "text": "When this card destroys a monster by battle",
+   "mult": 0.9,
+   "kinds": [
+    "monster"
+   ]
+  },
+  "onSentToGrave": {
+   "text": "When this card is sent to the Graveyard",
+   "mult": 0.8,
+   "kinds": [
+    "monster"
+   ]
+  },
+  "onFlip": {
+   "text": "FLIP: when this card is flipped face-up",
+   "uiText": "FLIP: when this card is flipped face-up (board effects only work on Flip Summon)",
+   "mult": 0.8,
+   "kinds": [
+    "monster"
+   ]
+  },
+  "startOfTurn": {
+   "text": "At the start of your turn (while face-up)",
+   "mult": 2.2,
+   "kinds": [
+    "monster",
+    "continuous",
+    "continuousTrap"
+   ]
+  },
+  "endOfTurn": {
+   "text": "At the end of your turn (while face-up)",
+   "mult": 2.2,
+   "kinds": [
+    "monster",
+    "continuous",
+    "continuousTrap"
+   ]
+  },
+  "onActivate": {
+   "text": "When this Spell is activated",
+   "mult": 1.0,
+   "kinds": [
+    "spell"
+   ]
+  },
+  "onOpponentAttack": {
+   "text": "When an opponent's monster declares an attack (the attack is negated)",
+   "uiText": "When an opponent's monster attacks (attack is negated)",
+   "mult": 1.0,
+   "kinds": [
+    "trap",
+    "continuousTrap"
+   ]
+  },
+  "onOpponentSpell": {
+   "text": "When your opponent activates a Spell Card (it is negated)",
+   "uiText": "When an opponent activates a Spell (it is negated)",
+   "mult": 1.0,
+   "kinds": [
+    "counter"
+   ]
+  }
+ },
+ "conditions": {
+  "once": {
+   "label": "Once per turn",
+   "text": "(once per turn)",
+   "mult": 0.8
+  },
+  "lpLow": {
+   "label": "If your LP is lower than opponent's",
+   "text": "if your LP is lower than your opponent's",
+   "mult": 0.7
+  },
+  "lpHigh": {
+   "label": "If your LP is higher than opponent's",
+   "text": "if your LP is higher than your opponent's",
+   "mult": 0.85
+  },
+  "handSmall": {
+   "label": "If you have 2 or fewer cards in hand",
+   "text": "if you have 2 or fewer cards in hand",
+   "mult": 0.75
+  },
+  "oppMore": {
+   "label": "If opponent controls more monsters",
+   "text": "if your opponent controls more monsters",
+   "mult": 0.7
+  }
+ },
+ "actions": {
+  "draw": {
+   "label": "Draw cards",
+   "amounts": [
+    1,
+    2
+   ],
+   "cost": {
+    "m": 3
+   },
+   "text": "draw {a} card{s}"
+  },
+  "heal": {
+   "label": "Gain LP",
+   "amounts": [
+    300,
+    500,
+    800,
+    1000
+   ],
+   "cost": {
+    "d": 250
+   },
+   "text": "gain {a} LP"
+  },
+  "burn": {
+   "label": "Burn opponent's LP",
+   "amounts": [
+    300,
+    500,
+    800
+   ],
+   "cost": {
+    "d": 150
+   },
+   "text": "inflict {a} damage to your opponent"
+  },
+  "growSelf": {
+   "label": "This card gains ATK (permanent)",
+   "amounts": [
+    200,
+    300,
+    500
+   ],
+   "cost": {
+    "d": 100
+   },
+   "text": "this card gains {a} ATK permanently",
+   "monsterOnly": true
+  },
+  "destroyWeakest": {
+   "label": "Destroy opponent's weakest monster",
+   "cost": {
+    "f": 6
+   },
+   "board": true,
+   "text": "destroy your opponent's weakest face-up monster"
+  },
+  "destroyStrongest": {
+   "label": "Destroy opponent's strongest monster",
+   "cost": {
+    "f": 9
+   },
+   "board": true,
+   "text": "destroy your opponent's strongest face-up monster"
+  },
+  "banishStrongest": {
+   "label": "Banish opponent's strongest monster",
+   "cost": {
+    "f": 10
+   },
+   "board": true,
+   "text": "banish your opponent's strongest face-up monster"
+  },
+  "searchMonster": {
+   "label": "Search a monster from Deck",
+   "cost": {
+    "f": 4
+   },
+   "text": "add 1 monster from your Deck to your hand"
+  },
+  "searchSpell": {
+   "label": "Search a Spell from Deck",
+   "cost": {
+    "f": 4
+   },
+   "text": "add 1 Spell from your Deck to your hand"
+  },
+  "searchTrap": {
+   "label": "Search a Trap from Deck",
+   "cost": {
+    "f": 4
+   },
+   "text": "add 1 Trap from your Deck to your hand"
+  },
+  "reviveBest": {
+   "label": "Revive strongest from your Graveyard",
+   "cost": {
+    "f": 8
+   },
+   "board": true,
+   "text": "Special Summon the strongest monster in your Graveyard"
+  },
+  "reviveLow": {
+   "label": "Revive a Level 4 or lower from your Graveyard",
+   "cost": {
+    "f": 5
+   },
+   "board": true,
+   "text": "Special Summon a Level 4 or lower monster from your Graveyard"
+  },
+  "discardOpp": {
+   "label": "Opponent discards 1 random card",
+   "cost": {
+    "f": 4
+   },
+   "text": "your opponent discards 1 random card"
+  },
+  "millOpp": {
+   "label": "Mill opponent's Deck",
+   "amounts": [
+    2,
+    3,
+    5
+   ],
+   "cost": {
+    "m": 1
+   },
+   "text": "send the top {a} cards of your opponent's Deck to the Graveyard"
+  },
+  "drain": {
+   "label": "Drain LP from opponent",
+   "amounts": [
+    300,
+    500,
+    800
+   ],
+   "cost": {
+    "d": 100
+   },
+   "text": "drain {a} LP from your opponent to yourself"
+  },
+  "bounceStrongest": {
+   "label": "Return opponent's strongest monster to hand",
+   "cost": {
+    "f": 8
+   },
+   "board": true,
+   "text": "return your opponent's strongest face-up monster to their hand"
+  },
+  "destroyAttacker": {
+   "label": "Destroy the attacking monster (Trap only)",
+   "cost": {
+    "f": 7
+   },
+   "board": true,
+   "trapOnly": true,
+   "text": "destroy the attacking monster"
+  },
+  "banishAttacker": {
+   "label": "Banish the attacking monster (Trap only)",
+   "cost": {
+    "f": 9
+   },
+   "board": true,
+   "trapOnly": true,
+   "text": "banish the attacking monster"
+  }
+ },
+ "summonPresets": {
+  "draw1": {
+   "label": "Draw 1 card",
+   "text": "When this card is summoned, draw 1 card."
+  },
+  "heal600": {
+   "label": "Gain 600 LP",
+   "text": "When this card is summoned, gain 600 LP."
+  },
+  "burn500": {
+   "label": "Inflict 500 damage",
+   "text": "When this card is summoned, inflict 500 damage to your opponent."
+  },
+  "searchSameType": {
+   "label": "Add a same-Type monster from Deck to hand",
+   "text": "When this card is summoned, add 1 monster of the same Type from your Deck to your hand."
+  },
+  "reviveLow": {
+   "label": "Revive a Level 3 or lower monster from the Graveyard",
+   "text": "When this card is summoned, Special Summon a Level 3 or lower monster from your Graveyard."
+  }
+ },
+ "battlePresets": {
+  "burn400": {
+   "label": "When it destroys a monster: inflict 400 damage",
+   "text": "When this card destroys a monster by battle, inflict 400 damage to your opponent."
+  },
+  "heal500": {
+   "label": "When it destroys a monster: gain 500 LP",
+   "text": "When this card destroys a monster by battle, gain 500 LP."
+  },
+  "draw1": {
+   "label": "When it destroys a monster: draw 1 card",
+   "text": "When this card destroys a monster by battle, draw 1 card."
+  }
+ },
+ "scaleEffects": {
+  "atk200": {
+   "label": "Your monsters gain 200 ATK",
+   "text": "While in a Pendulum Zone: your monsters gain 200 ATK."
+  },
+  "def300": {
+   "label": "Your monsters gain 300 DEF",
+   "text": "While in a Pendulum Zone: your monsters gain 300 DEF."
+  },
+  "heal300": {
+   "label": "Gain 300 LP at the start of your turn",
+   "text": "While in a Pendulum Zone: gain 300 LP at the start of your turn."
+  }
+ },
+ "vfx": {
+  "fire": {
+   "label": "Fire",
+   "emoji": "🔥",
+   "c": [
+    "#ff7a1a",
+    "#ffd23f",
+    "#ff3d00"
+   ],
+   "swatch": "linear-gradient(90deg,#ff3d00,#ff7a1a,#ffd23f)"
+  },
+  "lightning": {
+   "label": "Lightning",
+   "emoji": "⚡",
+   "c": [
+    "#9fd8ff",
+    "#ffffff",
+    "#5aa8ff"
+   ],
+   "swatch": "linear-gradient(90deg,#5aa8ff,#9fd8ff,#fff)"
+  },
+  "holy": {
+   "label": "Holy",
+   "emoji": "✨",
+   "c": [
+    "#fff3a0",
+    "#ffffff",
+    "#ffd86b"
+   ],
+   "swatch": "linear-gradient(90deg,#ffd86b,#fff3a0,#fff)"
+  },
+  "dark": {
+   "label": "Dark",
+   "emoji": "🌑",
+   "c": [
+    "#8a4bd6",
+    "#c28bff",
+    "#3a1470"
+   ],
+   "swatch": "linear-gradient(90deg,#3a1470,#8a4bd6,#c28bff)"
+  },
+  "ice": {
+   "label": "Ice",
+   "emoji": "❄️",
+   "c": [
+    "#aee8ff",
+    "#e8fbff",
+    "#6fcfff"
+   ],
+   "swatch": "linear-gradient(90deg,#6fcfff,#aee8ff,#e8fbff)"
+  },
+  "nature": {
+   "label": "Nature",
+   "emoji": "🌿",
+   "c": [
+    "#7bd88f",
+    "#d8ffa8",
+    "#3fae5a"
+   ],
+   "swatch": "linear-gradient(90deg,#3fae5a,#7bd88f,#d8ffa8)"
+  },
+  "neutral": {
+   "label": "Neutral Gold",
+   "emoji": "🪙",
+   "c": [
+    "#d6a928",
+    "#ffffff",
+    "#f0d98a"
+   ],
+   "swatch": "linear-gradient(90deg,#d6a928,#f0d98a,#fff)"
+  }
+ }
+};
+const SHARED_DATA_VERSION = "00238039";
+
+const EFFECT_TRIGGERS = (function() {
+    const out = {};
+    Object.keys(SHARED_DATA.triggers).forEach(function(k) {
+        const t = SHARED_DATA.triggers[k];
+        out[k] = { text: t.text, uiText: t.uiText || t.text, mult: t.mult, kinds: t.kinds, types: t.kinds };
+    });
+    return out;
+})();
+
+const EFFECT_CONDITIONS = (function() {
+    const out = {};
+    Object.keys(SHARED_DATA.conditions).forEach(function(k) {
+        const c = SHARED_DATA.conditions[k];
+        out[k] = { label: c.label, text: c.text, mult: c.mult };
+    });
+    return out;
+})();
+
+const EFFECT_ACTIONS = (function() {
+    const out = {};
+    Object.keys(SHARED_DATA.actions).forEach(function(k) {
+        const a = SHARED_DATA.actions[k];
+        const costFn = a.cost.m !== undefined ? function(n) { return a.cost.m * n; }
+            : a.cost.d !== undefined ? function(n) { return n / a.cost.d; }
+            : function() { return a.cost.f; };
+        const entry = {
+            label: a.label,
+            cost: costFn,
+            text: function(n) { return a.text.replace("{a}", n).replace("{s}", n > 1 ? "s" : ""); }
+        };
+        if (a.amounts) entry.amounts = a.amounts;
+        if (a.board) entry.board = true;
+        if (a.monsterOnly) entry.monsterOnly = true;
+        if (a.trapOnly) entry.trapOnly = true;
+        out[k] = entry;
+    });
+    return out;
+})();
+
+const SUMMON_PRESETS = (function() { const o = {}; Object.keys(SHARED_DATA.summonPresets).forEach(function(k) { o[k] = SHARED_DATA.summonPresets[k].text; }); return o; })();
+const BATTLE_PRESETS = (function() { const o = {}; Object.keys(SHARED_DATA.battlePresets).forEach(function(k) { o[k] = SHARED_DATA.battlePresets[k].text; }); return o; })();
+const SCALE_EFFECTS = (function() { const o = {}; Object.keys(SHARED_DATA.scaleEffects).forEach(function(k) { o[k] = SHARED_DATA.scaleEffects[k].text; }); return o; })();
+const VFX_THEMES = (function() { const o = {}; Object.keys(SHARED_DATA.vfx).forEach(function(k) { o[k] = { c: SHARED_DATA.vfx[k].c, label: SHARED_DATA.vfx[k].label }; }); return o; })();
+
+/* Fill the Card Creator's preset / visual-effect dropdowns from the shared data (no-op where they don't exist). */
+function populateSharedSelects() {
+    function fill(id, map, first, fmt) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const keep = el.value;
+        el.innerHTML = "";
+        const o0 = document.createElement("option");
+        o0.value = "";
+        o0.textContent = first;
+        el.appendChild(o0);
+        Object.keys(map).forEach(function(k) {
+            const o = document.createElement("option");
+            o.value = k;
+            o.textContent = fmt(map[k]);
+            el.appendChild(o);
+        });
+        el.value = keep;
+    }
+    fill("summonPreset", SHARED_DATA.summonPresets, "None", function(p) { return p.label; });
+    fill("battlePreset", SHARED_DATA.battlePresets, "None", function(p) { return p.label; });
+    fill("scaleEffect", SHARED_DATA.scaleEffects, "None", function(p) { return p.label; });
+    fill("cardVfx", SHARED_DATA.vfx, "Automatic (from Attribute / card type)", function(v) { return v.emoji + " " + v.label; });
+}
+
+/* ---- cross-file sync check (both pages share localStorage when hosted together) ---- */
+function readSharedSyncInfo() {
+    try { return JSON.parse(localStorage.getItem("yugiohSharedSync") || "{}") || {}; } catch (e) { return {}; }
+}
+
+function publishSharedSyncInfo(self, extra) {
+    try {
+        const info = readSharedSyncInfo();
+        info[self] = Object.assign({ v: SHARED_DATA_VERSION, t: Date.now() }, extra || {});
+        localStorage.setItem("yugiohSharedSync", JSON.stringify(info));
+    } catch (e) {}
+}
+
+function getSharedSyncStatus(self) {
+    const other = self === "duel" ? "eck" : "duel";
+    const otherName = other === "duel" ? "Duel Engine (duel.html)" : "Card Creator (eckbuiler.html)";
+    const info = readSharedSyncInfo();
+    const theirs = info[other];
+    if (!theirs) return { state: "unknown", mine: SHARED_DATA_VERSION, other: null, otherName: otherName,
+        message: "Not seen " + otherName + " yet on this browser — open it once to verify they match." };
+    if (theirs.v === SHARED_DATA_VERSION) return { state: "ok", mine: SHARED_DATA_VERSION, other: theirs.v, otherName: otherName,
+        message: "In sync with " + otherName + " (data " + SHARED_DATA_VERSION + ")." };
+    return { state: "mismatch", mine: SHARED_DATA_VERSION, other: theirs.v, otherName: otherName,
+        message: "Out of sync: this page uses effect data " + SHARED_DATA_VERSION + " but " + otherName + " last loaded " + theirs.v + ". Re-download both files from the same update." };
+}
+
+function showSyncBanner(msg) {
+    if (typeof document === "undefined" || !document.body || document.getElementById("syncBanner")) return;
+    const d = document.createElement("div");
+    d.id = "syncBanner";
+    d.style.cssText = "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:#7c2020;color:#fff;padding:10px 14px;border-radius:8px;font:13px sans-serif;box-shadow:0 4px 18px rgba(0,0,0,.5);";
+    d.textContent = "⚠ " + msg + "  (tap to dismiss)";
+    d.onclick = function() { d.remove(); };
+    document.body.appendChild(d);
+}
+
+function runSharedSyncCheck(self, extra) {
+    publishSharedSyncInfo(self, extra);
+    const st = getSharedSyncStatus(self);
+    if (st.state === "mismatch") showSyncBanner(st.message);
+    return st;
+}
+/*@@SHARED:END@@*/
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================================================
+   GLOBAL DATA
+========================================================= */
+
+let currentImageData = "";
+let currentCardData = null;
+
+/* =========================================================
+   DUEL ENGINE PROFILE AWARENESS
+   Every custom card and deck is scoped to whichever
+   duel.html profile is currently active, so different
+   profiles get their own separate card pool and deck —
+   exactly like everything else in duel.html itself.
+========================================================= */
+
+function getActiveDuelProfileId(){
+
+    return localStorage.getItem("yugiohActiveProfile") || null;
+
+}
+
+
+function getActiveDuelProfileName(){
+
+    const id =
+        getActiveDuelProfileId();
+
+    if(!id) return null;
+
+    try {
+
+        const profiles =
+            JSON.parse(localStorage.getItem("yugiohProfiles") || "{}");
+
+        return profiles[id] ? profiles[id].name : null;
+
+    } catch(error){
+
+        return null;
+
+    }
+
+}
+
+
+function eckProfileKey(baseKey){
+
+    const id =
+        getActiveDuelProfileId();
+
+    if(!id){
+        return "eck_noprofile_" + baseKey;
+    }
+
+    return "yugioh_" + id + "_" + baseKey;
+
+}
+
+
+function getEckGlowPalette(){
+
+    return localStorage.getItem(eckProfileKey("eckGlowPalette")) || "aurora";
+
+}
+
+
+function setEckGlowPalette(palette){
+
+    localStorage.setItem(eckProfileKey("eckGlowPalette"), palette);
+
+    document.body.setAttribute("data-glow", palette);
+
+    renderGlowPicker();
+
+}
+
+
+function renderGlowPicker(){
+
+    const area =
+        document.getElementById("glowPicker");
+
+    if(!area)return;
+
+    const current =
+        getEckGlowPalette();
+
+    area.innerHTML =
+        ["aurora","inferno","toxic","cosmic"].map(function(p){
+
+            const isActive =
+                current === p;
+
+            return `
+                <button
+                    style="padding:5px 10px;font-size:11px;border:2px solid ${isActive ? "#8fe6ab" : "transparent"};background:#222;color:#eee;border-radius:6px;"
+                    onclick="setEckGlowPalette('${p}')">
+                    ${p.charAt(0).toUpperCase() + p.slice(1)}
+                </button>
+            `;
+
+        }).join("");
+
+}
+
+
+document.body.setAttribute("data-glow", getEckGlowPalette());
+
+
+/*
+   One-time migration: if this browser has old, unscoped
+   card/deck data from before profile-scoping existed, and
+   a duel.html profile is active with no scoped data of its
+   own yet, move the old data into that profile instead of
+   losing it.
+*/
+function migrateLegacyEckbuilerData(){
+
+    const id =
+        getActiveDuelProfileId();
+
+    if(!id) return;
+
+
+    const legacyCards =
+        localStorage.getItem("customYuGiOhCards");
+
+    const scopedCardsKey =
+        eckProfileKey("customYuGiOhCards");
+
+    if(legacyCards && !localStorage.getItem(scopedCardsKey)){
+
+        localStorage.setItem(scopedCardsKey, legacyCards);
+
+    }
+
+
+    const legacyDeck =
+        localStorage.getItem("activeYuGiOhDeck");
+
+    const scopedDeckKey =
+        eckProfileKey("activeYuGiOhDeck");
+
+    if(legacyDeck && !localStorage.getItem(scopedDeckKey)){
+
+        localStorage.setItem(scopedDeckKey, legacyDeck);
+
+    }
+
+}
+
+migrateLegacyEckbuilerData();
+
+
+let tributeSelection = {
+    required: 0,
+    selected: [],
+    candidates: [],
+    callback: null
+};
+
+
+/* =========================================================
+   PREMADE DECK DATA
+========================================================= */
+
+/*
+    Real decks run 40-50 cards. Each starter deck only has a
+    handful of unique card designs, so repeatCard() is used to
+    include multiple copies of the same card, the same way a
+    real deck would.
+*/
+
+function repeatCard(template, count) {
+
+    const copies = [];
+
+    for (let i = 0; i < count; i++) {
+        copies.push({ ...template });
+    }
+
+    return copies;
+
+}
+
+
+const PREMADE_DECKS = [
+    {
+        id: "starter_dragons",
+        name: "🐉 Dragon's Fury",
+        description:
+            "A Dragon-focused deck built for raw power and big Life Point swings. Excels at overwhelming stats; light on utility. (Extra Deck: Twin-Headed Fire Dragon, Radiant Dragon Knight, Neo Dragon Sovereign.)",
+
+        cards: [
+
+            ...repeatCard({
+                name:"Baby Dragon",
+                type:"monster",
+                attribute:"WIND",
+                level:3,
+                monsterType:"Dragon",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:700,
+                defense:700,
+                description:
+                    "A small dragon still growing into its strength."
+            }, 4),
+
+            ...repeatCard({
+                name:"Dark Blade",
+                type:"monster",
+                attribute:"DARK",
+                level:4,
+                monsterType:"Warrior",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1800,
+                defense:1500,
+                description:
+                    "A warrior that fights using a dark blade."
+            }, 4),
+
+            ...repeatCard({
+                name:"Blue-Eyes White Dragon",
+                type:"monster",
+                attribute:"LIGHT",
+                level:8,
+                monsterType:"Dragon",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:3000,
+                defense:2500,
+                description:
+                    "A legendary dragon with devastating attack power."
+            }, 3),
+
+            ...repeatCard({
+                name:"Curse of Dragon",
+                type:"monster",
+                attribute:"DARK",
+                level:5,
+                monsterType:"Dragon",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:2000,
+                defense:1500,
+                description:
+                    "A dragon shrouded in dark power."
+            }, 3),
+
+            ...repeatCard({
+                name:"Giant Soldier of Stone",
+                type:"monster",
+                attribute:"EARTH",
+                level:3,
+                monsterType:"Rock",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1300,
+                defense:2000,
+                description:
+                    "A massive stone soldier that shrugs off blows."
+            }, 3),
+
+            ...repeatCard({
+                name:"Dragon's Call",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Draw 2 cards."
+            }, 3),
+
+            ...repeatCard({
+                name:"Power Boost",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "All face-up monsters you control gain 500 ATK until the end of the turn."
+            }, 3),
+
+            ...repeatCard({
+                name:"Mirror Force",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, destroy all Attack Position monsters your opponent controls."
+            }, 3),
+
+            ...repeatCard({
+                name:"Magic Cylinder",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, negate the attack and inflict damage equal to that monster's ATK."
+            }, 3),
+
+            ...repeatCard({
+                name:"Battle Ox",
+                type:"monster",
+                attribute:"EARTH",
+                level:4,
+                monsterType:"Warrior",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1700,
+                defense:1000,
+                description:
+                    "A battle-hardened warrior with the head of an ox."
+            }, 2),
+
+            ...repeatCard({
+                name:"Kid Dragon",
+                type:"monster",
+                attribute:"WIND",
+                level:3,
+                monsterType:"Dragon",
+                monsterCategory:"effect",
+                tuner:true,
+                attack:900,
+                defense:600,
+                description:
+                    "[Tuner] A small dragon that lends its power to Synchro Summons."
+            }, 2),
+
+            ...repeatCard({
+                name:"Fissure",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy the opponent's monster with the lowest ATK on the field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Monster Reborn",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Special Summon 1 monster from either player's Graveyard to your field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Mystical Elf",
+                type:"monster",
+                attribute:"LIGHT",
+                level:4,
+                monsterType:"Spellcaster",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:800,
+                defense:2000,
+                description:
+                    "A gentle but resilient defender."
+            }, 1),
+
+            ...repeatCard({
+                name:"Healing Light",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Gain 1000 LP."
+            }, 1),
+
+            ...repeatCard({
+                name:"Dark Hole",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy all monsters on the field."
+            }, 1),
+
+        ],
+
+        extraDeck: []
+
+    },
+
+    {
+        id: "starter_spellcasters",
+        name: "🪄 Magician's Power",
+        description:
+            "A Spellcaster deck built around Dark Magician's disruption. Strong at answering the board; lighter raw stats than Dragon's Fury. (Extra Deck: Flame Swordsman, Arcane Sovereign, Chimera Beast.)",
+
+        cards: [
+
+            ...repeatCard({
+                name:"Dark Magician",
+                type:"monster",
+                attribute:"DARK",
+                level:7,
+                monsterType:"Spellcaster",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:2500,
+                defense:2100,
+                description:
+                    "The ultimate wizard in terms of attack and defense."
+            }, 5),
+
+            ...repeatCard({
+                name:"Summoned Skull",
+                type:"monster",
+                attribute:"DARK",
+                level:6,
+                monsterType:"Fiend",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:2500,
+                defense:1200,
+                description:
+                    "A fearsome fiend crackling with dark lightning."
+            }, 4),
+
+            ...repeatCard({
+                name:"Dark Blade",
+                type:"monster",
+                attribute:"DARK",
+                level:4,
+                monsterType:"Warrior",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1800,
+                defense:1500,
+                description:
+                    "A warrior that fights using a dark blade."
+            }, 3),
+
+            ...repeatCard({
+                name:"Giant Soldier of Stone",
+                type:"monster",
+                attribute:"EARTH",
+                level:3,
+                monsterType:"Rock",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1300,
+                defense:2000,
+                description:
+                    "A massive stone soldier that shrugs off blows."
+            }, 3),
+
+            ...repeatCard({
+                name:"Dragon's Call",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Draw 2 cards."
+            }, 3),
+
+            ...repeatCard({
+                name:"Power Boost",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "All face-up monsters you control gain 500 ATK until the end of the turn."
+            }, 3),
+
+            ...repeatCard({
+                name:"Mirror Force",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, destroy all Attack Position monsters your opponent controls."
+            }, 3),
+
+            ...repeatCard({
+                name:"Magic Cylinder",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, negate the attack and inflict damage equal to that monster's ATK."
+            }, 3),
+
+            ...repeatCard({
+                name:"Mystical Elf",
+                type:"monster",
+                attribute:"LIGHT",
+                level:4,
+                monsterType:"Spellcaster",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:800,
+                defense:2000,
+                description:
+                    "A gentle but resilient defender."
+            }, 2),
+
+            ...repeatCard({
+                name:"Battle Ox",
+                type:"monster",
+                attribute:"EARTH",
+                level:4,
+                monsterType:"Warrior",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1700,
+                defense:1000,
+                description:
+                    "A battle-hardened warrior with the head of an ox."
+            }, 2),
+
+            ...repeatCard({
+                name:"Magical Apprentice",
+                type:"monster",
+                attribute:"DARK",
+                level:2,
+                monsterType:"Spellcaster",
+                monsterCategory:"effect",
+                tuner:true,
+                attack:500,
+                defense:400,
+                description:
+                    "[Tuner] A young spellcaster still learning to channel her power."
+            }, 2),
+
+            ...repeatCard({
+                name:"Fissure",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy the opponent's monster with the lowest ATK on the field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Dark Hole",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy all monsters on the field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Monster Reborn",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Special Summon 1 monster from either player's Graveyard to your field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Healing Light",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Gain 1000 LP."
+            }, 1),
+
+        ],
+
+        extraDeck: []
+
+    },
+
+    {
+        id: "starter_warriors",
+        name: "⚔️ Warrior Assault",
+        description:
+            "An aggressive go-wide Warrior deck. Dark Blade scales with your board; Battle Ox pierces through defenses. Excels with numbers; lacks single big bombs. (Extra Deck: Flame Swordsman, Iron Blade General, Twin Blade Vanguard.)",
+
+        cards: [
+
+            ...repeatCard({
+                name:"Dark Blade",
+                type:"monster",
+                attribute:"DARK",
+                level:4,
+                monsterType:"Warrior",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1800,
+                defense:1500,
+                description:
+                    "A warrior that fights using a dark blade."
+            }, 6),
+
+            ...repeatCard({
+                name:"Mystical Elf",
+                type:"monster",
+                attribute:"LIGHT",
+                level:4,
+                monsterType:"Spellcaster",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:800,
+                defense:2000,
+                description:
+                    "A gentle but resilient defender."
+            }, 3),
+
+            ...repeatCard({
+                name:"Curse of Dragon",
+                type:"monster",
+                attribute:"DARK",
+                level:5,
+                monsterType:"Dragon",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:2000,
+                defense:1500,
+                description:
+                    "A dragon shrouded in dark power."
+            }, 3),
+
+            ...repeatCard({
+                name:"Baby Dragon",
+                type:"monster",
+                attribute:"WIND",
+                level:3,
+                monsterType:"Dragon",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:700,
+                defense:700,
+                description:
+                    "A small dragon still growing into its strength."
+            }, 3),
+
+            ...repeatCard({
+                name:"Dragon's Call",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Draw 2 cards."
+            }, 3),
+
+            ...repeatCard({
+                name:"Mirror Force",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, destroy all Attack Position monsters your opponent controls."
+            }, 3),
+
+            ...repeatCard({
+                name:"Magic Cylinder",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, negate the attack and inflict damage equal to that monster's ATK."
+            }, 3),
+
+            ...repeatCard({
+                name:"Giant Soldier of Stone",
+                type:"monster",
+                attribute:"EARTH",
+                level:3,
+                monsterType:"Rock",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1300,
+                defense:2000,
+                description:
+                    "A massive stone soldier that shrugs off blows."
+            }, 2),
+
+            ...repeatCard({
+                name:"Summoned Skull",
+                type:"monster",
+                attribute:"DARK",
+                level:6,
+                monsterType:"Fiend",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:2500,
+                defense:1200,
+                description:
+                    "A fearsome fiend crackling with dark lightning."
+            }, 2),
+
+            ...repeatCard({
+                name:"Battle Ox",
+                type:"monster",
+                attribute:"EARTH",
+                level:4,
+                monsterType:"Warrior",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1700,
+                defense:1000,
+                description:
+                    "A battle-hardened warrior with the head of an ox."
+            }, 2),
+
+            ...repeatCard({
+                name:"Warrior Cadet",
+                type:"monster",
+                attribute:"EARTH",
+                level:3,
+                monsterType:"Warrior",
+                monsterCategory:"effect",
+                tuner:true,
+                attack:1000,
+                defense:800,
+                description:
+                    "[Tuner] A disciplined recruit training for the battlefield."
+            }, 2),
+
+            ...repeatCard({
+                name:"Fissure",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy the opponent's monster with the lowest ATK on the field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Power Boost",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "All face-up monsters you control gain 500 ATK until the end of the turn."
+            }, 2),
+
+            ...repeatCard({
+                name:"Monster Reborn",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Special Summon 1 monster from either player's Graveyard to your field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Dark Hole",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy all monsters on the field."
+            }, 2),
+
+        ],
+
+        extraDeck: []
+
+    },
+
+    {
+        id: "extra_deck_vanguard",
+        name: "🔮 Extra Deck Vanguard",
+        description:
+            "A Tuner-heavy Machine toolbox deck. Search Tuners, Special Summon them without spending your Normal Summon, and flood the Extra Deck. Individually weaker stats, but the whole plan is assembling something bigger. (Extra Deck: Dual-Core Mechlord, Cyber Forge Overlord, Circuit Breaker Dragon, Overdrive Mech Commander, Turbo Gear Colossus, Machine Rank Three Overlord.)",
+
+        cards: [
+
+            ...repeatCard({
+                name:"Iron Golem Trooper",
+                type:"monster",
+                attribute:"EARTH",
+                level:3,
+                monsterType:"Machine",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1400,
+                defense:1600,
+                description:
+                    "While in Defense Position, this card gains 400 DEF."
+            }, 4),
+
+            ...repeatCard({
+                name:"Turbo Cannoneer",
+                type:"monster",
+                attribute:"EARTH",
+                level:4,
+                monsterType:"Machine",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1700,
+                defense:1200,
+                description:
+                    "A mobile artillery unit that fires on the move."
+            }, 4),
+
+            ...repeatCard({
+                name:"Clockwork Sprite",
+                type:"monster",
+                attribute:"LIGHT",
+                level:2,
+                monsterType:"Machine",
+                monsterCategory:"effect",
+                tuner:true,
+                attack:300,
+                defense:200,
+                description:
+                    "[Tuner] When Normal Summoned, add 1 Tuner monster from your Deck to your hand."
+            }, 3),
+
+            ...repeatCard({
+                name:"Circuit Runner",
+                type:"monster",
+                attribute:"LIGHT",
+                level:1,
+                monsterType:"Machine",
+                monsterCategory:"effect",
+                tuner:true,
+                attack:400,
+                defense:200,
+                description:
+                    "[Tuner] A featherweight drone built for split-second deployment."
+            }, 3),
+
+            ...repeatCard({
+                name:"Signal Drone",
+                type:"monster",
+                attribute:"LIGHT",
+                level:3,
+                monsterType:"Machine",
+                monsterCategory:"effect",
+                tuner:true,
+                attack:900,
+                defense:700,
+                description:
+                    "[Tuner] Relays commands across the battlefield in an instant."
+            }, 3),
+
+            ...repeatCard({
+                name:"Volt Armor",
+                type:"monster",
+                attribute:"LIGHT",
+                level:4,
+                monsterType:"Machine",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1600,
+                defense:1500,
+                description:
+                    "When this card is destroyed by battle, inflict 500 damage to the opponent who destroyed it."
+            }, 3),
+
+            ...repeatCard({
+                name:"Tuner's Call",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Add 1 Tuner monster from your Deck to your hand."
+            }, 3),
+
+            ...repeatCard({
+                name:"Rapid Mobilization",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Special Summon 1 Tuner monster from your hand. This does not use your Normal Summon."
+            }, 3),
+
+            ...repeatCard({
+                name:"Mirror Force",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, destroy all Attack Position monsters your opponent controls."
+            }, 3),
+
+            ...repeatCard({
+                name:"Dragon's Call",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Draw 2 cards."
+            }, 2),
+
+            ...repeatCard({
+                name:"Power Boost",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "All face-up monsters you control gain 500 ATK until the end of the turn."
+            }, 2),
+
+            ...repeatCard({
+                name:"Monster Reborn",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Special Summon 1 monster from either player's Graveyard to your field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Fissure",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy the opponent's monster with the lowest ATK on the field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Magic Cylinder",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, negate the attack and inflict damage equal to that monster's ATK."
+            }, 2),
+
+            ...repeatCard({
+                name:"Dark Hole",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy all monsters on the field."
+            }, 1),
+
+        ],
+
+        extraDeck: []
+
+    },
+
+    {
+        id: "grave_uprising",
+        name: "💀 Grave Uprising",
+        description:
+            "A Zombie deck built entirely around the Graveyard. Recur monsters, mill for fuel, and punish anyone who destroys your creatures. (Extra Deck: Grave Titan, Nightmare Reaper, Twin Grave Fiend.)",
+
+        cards: [
+
+            ...repeatCard({
+                name:"Skeleton Knight",
+                type:"monster",
+                attribute:"DARK",
+                level:4,
+                monsterType:"Zombie",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1500,
+                defense:1300,
+                description:
+                    "A restless warrior bound to the battlefield long after its death."
+            }, 4),
+
+            ...repeatCard({
+                name:"Bone Soldier",
+                type:"monster",
+                attribute:"DARK",
+                level:4,
+                monsterType:"Zombie",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1600,
+                defense:1200,
+                description:
+                    "When this card is destroyed by battle, inflict 300 damage to the opponent who destroyed it."
+            }, 4),
+
+            ...repeatCard({
+                name:"Mirror Force",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, destroy all Attack Position monsters your opponent controls."
+            }, 4),
+
+            ...repeatCard({
+                name:"Grave Ghoul",
+                type:"monster",
+                attribute:"EARTH",
+                level:2,
+                monsterType:"Zombie",
+                monsterCategory:"effect",
+                tuner:true,
+                attack:500,
+                defense:300,
+                description:
+                    "[Tuner] When sent to the Graveyard, add 1 Zombie-Type monster from your Deck to your hand."
+            }, 3),
+
+            ...repeatCard({
+                name:"Crypt Wraith",
+                type:"monster",
+                attribute:"DARK",
+                level:3,
+                monsterType:"Zombie",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:900,
+                defense:1000,
+                description:
+                    "When Normal Summoned, if you have 2+ monsters in your Graveyard, gain 500 LP."
+            }, 3),
+
+            ...repeatCard({
+                name:"Coffin Feast",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Send the top 2 cards of your Deck to the Graveyard."
+            }, 3),
+
+            ...repeatCard({
+                name:"Monster Reborn",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Special Summon 1 monster from either player's Graveyard to your field."
+            }, 3),
+
+            ...repeatCard({
+                name:"Magic Cylinder",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, negate the attack and inflict damage equal to that monster's ATK."
+            }, 3),
+
+            ...repeatCard({
+                name:"Grave Digger",
+                type:"monster",
+                attribute:"DARK",
+                level:6,
+                monsterType:"Zombie",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:2200,
+                defense:1400,
+                description:
+                    "When Normal Summoned, choose 1 monster in your Graveyard; add it to your hand."
+            }, 2),
+
+            ...repeatCard({
+                name:"Undead Overlord",
+                type:"monster",
+                attribute:"DARK",
+                level:7,
+                monsterType:"Zombie",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:2000,
+                defense:2000,
+                description:
+                    "While attacking, this card gains 200 ATK for each monster in your Graveyard."
+            }, 2),
+
+            ...repeatCard({
+                name:"Fissure",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy the opponent's monster with the lowest ATK on the field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Healing Light",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Gain 1000 LP."
+            }, 2),
+
+            ...repeatCard({
+                name:"Power Boost",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "All face-up monsters you control gain 500 ATK until the end of the turn."
+            }, 2),
+
+            ...repeatCard({
+                name:"Dragon's Call",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Draw 2 cards."
+            }, 2),
+
+            ...repeatCard({
+                name:"Dark Hole",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy all monsters on the field."
+            }, 1),
+
+        ],
+
+        extraDeck: []
+
+    },
+
+    {
+        id: "radiant_wardens",
+        name: "☀️ Radiant Wardens",
+        description:
+            "A Fairy deck built around Life Point gain and unbreakable defense — outlast your opponent and grind them down. (Extra Deck: Seraphic Avatar, Celestial Guardian, Twin Halo Seraph.)",
+
+        cards: [
+
+            ...repeatCard({
+                name:"Seraph Guardian",
+                type:"monster",
+                attribute:"LIGHT",
+                level:4,
+                monsterType:"Fairy",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1600,
+                defense:1800,
+                description:
+                    "When Normal Summoned, gain 300 LP."
+            }, 4),
+
+            ...repeatCard({
+                name:"Holy Sentinel",
+                type:"monster",
+                attribute:"LIGHT",
+                level:4,
+                monsterType:"Fairy",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1400,
+                defense:2000,
+                description:
+                    "While in Defense Position, this card gains 600 DEF."
+            }, 4),
+
+            ...repeatCard({
+                name:"Mirror Force",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, destroy all Attack Position monsters your opponent controls."
+            }, 4),
+
+            ...repeatCard({
+                name:"Magic Cylinder",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, negate the attack and inflict damage equal to that monster's ATK."
+            }, 4),
+
+            ...repeatCard({
+                name:"Radiant Cherub",
+                type:"monster",
+                attribute:"LIGHT",
+                level:2,
+                monsterType:"Fairy",
+                monsterCategory:"effect",
+                tuner:true,
+                attack:400,
+                defense:600,
+                description:
+                    "[Tuner] A small guardian spirit that lends its light to greater beings."
+            }, 3),
+
+            ...repeatCard({
+                name:"Lumina Cleric",
+                type:"monster",
+                attribute:"LIGHT",
+                level:3,
+                monsterType:"Fairy",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:900,
+                defense:1400,
+                description:
+                    "When Normal Summoned, if your LP is higher than your opponent's, draw 1 card."
+            }, 3),
+
+            ...repeatCard({
+                name:"Blessing of Dawn",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Gain 1500 LP."
+            }, 3),
+
+            ...repeatCard({
+                name:"Archon of Light",
+                type:"monster",
+                attribute:"LIGHT",
+                level:6,
+                monsterType:"Fairy",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:2100,
+                defense:1900,
+                description:
+                    "When Normal Summoned, gain 800 LP."
+            }, 2),
+
+            ...repeatCard({
+                name:"Empyrean Judge",
+                type:"monster",
+                attribute:"LIGHT",
+                level:7,
+                monsterType:"Fairy",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:2400,
+                defense:2300,
+                description:
+                    "Once per turn, this card cannot be destroyed by battle."
+            }, 2),
+
+            ...repeatCard({
+                name:"Healing Light",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Gain 1000 LP."
+            }, 2),
+
+            ...repeatCard({
+                name:"Monster Reborn",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Special Summon 1 monster from either player's Graveyard to your field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Fissure",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy the opponent's monster with the lowest ATK on the field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Power Boost",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "All face-up monsters you control gain 500 ATK until the end of the turn."
+            }, 2),
+
+            ...repeatCard({
+                name:"Dragon's Call",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Draw 2 cards."
+            }, 2),
+
+            ...repeatCard({
+                name:"Dark Hole",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy all monsters on the field."
+            }, 1),
+
+        ],
+
+        extraDeck: []
+
+    },
+
+    {
+        id: "demons_reckoning",
+        name: "👹 Demon's Reckoning",
+        description:
+            "A Fiend deck that trades safety for pressure — every kill hurts, and every turn is a countdown to your opponent's LP hitting zero. (Extra Deck: Chaos Devourer, Nightmare Sovereign, Twin Horror Fiend.)",
+
+        cards: [
+
+            ...repeatCard({
+                name:"Magic Cylinder",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, negate the attack and inflict damage equal to that monster's ATK."
+            }, 5),
+
+            ...repeatCard({
+                name:"Hellhound Stalker",
+                type:"monster",
+                attribute:"DARK",
+                level:4,
+                monsterType:"Fiend",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1900,
+                defense:1000,
+                description:
+                    "While attacking, this card gains 300 ATK."
+            }, 4),
+
+            ...repeatCard({
+                name:"Soul Reaper",
+                type:"monster",
+                attribute:"DARK",
+                level:4,
+                monsterType:"Fiend",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1700,
+                defense:1100,
+                description:
+                    "When this card destroys a monster by battle, inflict 300 damage to your opponent."
+            }, 4),
+
+            ...repeatCard({
+                name:"Mirror Force",
+                type:"trap",
+                trapType:"Normal Trap",
+                description:
+                    "When an opponent's monster declares an attack, destroy all Attack Position monsters your opponent controls."
+            }, 4),
+
+            ...repeatCard({
+                name:"Shadow Fiend",
+                type:"monster",
+                attribute:"DARK",
+                level:3,
+                monsterType:"Fiend",
+                monsterCategory:"effect",
+                tuner:true,
+                attack:700,
+                defense:500,
+                description:
+                    "[Tuner] A minor devil that thrives in the presence of stronger fiends."
+            }, 3),
+
+            ...repeatCard({
+                name:"Imp Raider",
+                type:"monster",
+                attribute:"DARK",
+                level:3,
+                monsterType:"Fiend",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:1100,
+                defense:700,
+                description:
+                    "A reckless raider that strikes before thinking."
+            }, 3),
+
+            ...repeatCard({
+                name:"Infernal Pact",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Inflict 800 damage to your opponent, then take 300 damage yourself."
+            }, 3),
+
+            ...repeatCard({
+                name:"Demon Overlord",
+                type:"monster",
+                attribute:"DARK",
+                level:6,
+                monsterType:"Fiend",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:2300,
+                defense:1500,
+                description:
+                    "When Normal Summoned, inflict 500 damage to your opponent."
+            }, 2),
+
+            ...repeatCard({
+                name:"Abyssal Devourer",
+                type:"monster",
+                attribute:"DARK",
+                level:7,
+                monsterType:"Fiend",
+                monsterCategory:"effect",
+                tuner:false,
+                attack:2700,
+                defense:1800,
+                description:
+                    "When this card destroys a monster by battle, inflict 800 damage to your opponent."
+            }, 2),
+
+            ...repeatCard({
+                name:"Fissure",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy the opponent's monster with the lowest ATK on the field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Dark Hole",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Destroy all monsters on the field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Monster Reborn",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Special Summon 1 monster from either player's Graveyard to your field."
+            }, 2),
+
+            ...repeatCard({
+                name:"Dragon's Call",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "Draw 2 cards."
+            }, 2),
+
+            ...repeatCard({
+                name:"Power Boost",
+                type:"spell",
+                spellType:"Normal Spell",
+                description:
+                    "All face-up monsters you control gain 500 ATK until the end of the turn."
+            }, 2),
+
+        ],
+
+        extraDeck: []
+
+    },
+
+];
+
+
+/* =========================================================
+   PAGE SYSTEM
+========================================================= */
+
+function showPage(pageId) {
+
+    document
+        .querySelectorAll(".page")
+        .forEach(page => {
+            page.classList.remove("active");
+        });
+
+    const page =
+        document.getElementById(pageId);
+
+    if(page){
+        page.classList.add("active");
+    }
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function openPremadeDecks(){
+
+    renderPremadeDecks();
+
+    showPage("premadePage");
+
+}
+
+function openDuel(){
+
+    updateGamePage();
+
+    showPage("gamePage");
+
+}
+
+
+/* =========================================================
+   CARD TYPE SWITCHER
+========================================================= */
+
+const cardType =
+    document.getElementById("cardType");
+
+if(cardType){
+
+    cardType.addEventListener(
+        "change",
+        function(){
+
+            document
+                .getElementById("monsterOptions")
+                .classList.add("hidden");
+
+            document
+                .getElementById("spellOptions")
+                .classList.add("hidden");
+
+            document
+                .getElementById("trapOptions")
+                .classList.add("hidden");
+
+            document
+                .getElementById("fusionOptions")
+                .classList.add("hidden");
+
+            document
+                .getElementById("synchroOptions")
+                .classList.add("hidden");
+
+            document
+                .getElementById("xyzOptions")
+                .classList.add("hidden");
+
+            document
+                .getElementById("linkOptions")
+                .classList.add("hidden");
+
+
+            if(this.value === "monster"){
+
+                document
+                    .getElementById("monsterOptions")
+                    .classList.remove("hidden");
+
+            }
+
+            if(this.value === "spell"){
+
+                document
+                    .getElementById("spellOptions")
+                    .classList.remove("hidden");
+
+            }
+
+            if(this.value === "trap"){
+
+                document
+                    .getElementById("trapOptions")
+                    .classList.remove("hidden");
+
+            }
+
+            if(this.value === "fusion"){
+
+                document
+                    .getElementById("fusionOptions")
+                    .classList.remove("hidden");
+
+            }
+
+            if(this.value === "synchro"){
+
+                document
+                    .getElementById("synchroOptions")
+                    .classList.remove("hidden");
+
+            }
+
+            if(this.value === "xyz"){
+
+                document
+                    .getElementById("xyzOptions")
+                    .classList.remove("hidden");
+
+            }
+
+            if(this.value === "link"){
+
+                document
+                    .getElementById("linkOptions")
+                    .classList.remove("hidden");
+
+            }
+
+        }
+    );
+
+}
+
+
+const isPendulumCheckbox =
+    document.getElementById("isPendulum");
+
+if(isPendulumCheckbox){
+
+    isPendulumCheckbox.addEventListener(
+        "change",
+        function(){
+
+            document
+                .getElementById("pendulumScaleRow")
+                .classList.toggle("hidden", !this.checked);
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   IMAGE UPLOAD
+========================================================= */
+
+const cardImage =
+    document.getElementById("cardImage");
+
+if(cardImage){
+
+    cardImage.addEventListener(
+        "change",
+        function(event){
+
+            const file =
+                event.target.files[0];
+
+            if(!file)return;
+
+            const reader =
+                new FileReader();
+
+            reader.onload =
+                function(e){
+
+                    currentImageData =
+                        e.target.result;
+
+                    document
+                        .getElementById("imagePreview")
+                        .innerHTML =
+                        `<img src="${currentImageData}">`;
+
+                };
+
+            reader.readAsDataURL(file);
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   AI IMAGE TOGGLE
+========================================================= */
+
+const aiImage =
+    document.getElementById("aiImage");
+
+if(aiImage){
+
+    aiImage.addEventListener(
+        "change",
+        function(){
+
+            const upload =
+                document.getElementById("cardImage");
+
+            const preview =
+                document.getElementById("imagePreview");
+
+
+            if(this.checked){
+
+                upload.disabled = true;
+
+                preview.innerHTML =
+                    "🤖 AI ARTWORK REQUESTED";
+
+            }
+            else{
+
+                upload.disabled = false;
+
+                if(!currentImageData){
+
+                    preview.innerHTML =
+                        "NO IMAGE SELECTED";
+
+                }
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   BALANCE ANALYZER
+========================================================= */
+
+function analyzeCard(){
+
+    const description =
+        document
+        .getElementById("description")
+        .value
+        .toLowerCase();
+
+    const extra =
+        document
+        .getElementById("extraDescription")
+        .value
+        .toLowerCase();
+
+    const combined =
+        description + " " + extra;
+
+    const type =
+        document
+        .getElementById("cardType")
+        .value;
+
+    let warnings = [];
+
+
+    if(type === "monster"){
+
+        const attack =
+            Number(
+                document
+                .getElementById("attack")
+                .value
+            );
+
+        const defense =
+            Number(
+                document
+                .getElementById("defense")
+                .value
+            );
+
+        const level =
+            Number(
+                document
+                .getElementById("level")
+                .value
+            );
+
+
+        if(attack >= 4000){
+
+            warnings.push(
+                "The ATK is extremely high."
+            );
+
+        }
+
+
+        if(defense >= 4000){
+
+            warnings.push(
+                "The DEF is extremely high."
+            );
+
+        }
+
+
+        if(level <= 4 && attack >= 3000){
+
+            warnings.push(
+                "The Level and ATK combination is unusually powerful."
+            );
+
+        }
+
+
+        if(level <= 4 && defense >= 3000){
+
+            warnings.push(
+                "The Level and DEF combination is unusually powerful."
+            );
+
+        }
+
+    }
+
+
+    if(type === "fusion" || type === "synchro" || type === "xyz"){
+
+        const prefix =
+            type === "fusion" ? "fusion" :
+            type === "synchro" ? "synchro" : "xyz";
+
+        const attack =
+            Number(
+                document.getElementById(prefix + "Attack").value
+            );
+
+        const defense =
+            Number(
+                document.getElementById(prefix + "Defense").value
+            );
+
+        if(attack >= 4500){
+
+            warnings.push(
+                "The ATK is extremely high, even for an Extra Deck monster."
+            );
+
+        }
+
+        if(defense >= 4000){
+
+            warnings.push(
+                "The DEF is extremely high, even for an Extra Deck monster."
+            );
+
+        }
+
+        if(type === "fusion"){
+
+            const m1 =
+                document.getElementById("fusionMaterial1").value.trim();
+
+            const m2 =
+                document.getElementById("fusionMaterial2").value.trim();
+
+            if(!m1 || !m2){
+
+                warnings.push(
+                    "Both Fusion Materials need a name for this card to actually be Summonable."
+                );
+
+            }
+
+        }
+
+    }
+
+
+    if(!description.trim()){
+        warnings.push("The card has no effect text yet.");
+    }
+
+    if(type === "spell" || type === "trap"){
+        const fnSel = type === "spell"
+            ? document.getElementById("customSpellEffect")
+            : document.getElementById("customTrapKind");
+        const stype = type === "spell"
+            ? (document.getElementById("spellType") || {}).value
+            : (document.getElementById("trapType") || {}).value;
+        if(fnSel && !fnSel.value && !/ritual|continuous|counter|equip|field/i.test(stype || "")){
+            warnings.push("No Duel Effect picked — in the duel this card will only be flavor text.");
+        }
+    }
+
+    if(type === "link"){
+
+        const lr = Number(document.getElementById("linkRating").value);
+        const la = Number(document.getElementById("linkAttack").value);
+        const arrowCount =
+            (document.getElementById("linkArrowLeft").checked ? 1 : 0) +
+            (document.getElementById("linkArrowRight").checked ? 1 : 0);
+
+        if(arrowCount === 0){
+            warnings.push("A Link monster needs at least one arrow to give its bonus.");
+        }
+
+        if(la > lr * 1000 + 1500){
+            warnings.push("The ATK is very high for this Link Rating.");
+        }
+
+    }
+
+
+    if(
+        combined.includes("any card") &&
+        combined.includes("deck")
+    ){
+
+        warnings.push(
+            "Searching for almost any card from the Deck can create extreme consistency."
+        );
+
+    }
+
+
+    if(
+        combined.includes("win the duel") ||
+        combined.includes("win the game") ||
+        combined.includes("exodia")
+    ){
+
+        warnings.push(
+            "An alternate win condition may require strict restrictions."
+        );
+
+    }
+
+
+    if(
+        combined.includes("infinite") ||
+        combined.includes("infinite loop")
+    ){
+
+        warnings.push(
+            "The effect may create an infinite or game-breaking interaction."
+        );
+
+    }
+
+
+    if(
+        combined.includes("draw 10") ||
+        combined.includes("draw 20") ||
+        combined.includes("draw your entire deck")
+    ){
+
+        warnings.push(
+            "The amount of card draw may create overwhelming card advantage."
+        );
+
+    }
+
+
+    return warnings;
+
+}
+
+
+/* =========================================================
+   REVIEW CARD
+========================================================= */
+
+function showCardFormError(message){
+
+    const box =
+        document.getElementById("cardFormError");
+
+    if(box){
+
+        box.innerHTML = "⚠ " + escapeHTML(message);
+
+        box.classList.remove("hidden");
+
+        box.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    }
+
+    alert(message);
+
+}
+
+
+function clearCardFormError(){
+
+    const box =
+        document.getElementById("cardFormError");
+
+    if(box){
+
+        box.classList.add("hidden");
+
+        box.innerHTML = "";
+
+    }
+
+}
+
+
+function submitCardForReview(){
+
+    clearCardFormError();
+
+    const name =
+        document
+        .getElementById("cardName")
+        .value
+        .trim();
+
+    const description =
+        document
+        .getElementById("description")
+        .value
+        .trim();
+
+    const aiName =
+        document
+        .getElementById("aiName")
+        .checked;
+
+
+    if(!name && !aiName){
+
+        showCardFormError(
+            "Enter a card name (top of the form) or enable AI naming."
+        );
+
+        return;
+
+    }
+
+
+    if(!description){
+
+        showCardFormError(
+            "Please enter the card's description or flavor text (this is required for every card type, including Spells and Traps)."
+        );
+
+        return;
+
+    }
+
+
+    const warnings =
+        analyzeCard();
+
+
+    showPage("reviewPage");
+
+
+    const result =
+        document
+        .getElementById("reviewResult");
+
+
+    if(warnings.length >= 2){
+
+        result.innerHTML = `
+
+            <h2 class="review-bad">
+                🔴 OVERPOWERED
+            </h2>
+
+            <ul>
+                ${warnings.map(
+                    warning =>
+                    `<li>${escapeHTML(warning)}</li>`
+                ).join("")}
+            </ul>
+
+        `;
+
+    }
+    else if(warnings.length === 1){
+
+        result.innerHTML = `
+
+            <h2 class="review-warning">
+                🟡 STRONG
+            </h2>
+
+            <ul>
+                <li>
+                    ${escapeHTML(warnings[0])}
+                </li>
+            </ul>
+
+        `;
+
+    }
+    else{
+
+        result.innerHTML = `
+
+            <h2 class="review-good">
+                🟢 NO MAJOR PROBLEMS DETECTED
+            </h2>
+
+            <p>
+                No obvious major balance problems
+                were detected.
+            </p>
+
+        `;
+
+    }
+
+}
+
+
+const cardForm =
+    document.getElementById("cardForm");
+
+if(cardForm){
+
+    cardForm.addEventListener(
+        "submit",
+        function(event){
+
+            event.preventDefault();
+
+            submitCardForReview();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   EDIT CARD (return from review without finalizing)
+========================================================= */
+
+function editCard(){
+
+    showPage("cardMakerPage");
+
+}
+
+
+/* =========================================================
+   FINALIZE CARD
+========================================================= */
+
+function finalizeCard(){
+
+    let name =
+        document
+        .getElementById("cardName")
+        .value
+        .trim();
+
+
+    if(
+        !name &&
+        document
+        .getElementById("aiName")
+        .checked
+    ){
+
+        name =
+            "AI Generated Card";
+
+    }
+
+
+    const type =
+        document
+        .getElementById("cardType")
+        .value;
+
+
+    const warnings =
+        analyzeCard();
+
+
+    let status =
+        "balanced";
+
+    let statusText =
+        "✓ BALANCED";
+
+
+    if(warnings.length === 1){
+
+        status = "strong";
+        statusText = "⚠ STRONG";
+
+    }
+
+
+    if(warnings.length >= 2){
+
+        status = "overpowered";
+        statusText = "⚠ OVERPOWERED";
+
+    }
+
+
+    currentCardData = {
+
+        id:Date.now(),
+
+        name:name,
+
+        type:type,
+
+        description:
+            document
+            .getElementById("description")
+            .value,
+
+        extraDescription:
+            document
+            .getElementById("extraDescription")
+            .value,
+
+        theme:
+            document
+            .getElementById("cardTheme")
+            .value,
+
+        image:currentImageData,
+
+        vfx:
+            (document.getElementById("cardVfx") || {}).value || "",
+
+        aiImage:
+            document
+            .getElementById("aiImage")
+            .checked,
+
+        status:statusText,
+
+        created:
+            new Date().toLocaleString()
+
+    };
+
+
+    if(type === "monster"){
+
+        currentCardData.attribute =
+            document
+            .getElementById("attribute")
+            .value;
+
+        currentCardData.level =
+            Number(
+                document
+                .getElementById("level")
+                .value
+            );
+
+        currentCardData.monsterType =
+            document
+            .getElementById("monsterType")
+            .value;
+
+        currentCardData.monsterCategory =
+            document
+            .getElementById("monsterCategory")
+            .value;
+
+        currentCardData.tuner =
+            document
+            .getElementById("tuner")
+            .checked;
+
+        currentCardData.isPendulum =
+            document
+            .getElementById("isPendulum")
+            .checked;
+
+        if(currentCardData.isPendulum){
+
+            currentCardData.pendulumScale =
+                Number(
+                    document
+                    .getElementById("pendulumScale")
+                    .value
+                );
+
+            const se = document.getElementById("scaleEffect");
+
+            if(se && se.value){
+                currentCardData.scaleEffect = se.value;
+            }
+
+        }
+
+        currentCardData.attack =
+            Number(
+                document
+                .getElementById("attack")
+                .value
+            );
+
+        currentCardData.defense =
+            Number(
+                document
+                .getElementById("defense")
+                .value
+            );
+
+
+        const ht = document.getElementById("handTrapKind");
+
+        if(ht && ht.value){
+            currentCardData.handTrap = ht.value;
+        }
+
+        currentCardData.isRitual =
+            document.getElementById("isRitualMonster").checked;
+
+        const sp = document.getElementById("summonPreset");
+        const bp = document.getElementById("battlePreset");
+
+        if(sp && sp.value){
+            currentCardData.summonPreset = sp.value;
+        }
+
+        if(bp && bp.value){
+            currentCardData.battlePreset = bp.value;
+        }
+
+    }
+
+
+    if(type === "spell"){
+
+        currentCardData.spellType =
+            document
+            .getElementById("spellType")
+            .value;
+
+        currentCardData.customEffect =
+            document.getElementById("customSpellEffect").value || "";
+
+        currentCardData.spellBonus =
+            Number(document.getElementById("spellBonus").value) || 0;
+
+        currentCardData.continuousEffect =
+            document.getElementById("continuousEffect").value || "";
+
+    }
+
+
+    if(type === "trap"){
+
+        currentCardData.trapType =
+            document
+            .getElementById("trapType")
+            .value;
+
+        currentCardData.customTrap =
+            document.getElementById("customTrapKind").value || "";
+
+        currentCardData.counterBurn =
+            document.getElementById("counterBurn").checked;
+
+    }
+
+
+    if(type === "fusion"){
+
+        currentCardData.attribute =
+            document.getElementById("fusionAttribute").value;
+
+        currentCardData.level =
+            Number(document.getElementById("fusionLevel").value);
+
+        currentCardData.monsterType =
+            document.getElementById("fusionMonsterType").value;
+
+        currentCardData.attack =
+            Number(document.getElementById("fusionAttack").value);
+
+        currentCardData.defense =
+            Number(document.getElementById("fusionDefense").value);
+
+        currentCardData.materials = [
+            document.getElementById("fusionMaterial1").value.trim(),
+            document.getElementById("fusionMaterial2").value.trim()
+        ];
+
+    }
+
+
+    if(type === "synchro"){
+
+        currentCardData.attribute =
+            document.getElementById("synchroAttribute").value;
+
+        currentCardData.level =
+            Number(document.getElementById("synchroLevel").value);
+
+        currentCardData.monsterType =
+            document.getElementById("synchroMonsterType").value;
+
+        currentCardData.attack =
+            Number(document.getElementById("synchroAttack").value);
+
+        currentCardData.defense =
+            Number(document.getElementById("synchroDefense").value);
+
+        currentCardData.tuner =
+            document.getElementById("synchroIsTuner").checked;
+
+        currentCardData.requiresTwoTuners =
+            document.getElementById("synchroTwoTuners").checked;
+
+        currentCardData.ability =
+            document.getElementById("synchroAbility").value || "";
+
+    }
+
+
+    if(type === "xyz"){
+
+        currentCardData.attribute =
+            document.getElementById("xyzAttribute").value;
+
+        currentCardData.rank =
+            Number(document.getElementById("xyzRank").value);
+
+        currentCardData.level =
+            currentCardData.rank;
+
+        currentCardData.materialCount =
+            Number(document.getElementById("xyzMaterialCount").value);
+
+        currentCardData.monsterType =
+            document.getElementById("xyzMonsterType").value;
+
+        currentCardData.attack =
+            Number(document.getElementById("xyzAttack").value);
+
+        currentCardData.defense =
+            Number(document.getElementById("xyzDefense").value);
+
+        currentCardData.ability =
+            document.getElementById("xyzAbility").value || "";
+
+    }
+
+
+    {
+        const effs = collectEffects();
+
+        if(effs.length){
+            currentCardData.effects = effs;
+        }
+    }
+
+
+    if(type === "link"){
+
+        const rating =
+            Math.max(1, Math.min(4, Number(document.getElementById("linkRating").value) || 1));
+
+        const arrows = [];
+        if(document.getElementById("linkArrowLeft").checked) arrows.push("left");
+        if(document.getElementById("linkArrowRight").checked) arrows.push("right");
+        if(!arrows.length) arrows.push("right");
+
+        currentCardData.attribute =
+            document.getElementById("linkAttribute").value;
+        currentCardData.linkRating = rating;
+        currentCardData.level = rating;
+        currentCardData.arrows = arrows;
+        currentCardData.linkBonus =
+            Math.max(0, Math.min(1500, Number(document.getElementById("linkBonus").value) || 0));
+        currentCardData.monsterType =
+            document.getElementById("linkMonsterType").value;
+        currentCardData.linkMaterialType =
+            document.getElementById("linkMaterialType").value.trim();
+        currentCardData.attack =
+            Number(document.getElementById("linkAttack").value);
+        currentCardData.defense = 0;
+
+    }
+
+
+    saveCardLocally(currentCardData);
+
+    renderCard(
+        currentCardData,
+        status,
+        statusText
+    );
+
+}
+
+
+/* =========================================================
+   RENDER CARD
+========================================================= */
+
+function renderCard(
+    data,
+    status,
+    statusText
+){
+
+    let html = "";
+
+    const image =
+        data.image
+        ? `<img src="${data.image}">`
+        : "";
+
+
+    if(data.type === "monster"){
+
+        const level =
+            Math.max(
+                1,
+                Math.min(
+                    12,
+                    Number(data.level) || 1
+                )
+            );
+
+        const stars =
+            "★".repeat(level);
+
+
+        const category =
+            data.monsterCategory === "normal"
+            ? "Normal"
+            : "Effect";
+
+
+        html = `
+
+            <div class="card monster-card">
+
+                <div class="card-inner">
+
+                    <div class="card-name">
+                        ${escapeHTML(data.name)}
+                    </div>
+
+                    <div class="attribute">
+                        ${escapeHTML(data.attribute || "LIGHT")}
+                    </div>
+
+                    <div class="card-image">
+
+                        ${
+                            image ||
+                            "MONSTER ART"
+                        }
+
+                    </div>
+
+                    <div class="level">
+                        ${stars}
+                    </div>
+
+                    <div class="card-type">
+
+                        [
+                        ${escapeHTML(data.monsterType || "Warrior")}
+                        ${data.tuner ? " / Tuner" : ""}
+                        /
+                        ${category}
+                        ]
+
+                    </div>
+
+                    <div class="effect">
+
+                        <div class="effect-title">
+                            ${
+                                category === "Effect"
+                                ? "EFFECT"
+                                : "FLAVOR TEXT"
+                            }
+                        </div>
+
+                        ${escapeHTML(data.description || "")}
+
+                    </div>
+
+                    <div class="stats">
+
+                        <span class="stat-atk">
+                            ATK ${escapeHTML(data.attack ?? 0)}
+                        </span>
+
+                        <span class="stat-def">
+                            DEF ${escapeHTML(data.defense ?? 0)}
+                        </span>
+
+                    </div>
+
+                    <div class="card-status ${status}">
+
+                        ${escapeHTML(statusText)}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    if(data.type === "spell"){
+
+        html = `
+
+            <div class="card spell-card">
+
+                <div class="card-inner">
+
+                    <div class="card-name">
+                        ${escapeHTML(data.name)}
+                    </div>
+
+                    <div class="attribute">
+                        SPELL
+                    </div>
+
+                    <div class="card-image">
+
+                        ${
+                            image ||
+                            "SPELL ART"
+                        }
+
+                    </div>
+
+                    <div class="card-type">
+
+                        [
+                        ${escapeHTML(data.spellType || "Normal Spell")}
+                        ]
+
+                    </div>
+
+                    <div class="effect">
+
+                        <div class="effect-title">
+                            EFFECT
+                        </div>
+
+                        ${escapeHTML(data.description)}
+
+                    </div>
+
+                    <div class="card-status ${status}">
+
+                        ${escapeHTML(statusText)}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    if(data.type === "trap"){
+
+        html = `
+
+            <div class="card trap-card">
+
+                <div class="card-inner">
+
+                    <div class="card-name">
+                        ${escapeHTML(data.name)}
+                    </div>
+
+                    <div class="attribute">
+                        TRAP
+                    </div>
+
+                    <div class="card-image">
+
+                        ${
+                            image ||
+                            "TRAP ART"
+                        }
+
+                    </div>
+
+                    <div class="card-type">
+
+                        [
+                        ${escapeHTML(data.trapType || "Normal Trap")}
+                        ]
+
+                    </div>
+
+                    <div class="effect">
+
+                        <div class="effect-title">
+                            EFFECT
+                        </div>
+
+                        ${escapeHTML(data.description)}
+
+                    </div>
+
+                    <div class="card-status ${status}">
+
+                        ${escapeHTML(statusText)}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    if(data.type === "fusion" || data.type === "synchro" || data.type === "xyz" || data.type === "link"){
+
+        const level =
+            Math.max(1, Math.min(12, Number(data.level) || 1));
+
+        const arrowText =
+            (data.arrows || []).map(a => a === "left" ? "◀" : "▶").join(" ");
+
+        const stars =
+            data.type === "link"
+                ? "LINK-" + (data.linkRating || level) + " " + arrowText
+                : "★".repeat(level);
+
+        const typeLabel =
+            data.type === "fusion" ? "Fusion" :
+            data.type === "synchro" ? "Synchro" :
+            data.type === "link" ? "Link" : "Xyz";
+
+        const requirementLine =
+            data.type === "fusion"
+                ? `Materials: ${escapeHTML((data.materials || []).join(" + "))}`
+                : data.type === "link"
+                    ? `${data.linkRating || level} monster(s)${data.linkMaterialType ? " (all " + data.linkMaterialType + ")" : ""} — adjacent monsters in the arrow direction gain ${data.linkBonus || 0} ATK`
+                : data.type === "synchro"
+                    ? `${data.requiresTwoTuners ? "2 Tuner" : "1 Tuner"} + non-Tuner monster(s), total Level ${level}${data.tuner ? " — also a Tuner itself" : ""}`
+                    : `${data.materialCount || 2}x Level ${data.rank || level} monsters`;
+
+        html = `
+
+            <div class="card monster-card">
+
+                <div class="card-inner">
+
+                    <div class="card-name">
+                        ${escapeHTML(data.name)}
+                    </div>
+
+                    <div class="attribute">
+                        ${escapeHTML(data.attribute || "LIGHT")}
+                    </div>
+
+                    <div class="card-image">
+
+                        ${
+                            image ||
+                            (typeLabel.toUpperCase() + " ART")
+                        }
+
+                    </div>
+
+                    <div class="level">
+                        ${stars}
+                    </div>
+
+                    <div class="card-type">
+
+                        [
+                        ${escapeHTML(data.monsterType || "Warrior")}
+                        / ${typeLabel}
+                        / Effect
+                        ]
+
+                    </div>
+
+                    <div class="effect">
+
+                        <div class="effect-title">
+                            SUMMONING CONDITION
+                        </div>
+
+                        ${escapeHTML(requirementLine)}
+
+                        <div class="effect-title" style="margin-top:8px;">
+                            EFFECT
+                        </div>
+
+                        ${escapeHTML(data.description || "")}
+
+                    </div>
+
+                    <div class="stats">
+
+                        <span class="stat-atk">
+                            ATK ${escapeHTML(data.attack ?? 0)}
+                        </span>
+
+                        <span class="stat-def">
+                            ${data.type === "link" ? "LINK-" + escapeHTML(data.linkRating || 1) : "DEF " + escapeHTML(data.defense ?? 0)}
+                        </span>
+
+                    </div>
+
+                    <div class="card-status ${status}">
+
+                        ${escapeHTML(statusText)}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    const oldPreview =
+        document.getElementById("cardPreview");
+
+    if(oldPreview){
+        oldPreview.remove();
+    }
+
+
+    const preview =
+        document.createElement("div");
+
+    preview.id =
+        "cardPreview";
+
+    preview.innerHTML =
+        html;
+
+
+    document
+        .getElementById("cardMakerPage")
+        .appendChild(preview);
+
+
+    showPage("cardMakerPage");
+
+    preview.scrollIntoView({
+        behavior:"smooth"
+    });
+
+}
+
+
+/* =========================================================
+   SAVE CUSTOM CARDS
+========================================================= */
+
+function saveCardLocally(card){
+
+    let cards =
+        JSON.parse(
+            localStorage.getItem(
+                eckProfileKey("customYuGiOhCards")
+            )
+        ) || [];
+
+
+    cards.push(card);
+
+
+    try{
+
+        localStorage.setItem(
+            eckProfileKey("customYuGiOhCards"),
+            JSON.stringify(cards)
+        );
+
+    }
+    catch(error){
+
+        alert(
+            "Storage is full. Try using a smaller image."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   SAVED CARDS
+========================================================= */
+
+function loadSavedCards(){
+
+    const list =
+        document.getElementById(
+            "savedCardsList"
+        );
+
+    if(!list)return;
+
+
+    const cards =
+        JSON.parse(
+            localStorage.getItem(
+                eckProfileKey("customYuGiOhCards")
+            )
+        ) || [];
+
+
+    if(cards.length === 0){
+
+        list.innerHTML = `
+
+            <div class="form-section">
+
+                <h3>No Cards Yet</h3>
+
+                <p>
+                    Create your first card!
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    list.innerHTML = "";
+
+
+    cards.forEach(
+        (card,index) => {
+
+            const box =
+                document.createElement("div");
+
+            box.className =
+                "form-section";
+
+
+            box.innerHTML = `
+
+                <h3>
+                    ${escapeHTML(card.name)}
+                </h3>
+
+                <p>
+                    Type:
+                    ${escapeHTML(card.type)}
+                </p>
+
+                ${
+                    (card.type === "monster" || card.type === "fusion" || card.type === "synchro" || card.type === "xyz" || card.type === "link")
+                    ? `
+                        <p>
+                            ATK ${escapeHTML(card.attack)}
+                            /
+                            DEF ${escapeHTML(card.defense)}
+                            ${card.type === "fusion" && card.materials ? `<br>Materials: ${escapeHTML(card.materials.join(" + "))}` : ""}
+                            ${card.type === "synchro" ? `<br>Level ${escapeHTML(card.level)}${card.requiresTwoTuners ? " (Accel Synchro)" : ""}` : ""}
+                            ${card.type === "xyz" ? `<br>Rank ${escapeHTML(card.rank)}` : ""}
+                            ${card.type === "link" ? `<br>Link-${escapeHTML(card.linkRating)} ${(card.arrows || []).map(a => a === "left" ? "◀" : "▶").join(" ")}` : ""}
+                        </p>
+                    `
+                    : ""
+                }
+
+                <button
+                    class="action-button"
+                    onclick="viewSavedCard(${index})">
+
+                    👁 View Card
+
+                </button>
+
+                <button
+                    class="action-button"
+                    onclick="testCardInDuel(${index})">
+
+                    🧪 Test in Duel
+
+                </button>
+
+                <button
+                    class="action-button"
+                    onclick="copyCardCode(${index})">
+
+                    📋 Copy Code
+
+                </button>
+
+                <button
+                    class="action-button"
+                    onclick="addSavedCardToActiveDeck(${index})">
+
+                    ➕ Add To Active Deck
+
+                </button>
+
+                <button
+                    class="action-button danger-button"
+                    onclick="deleteSavedCard(${index})">
+
+                    🗑 Delete
+
+                </button>
+
+            `;
+
+
+            list.appendChild(box);
+
+        }
+    );
+
+}
+
+
+function encodeCardCode(card){
+
+    const copy = Object.assign({}, card);
+
+    delete copy.image;
+    delete copy.id;
+    delete copy.created;
+
+    return "YGC1|" + btoa(unescape(encodeURIComponent(JSON.stringify(copy))));
+
+}
+
+function decodeCardCode(code){
+
+    code = String(code || "").trim();
+
+    if(code.indexOf("YGC1|") !== 0){
+        throw new Error("Not a card code.");
+    }
+
+    const card =
+        JSON.parse(decodeURIComponent(escape(atob(code.slice(5)))));
+
+    if(!card || typeof card.name !== "string" || typeof card.type !== "string"){
+        throw new Error("Card code is missing data.");
+    }
+
+    if(["monster","spell","trap","fusion","synchro","xyz","link"].indexOf(card.type) === -1){
+        throw new Error("Unknown card type.");
+    }
+
+    return card;
+
+}
+
+
+/* =========================================================
+   EFFECT BUILDER + POWER METER
+========================================================= */
+
+function getEffectCardKind(){
+
+    const type = document.getElementById("cardType").value;
+
+    if(type === "monster" || type === "fusion" || type === "synchro" || type === "xyz" || type === "link"){
+        return "monster";
+    }
+
+    if(type === "spell"){
+
+        const st = (document.getElementById("spellType") || {}).value || "";
+
+        if(st === "Normal Spell" || st === "Quick-Play Spell") return "spell";
+
+        if(st === "Continuous Spell") return "continuous";
+
+    }
+
+    if(type === "trap"){
+
+        const tt = (document.getElementById("trapType") || {}).value || "";
+
+        if(tt === "Normal Trap") return "trap";
+
+        if(tt === "Continuous Trap") return "continuousTrap";
+
+        if(tt === "Counter Trap") return "counter";
+
+    }
+
+    return null;
+
+}
+
+function effectRowHTML(i, kind){
+
+    const trigs = Object.keys(EFFECT_TRIGGERS).filter(k => EFFECT_TRIGGERS[k].kinds.indexOf(kind) !== -1);
+
+    return `
+        <div class="effect-row" style="display:grid;grid-template-columns:1fr;gap:4px;padding:8px;margin-bottom:8px;border:1px solid #333;border-radius:8px;">
+            <strong style="font-size:12px;">Effect ${i + 1}</strong>
+            <select id="effTrigger${i}" onchange="onEffectChanged()">
+                <option value="">— none —</option>
+                ${trigs.map(k => `<option value="${k}">${EFFECT_TRIGGERS[k].uiText}</option>`).join("")}
+            </select>
+            <select id="effAction${i}" onchange="onEffectActionChanged(${i})">
+                <option value="">— action —</option>
+                ${Object.keys(EFFECT_ACTIONS).filter(k => !EFFECT_ACTIONS[k].trapOnly || kind === "trap" || kind === "continuousTrap").map(k => `<option value="${k}">${EFFECT_ACTIONS[k].label}</option>`).join("")}
+            </select>
+            <select id="effAmount${i}" class="hidden" onchange="onEffectChanged()"></select>
+            <select id="effCond${i}" onchange="onEffectChanged()" title="Optional condition">
+                <option value="">Condition: none</option>
+                ${Object.keys(EFFECT_CONDITIONS).map(k => `<option value="${k}">${EFFECT_CONDITIONS[k].label}</option>`).join("")}
+            </select>
+        </div>`;
+
+}
+
+function renderEffectBuilder(){
+
+    const section = document.getElementById("effectBuilderSection");
+
+    const rows = document.getElementById("effectRows");
+
+    if(!section || !rows) return;
+
+    const kind = getEffectCardKind();
+
+    if(!kind){
+
+        section.classList.add("hidden");
+
+        return;
+
+    }
+
+    const hints = {
+        trap: "Normal Trap: set face-down. When an opponent attacks, the attack is negated and these effects happen, then the trap goes to the Graveyard.",
+        continuousTrap: "Continuous Trap: set face-down. When an opponent attacks it negates the attack and runs its \"opponent attacks\" effects, then stays face-up and runs its start/end-of-turn effects every turn.",
+        counter: "Counter Trap: set face-down. When your opponent activates a Spell Card it is negated, these effects happen, and the trap goes to the Graveyard."
+    };
+
+    const hintEl = document.getElementById("effectKindHint");
+
+    if(hintEl) hintEl.textContent = hints[kind] || "";
+
+    /* keep existing choices if the card kind didn't change */
+    const keep = rows.getAttribute("data-kind") === kind;
+
+    const saved = keep ? readEffectRows() : [];
+
+    rows.innerHTML = [0, 1, 2].map(i => effectRowHTML(i, kind)).join("");
+
+    rows.setAttribute("data-kind", kind);
+
+    saved.forEach(function(e, i){
+
+        document.getElementById("effTrigger" + i).value = e.trigger || "";
+
+        document.getElementById("effAction" + i).value = e.action || "";
+
+        const cEl = document.getElementById("effCond" + i);
+        if(cEl) cEl.value = e.cond || "";
+
+        onEffectActionChanged(i, e.amount);
+
+    });
+
+    section.classList.remove("hidden");
+
+    updatePowerMeter();
+
+}
+
+function readEffectRows(){
+
+    const out = [];
+
+    for(let i = 0; i < 3; i++){
+
+        const t = document.getElementById("effTrigger" + i);
+        const a = document.getElementById("effAction" + i);
+        const m = document.getElementById("effAmount" + i);
+        const c = document.getElementById("effCond" + i);
+
+        if(!t || !a) continue;
+
+        out.push({
+            trigger: t.value,
+            action: a.value,
+            amount: m && !m.classList.contains("hidden") ? Number(m.value) : 0,
+            cond: c ? c.value : ""
+        });
+
+    }
+
+    return out;
+
+}
+
+function collectEffects(){
+
+    const kind = getEffectCardKind();
+
+    if(!kind) return [];
+
+    return readEffectRows().filter(function(e){
+
+        if(!e.trigger || !e.action) return false;
+
+        const trig = EFFECT_TRIGGERS[e.trigger];
+        const act = EFFECT_ACTIONS[e.action];
+
+        if(!trig || !act) return false;
+
+        if(trig.kinds.indexOf(kind) === -1) return false;
+
+        if(act.monsterOnly && kind !== "monster") return false;
+
+        if(act.trapOnly && kind !== "trap" && kind !== "continuousTrap") return false;
+
+        if(act.board && e.trigger === "onAttack") return false;
+
+        return true;
+
+    });
+
+}
+
+function onEffectActionChanged(i, wantedAmount){
+
+    const a = document.getElementById("effAction" + i).value;
+
+    const m = document.getElementById("effAmount" + i);
+
+    const act = EFFECT_ACTIONS[a];
+
+    if(act && act.amounts){
+
+        m.innerHTML = act.amounts.map(v => `<option value="${v}">${v}</option>`).join("");
+
+        if(wantedAmount && act.amounts.indexOf(wantedAmount) !== -1) m.value = String(wantedAmount);
+
+        m.classList.remove("hidden");
+
+    } else {
+
+        m.classList.add("hidden");
+
+    }
+
+    onEffectChanged();
+
+}
+
+function onEffectChanged(){
+
+    updatePowerMeter();
+
+}
+
+function getPowerStats(){
+
+    const type = document.getElementById("cardType").value;
+
+    const num = id => Number((document.getElementById(id) || {}).value) || 0;
+
+    if(type === "monster") return { atk: num("attack"), def: num("defense"), level: num("level") || 4, extra: 0 };
+
+    if(type === "fusion") return { atk: num("fusionAttack"), def: num("fusionDefense"), level: num("fusionLevel") || 6, extra: 6 };
+
+    if(type === "synchro") return { atk: num("synchroAttack"), def: num("synchroDefense"), level: num("synchroLevel") || 6, extra: 6 };
+
+    if(type === "xyz") return { atk: num("xyzAttack"), def: num("xyzDefense"), level: num("xyzRank") || 4, extra: 6 };
+
+    if(type === "link") return { atk: num("linkAttack"), def: 0, level: (num("linkRating") || 2) * 2, extra: 6 };
+
+    return null;
+
+}
+
+function calcPower(){
+
+    const kind = getEffectCardKind();
+
+    const effects = collectEffects();
+
+    const effCost = effects.reduce(function(t, e){
+
+        const cm = e.cond && EFFECT_CONDITIONS[e.cond] ? EFFECT_CONDITIONS[e.cond].mult : 1;
+
+        return t + EFFECT_ACTIONS[e.action].cost(e.amount) * EFFECT_TRIGGERS[e.trigger].mult * cm;
+
+    }, 0);
+
+    const st = getPowerStats();
+
+    if(st){
+
+        return { score: st.atk / 100 + st.def / 300 + effCost, limit: 14 + st.level * 3.5 + st.extra, effCost: effCost };
+
+    }
+
+    return { score: effCost, limit: 12, effCost: effCost };
+
+}
+
+function updatePowerMeter(){
+
+    const bar = document.getElementById("powerBar");
+
+    if(!bar) return;
+
+    const p = calcPower();
+
+    const ratio = p.limit ? p.score / p.limit : 0;
+
+    bar.style.width = Math.min(100, Math.round(ratio * 100)) + "%";
+
+    bar.style.background = ratio <= 0.85 ? "#4caf50" : ratio <= 1.1 ? "#e0a82e" : "#d9534f";
+
+    document.getElementById("powerScoreText").textContent = p.score.toFixed(1);
+
+    document.getElementById("powerLimitText").textContent = p.limit.toFixed(1);
+
+    document.getElementById("powerVerdict").textContent =
+        ratio <= 0.85 ? "Balanced" : ratio <= 1.1 ? "Strong" : "Overpowered";
+
+    document.getElementById("powerHint").textContent =
+        ratio > 1.1
+            ? "This is above the guideline for its Level. Lower ATK/DEF or trim an effect — it still works, but will dominate duels."
+            : "Guideline based on Level, ATK/DEF and effect strength. Timed effects (start/end of turn) cost the most.";
+
+}
+
+(function wirePowerMeter(){
+
+    const form = document.getElementById("cardForm");
+
+    if(!form) return;
+
+    form.addEventListener("input", updatePowerMeter);
+
+    form.addEventListener("change", function(e){
+
+        if(e.target && (e.target.id === "cardType" || e.target.id === "spellType" || e.target.id === "trapType")){
+            renderEffectBuilder();
+        } else {
+            updatePowerMeter();
+        }
+
+    });
+
+    renderEffectBuilder();
+
+})();
+
+function previewVfxSwatch(){
+
+    const colors = {
+        fire:"linear-gradient(90deg,#ff3d00,#ff7a1a,#ffd23f)",
+        lightning:"linear-gradient(90deg,#5aa8ff,#9fd8ff,#fff)",
+        holy:"linear-gradient(90deg,#ffd86b,#fff3a0,#fff)",
+        dark:"linear-gradient(90deg,#3a1470,#8a4bd6,#c28bff)",
+        ice:"linear-gradient(90deg,#6fcfff,#aee8ff,#e8fbff)",
+        nature:"linear-gradient(90deg,#3fae5a,#7bd88f,#d8ffa8)",
+        neutral:"linear-gradient(90deg,#d6a928,#f0d98a,#fff)"
+    };
+
+    const v = document.getElementById("cardVfx").value;
+
+    const sw = document.getElementById("vfxSwatch");
+
+    if(sw){
+        sw.style.background = colors[v] || "#333";
+        sw.style.boxShadow = v ? "0 0 14px rgba(255,255,255,.35)" : "none";
+    }
+
+}
+
+function testCardInDuel(index){
+
+    const cards =
+        JSON.parse(
+            localStorage.getItem(eckProfileKey("customYuGiOhCards"))
+        ) || [];
+
+    const card = cards[index];
+
+    if(!card) return;
+
+    window.open("duel.html?test=" + encodeURIComponent(card.id), "_blank");
+
+}
+
+function copyCardCode(index){
+
+    const cards =
+        JSON.parse(
+            localStorage.getItem(eckProfileKey("customYuGiOhCards"))
+        ) || [];
+
+    const card = cards[index];
+
+    if(!card) return;
+
+    const code = encodeCardCode(card);
+
+    if(navigator.clipboard && navigator.clipboard.writeText){
+
+        navigator.clipboard.writeText(code).then(
+            function(){ alert("Card code copied!"); },
+            function(){ prompt("Copy this card code:", code); }
+        );
+
+    } else {
+
+        prompt("Copy this card code:", code);
+
+    }
+
+}
+
+function importCardCode(){
+
+    const box = document.getElementById("cardCodeInput");
+
+    let card;
+
+    try{
+
+        card = decodeCardCode(box.value);
+
+    } catch(error){
+
+        alert("That card code isn't valid: " + error.message);
+
+        return;
+
+    }
+
+    card.id = Date.now() + Math.floor(Math.random() * 1000);
+    card.created = new Date().toLocaleString();
+    card.image = null;
+    card.status = card.status || "Imported";
+
+    saveCardLocally(card);
+
+    box.value = "";
+
+    loadSavedCards();
+
+    alert("Imported \"" + card.name + "\".");
+
+}
+
+function viewSavedCard(index){
+
+    const cards =
+        JSON.parse(
+            localStorage.getItem(
+                eckProfileKey("customYuGiOhCards")
+            )
+        ) || [];
+
+
+    const card =
+        cards[index];
+
+    if(!card)return;
+
+
+    renderCard(
+        card,
+        "balanced",
+        card.status || "✓ BALANCED"
+    );
+
+}
+
+
+function deleteSavedCard(index){
+
+    let cards =
+        JSON.parse(
+            localStorage.getItem(
+                eckProfileKey("customYuGiOhCards")
+            )
+        ) || [];
+
+
+    if(!confirm("Delete this card?")){
+        return;
+    }
+
+
+    cards.splice(index,1);
+
+
+    localStorage.setItem(
+        eckProfileKey("customYuGiOhCards"),
+        JSON.stringify(cards)
+    );
+
+
+    loadSavedCards();
+
+}
+
+
+/* =========================================================
+   ACTIVE DECK
+========================================================= */
+
+function getActiveDeck(){
+
+    const saved =
+        localStorage.getItem(
+            eckProfileKey("activeYuGiOhDeck")
+        );
+
+    if(saved){
+
+        try{
+            return JSON.parse(saved);
+        }
+        catch(error){}
+    }
+
+    return null;
+
+}
+
+
+function setActiveDeck(deck){
+
+    localStorage.setItem(
+        eckProfileKey("activeYuGiOhDeck"),
+        JSON.stringify(deck)
+    );
+
+}
+
+
+/* =========================================================
+   BRIDGE TO THE DUEL ENGINE
+   Writes the active deck into a shared localStorage key that
+   duel.html reads on every load. Real duel.html cards are
+   matched by exact name; anything that doesn't match (a
+   genuinely custom card) is carried over with its own stats.
+========================================================= */
+
+/*
+   Returns "ok", "noDeck" or "noProfile" and, on "ok",
+   actually writes the active deck into the sync slot.
+   Shared by the manual Sync button (which reports the
+   result with an alert) and the Start Duel flow (which
+   syncs automatically and silently before navigating).
+*/
+function syncActiveDeckCore(){
+
+    const deck =
+        getActiveDeck();
+
+    if(!deck || !deck.cards || deck.cards.length === 0){
+        return "noDeck";
+    }
+
+    const profileId =
+        getActiveDuelProfileId();
+
+    if(!profileId){
+        return "noProfile";
+    }
+
+    localStorage.setItem(
+        eckProfileKey("eckbuilerActiveDeck"),
+        JSON.stringify(deck)
+    );
+
+    return "ok";
+
+}
+
+
+function syncActiveDeckToDuelEngine(){
+
+    const result =
+        syncActiveDeckCore();
+
+    if(result === "noDeck"){
+
+        alert(
+            "You don't have an active deck to sync yet. " +
+            "Choose a premade deck or add some cards to " +
+            "your deck first."
+        );
+
+        return;
+
+    }
+
+    if(result === "noProfile"){
+
+        alert(
+            "Open duel.html at least once first so a " +
+            "profile exists — decks sync into whichever " +
+            "profile is currently active there."
+        );
+
+        return;
+
+    }
+
+    const deck =
+        getActiveDeck();
+
+    const profileName =
+        getActiveDuelProfileName() || "your active profile";
+
+    alert(
+        `"${deck.name}" is ready — open (or switch back ` +
+        `to) duel.html and it'll appear in ${profileName}'s ` +
+        `saved decks automatically, under 🃏 ${deck.name}.`
+    );
+
+}
+
+
+function updateDeckBuilderPage(){
+
+    const area =
+        document.getElementById(
+            "deckBuilderActiveDeck"
+        );
+
+    if(!area)return;
+
+
+    const profileName =
+        getActiveDuelProfileName();
+
+    const profileBannerHTML =
+        profileName
+            ? `
+                <div class="active-deck-banner"
+                     style="background:#132018;border-color:#2f6b47;color:#8fe6ab;margin-bottom:12px;">
+                    🎮 Connected to duel.html profile:
+                    <strong>${escapeHTML(profileName)}</strong>
+                    — cards and decks here are scoped to
+                    this profile only.
+                </div>
+            `
+            : `
+                <div class="active-deck-banner"
+                     style="background:#251515;border-color:#713737;color:#ff9999;margin-bottom:12px;">
+                    ⚠ No duel.html profile detected yet.
+                    Open duel.html at least once first —
+                    cards and decks made here won't be
+                    saved to a profile until you do.
+                </div>
+            `;
+
+
+    const deck =
+        getActiveDeck();
+
+
+    if(!deck){
+
+        area.innerHTML = profileBannerHTML + `
+
+            <div class="active-deck-banner"
+                 style="background:#251515;border-color:#713737;color:#ff9999">
+
+                ⚠ No active deck selected.
+
+                <br><br>
+
+                Choose a premade deck below
+                to get started.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    area.innerHTML = profileBannerHTML + `
+
+        <div class="active-deck-banner">
+
+            🎴 Active Deck:
+            <strong>${escapeHTML(deck.name)}</strong>
+            (${deck.cards.length} cards)
+
+        </div>
+
+        <button class="action-button"
+                onclick="syncActiveDeckToDuelEngine()">
+            ⚔️ Sync This Deck To The Duel Engine
+        </button>
+
+        <div class="form-section">
+
+            <h3>Cards In Active Deck</h3>
+
+            <div id="activeDeckCards"></div>
+
+        </div>
+
+    `;
+
+
+    const cardArea =
+        document.getElementById(
+            "activeDeckCards"
+        );
+
+
+    if(!deck.cards || deck.cards.length === 0){
+
+        cardArea.innerHTML =
+            "<p>No cards in this deck.</p>";
+
+        return;
+
+    }
+
+
+    deck.cards.forEach(
+        (card,index) => {
+
+            const item =
+                document.createElement("div");
+
+            item.className =
+                "my-deck-card";
+
+
+            let stats = "";
+
+            if(card.type === "monster" || card.type === "fusion" || card.type === "synchro" || card.type === "xyz" || card.type === "link"){
+
+                stats =
+                    `<br>ATK ${escapeHTML(card.attack)}
+                     / DEF ${escapeHTML(card.defense)}`;
+
+            }
+
+
+            item.innerHTML = `
+
+                <strong>
+                    ${escapeHTML(card.name)}
+                </strong>
+
+                <br>
+
+                ${escapeHTML(card.type)}
+                ${stats}
+
+                <div class="deck-card-actions">
+
+                    <button
+                        class="small-gold"
+                        onclick="viewActiveDeckCard(${index})">
+                        👁 View
+                    </button>
+
+                    <button
+                        class="small-red"
+                        onclick="removeCardFromActiveDeck(${index})">
+                        🗑 Remove
+                    </button>
+
+                </div>
+
+            `;
+
+
+            cardArea.appendChild(item);
+
+        }
+    );
+
+}
+
+
+function viewActiveDeckCard(index){
+
+    const deck =
+        getActiveDeck();
+
+    if(!deck || !deck.cards[index])return;
+
+
+    const card =
+        deck.cards[index];
+
+
+    renderCard(
+        card,
+        "balanced",
+        "✓ ACTIVE DECK CARD"
+    );
+
+}
+
+
+function removeCardFromActiveDeck(index){
+
+    const deck =
+        getActiveDeck();
+
+    if(!deck)return;
+
+
+    if(!confirm(
+        "Remove this card from the active deck?"
+    )){
+        return;
+    }
+
+
+    deck.cards.splice(index,1);
+
+    setActiveDeck(deck);
+
+    updateDeckBuilderPage();
+
+}
+
+
+/* =========================================================
+   ADD SAVED CARD TO ACTIVE DECK
+========================================================= */
+
+function addSavedCardToActiveDeck(index){
+
+    const cards =
+        JSON.parse(
+            localStorage.getItem(
+                eckProfileKey("customYuGiOhCards")
+            )
+        ) || [];
+
+
+    const card =
+        cards[index];
+
+    if(!card)return;
+
+
+    let deck =
+        getActiveDeck();
+
+
+    if(!deck){
+
+        deck = {
+
+            id:"custom_deck",
+
+            name:"My Custom Deck",
+
+            description:
+                "Your custom deck.",
+
+            cards:[]
+
+        };
+
+    }
+
+
+    deck.cards.push(
+        JSON.parse(
+            JSON.stringify(card)
+        )
+    );
+
+
+    setActiveDeck(deck);
+
+
+    alert(
+        `${card.name} was added to ${deck.name}.`
+    );
+
+
+    updateDeckBuilderPage();
+
+}
+
+
+/* =========================================================
+   PREMADE DECK RENDERING
+========================================================= */
+
+function renderPremadeDecks(){
+
+    const container =
+        document.getElementById(
+            "premadeDeckList"
+        );
+
+    if(!container)return;
+
+
+    const active =
+        getActiveDeck();
+
+
+    container.innerHTML = `
+
+        <div class="premade-grid">
+
+            ${PREMADE_DECKS.map(
+                deck => {
+
+                    const selected =
+                        active &&
+                        active.id === deck.id
+                        ? "selected-deck"
+                        : "";
+
+
+                    const monsterCount =
+                        deck.cards.filter(
+                            c => c.type === "monster"
+                        ).length;
+
+
+                    return `
+
+                        <div class="
+                            deck-card
+                            ${selected}
+                        ">
+
+                            <h2>
+                                ${escapeHTML(deck.name)}
+                            </h2>
+
+                            <div class="deck-description">
+                                ${escapeHTML(deck.description)}
+                            </div>
+
+                            <div class="deck-stats">
+
+                                <span>
+                                    🃏
+                                    ${deck.cards.length}
+                                    cards
+                                </span>
+
+                                <span>
+                                    👹
+                                    ${monsterCount}
+                                    monsters
+                                </span>
+
+                            </div>
+
+                            <button
+                                class="
+                                    action-button
+                                    use-deck
+                                "
+                                onclick="usePremadeDeck('${deck.id}')">
+
+                                ${
+                                    selected
+                                    ? "✓ Active Deck"
+                                    : "▶ Use This Deck"
+                                }
+
+                            </button>
+
+                            <button
+                                class="
+                                    action-button
+                                    view-deck
+                                "
+                                onclick="viewPremadeDeck('${deck.id}')">
+
+                                👁 View Cards
+
+                            </button>
+
+                        </div>
+
+                    `;
+
+                }
+            ).join("")}
+
+        </div>
+
+        <div id="premadeDeckViewer"></div>
+
+    `;
+
+}
+
+
+function usePremadeDeck(id){
+
+    const source =
+        PREMADE_DECKS.find(
+            deck => deck.id === id
+        );
+
+
+    if(!source)return;
+
+
+    const deck =
+        JSON.parse(
+            JSON.stringify(source)
+        );
+
+
+    setActiveDeck(deck);
+
+
+    alert(
+        `${deck.name} is now your active deck!`
+    );
+
+
+    renderPremadeDecks();
+
+}
+
+
+function viewPremadeDeck(id){
+
+    const deck =
+        PREMADE_DECKS.find(
+            d => d.id === id
+        );
+
+
+    if(!deck)return;
+
+
+    const viewer =
+        document.getElementById(
+            "premadeDeckViewer"
+        );
+
+
+    if(!viewer)return;
+
+
+    viewer.innerHTML = `
+
+        <div class="deck-viewer">
+
+            <h2>
+                ${escapeHTML(deck.name)}
+            </h2>
+
+            <p>
+                ${escapeHTML(deck.description)}
+            </p>
+
+            <ul class="deck-list">
+
+                ${deck.cards.map(
+                    card => {
+
+                        let stats = "";
+
+                        if(card.type === "monster"){
+
+                            stats =
+                                `ATK ${card.attack}
+                                 /
+                                 DEF ${card.defense}`;
+
+                        }
+
+
+                        return `
+
+                            <li>
+
+                                <span class="deck-card-name">
+
+                                    ${escapeHTML(card.name)}
+
+                                </span>
+
+                                <span class="deck-card-count">
+
+                                    ${
+                                        stats ||
+                                        escapeHTML(card.type)
+                                    }
+
+                                </span>
+
+                            </li>
+
+                        `;
+
+                    }
+                ).join("")}
+
+            </ul>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   GAME PAGE
+========================================================= */
+
+function updateGamePage(){
+
+    const area =
+        document.getElementById(
+            "activeDeckInfo"
+        );
+
+    if(!area)return;
+
+
+    const deck =
+        getActiveDeck();
+
+
+    const duelButton =
+        document.getElementById(
+            "startDuelButton"
+        );
+
+
+    if(!deck){
+
+        area.innerHTML = `
+
+            <h3>🎴 Active Deck</h3>
+
+            <p>
+                No deck selected yet.
+            </p>
+
+            <button
+                class="action-button"
+                onclick="openPremadeDecks()">
+
+                📦 Choose Premade Deck
+
+            </button>
+
+        `;
+
+        if(duelButton){
+            duelButton.disabled = true;
+        }
+
+        return;
+
+    }
+
+
+    if(duelButton){
+        duelButton.disabled = false;
+    }
+
+
+    const monsters =
+        deck.cards.filter(
+            card => card.type === "monster"
+        );
+
+
+    area.innerHTML = `
+
+        <h3>🎴 Active Deck</h3>
+
+        <h2>
+            ${escapeHTML(deck.name)}
+        </h2>
+
+        <p>
+            ${deck.cards.length} cards total
+        </p>
+
+        <p>
+            ${monsters.length} monster cards
+        </p>
+
+        <button
+            class="action-button"
+            onclick="showPage('deckPage'); updateDeckBuilderPage();">
+
+            🃏 Go To Deck Builder
+
+        </button>
+
+    `;
+
+}
+
+
+/* =========================================================
+   GO TO DUEL SCREEN
+========================================================= */
+
+function goToDuel(){
+
+    /*
+       Silently sync the active deck first, so clicking
+       Start Duel "just works" without the player needing
+       to remember a separate Sync step on the Deck Builder
+       page. A missing deck or profile isn't an error here —
+       goToDuel() still proceeds to duel.html either way,
+       since duel.html has its own decks to play even if
+       nothing synced.
+    */
+    syncActiveDeckCore();
+
+    window.location.href =
+        "duel.html";
+
+}
+
+
+/* =========================================================
+   OPTIONS
+========================================================= */
+
+function saveOptions(){
+
+    const options = {
+
+        playerName:
+            document
+            .getElementById("playerName")
+            .value,
+
+        musicVolume:
+            document
+            .getElementById("musicVolume")
+            .value,
+
+        effectsVolume:
+            document
+            .getElementById("effectsVolume")
+            .value,
+
+        animations:
+            document
+            .getElementById("animations")
+            .checked,
+
+        defaultAiAssist:
+            document
+            .getElementById("defaultAiAssist")
+            .checked,
+
+        defaultLevel:
+            document
+            .getElementById("defaultLevel")
+            .value,
+
+        defaultAttack:
+            document
+            .getElementById("defaultAttack")
+            .value,
+
+        defaultDefense:
+            document
+            .getElementById("defaultDefense")
+            .value
+
+    };
+
+
+    localStorage.setItem(
+        eckProfileKey("yugiohOptions"),
+        JSON.stringify(options)
+    );
+
+
+    alert("Options saved!");
+
+}
+
+
+function loadOptions(){
+
+    const saved =
+        JSON.parse(
+            localStorage.getItem(
+                eckProfileKey("yugiohOptions")
+            ) || "null"
+        );
+
+    if(!saved)return;
+
+
+    const nameField =
+        document.getElementById("playerName");
+
+    const musicField =
+        document.getElementById("musicVolume");
+
+    const fxField =
+        document.getElementById("effectsVolume");
+
+    const animField =
+        document.getElementById("animations");
+
+    const aiAssistField =
+        document.getElementById("defaultAiAssist");
+
+    const levelField =
+        document.getElementById("defaultLevel");
+
+    const attackField =
+        document.getElementById("defaultAttack");
+
+    const defenseField =
+        document.getElementById("defaultDefense");
+
+
+    if(nameField){
+        nameField.value = saved.playerName || "";
+    }
+
+    if(musicField){
+        musicField.value = saved.musicVolume ?? 50;
+    }
+
+    if(fxField){
+        fxField.value = saved.effectsVolume ?? 70;
+    }
+
+    if(animField){
+        animField.checked = saved.animations !== false;
+    }
+
+    if(aiAssistField){
+        aiAssistField.checked = saved.defaultAiAssist === true;
+    }
+
+    if(levelField){
+        levelField.value = saved.defaultLevel ?? 4;
+    }
+
+    if(attackField){
+        attackField.value = saved.defaultAttack ?? 1500;
+    }
+
+    if(defenseField){
+        defenseField.value = saved.defaultDefense ?? 1500;
+    }
+
+}
+
+
+function getSavedOptions(){
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem(eckProfileKey("yugiohOptions")) || "null"
+        ) || {};
+
+    } catch(error){
+
+        return {};
+
+    }
+
+}
+
+
+/*
+   Called right before the Card Maker form opens — applies
+   the saved AI-assist and default-stat preferences so new
+   cards start pre-filled the way the user likes.
+*/
+function applyCardCreatorDefaults(){
+
+    const saved =
+        getSavedOptions();
+
+    if(saved.defaultAiAssist){
+
+        ["aiName","aiLevel","aiAttack","aiDefense","aiImage"].forEach(
+            function(id){
+
+                const field =
+                    document.getElementById(id);
+
+                if(field){
+                    field.checked = true;
+                }
+
+            }
+        );
+
+    }
+
+    const levelField =
+        document.getElementById("level");
+
+    if(levelField && saved.defaultLevel){
+        levelField.value = saved.defaultLevel;
+    }
+
+    const attackField =
+        document.getElementById("attack");
+
+    if(attackField && saved.defaultAttack){
+        attackField.value = saved.defaultAttack;
+    }
+
+    const defenseField =
+        document.getElementById("defense");
+
+    if(defenseField && saved.defaultDefense){
+        defenseField.value = saved.defaultDefense;
+    }
+
+}
+
+
+/* =========================================================
+   CARD DATA MANAGEMENT
+========================================================= */
+
+function updateOptionsPage(){
+
+    const statsArea =
+        document.getElementById("cardDataStats");
+
+    if(!statsArea)return;
+
+    const cards =
+        JSON.parse(
+            localStorage.getItem(eckProfileKey("customYuGiOhCards")) || "[]"
+        );
+
+    const profileName =
+        getActiveDuelProfileName();
+
+    statsArea.innerHTML =
+        profileName
+            ? `You have <strong>${cards.length}</strong> custom card(s) saved for <strong>${escapeHTML(profileName)}</strong>.`
+            : `You have <strong>${cards.length}</strong> custom card(s) saved (no duel.html profile connected yet).`;
+
+}
+
+
+function exportCustomCards(){
+
+    const cards =
+        localStorage.getItem(eckProfileKey("customYuGiOhCards")) || "[]";
+
+    const parsed =
+        JSON.parse(cards);
+
+    if(parsed.length === 0){
+
+        alert("You don't have any custom cards to export yet.");
+
+        return;
+
+    }
+
+    const blob =
+        new Blob([cards], { type: "application/json" });
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+
+    const profileName =
+        getActiveDuelProfileName() || "cards";
+
+    link.download =
+        `eckbuiler-cards-${profileName.replace(/[^a-zA-Z0-9]/g,"_")}.json`;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+
+}
+
+
+function importCustomCardsFromFile(){
+
+    const fileInput =
+        document.getElementById("importCardsFile");
+
+    const file =
+        fileInput.files[0];
+
+    if(!file){
+
+        alert("Choose a JSON file to import first.");
+
+        return;
+
+    }
+
+    const reader =
+        new FileReader();
+
+    reader.onload =
+        function(event){
+
+            let imported;
+
+            try {
+
+                imported =
+                    JSON.parse(event.target.result);
+
+            } catch(error){
+
+                alert("That file isn't valid JSON.");
+
+                return;
+
+            }
+
+            if(!Array.isArray(imported)){
+
+                alert("That file doesn't look like an exported card list.");
+
+                return;
+
+            }
+
+            const existing =
+                JSON.parse(
+                    localStorage.getItem(eckProfileKey("customYuGiOhCards")) || "[]"
+                );
+
+            const merged =
+                existing.concat(imported);
+
+            localStorage.setItem(
+                eckProfileKey("customYuGiOhCards"),
+                JSON.stringify(merged)
+            );
+
+            alert(
+                `Imported ${imported.length} card(s). ` +
+                `You now have ${merged.length} total.`
+            );
+
+            updateOptionsPage();
+
+            fileInput.value = "";
+
+        };
+
+    reader.readAsText(file);
+
+}
+
+
+function clearAllCustomCards(){
+
+    const cards =
+        JSON.parse(
+            localStorage.getItem(eckProfileKey("customYuGiOhCards")) || "[]"
+        );
+
+    if(cards.length === 0){
+
+        alert("You don't have any custom cards to clear.");
+
+        return;
+
+    }
+
+    if(!confirm(
+        `Delete all ${cards.length} of your custom cards? ` +
+        `This can't be undone — export them first if you ` +
+        `want a backup.`
+    )){
+        return;
+    }
+
+    localStorage.setItem(
+        eckProfileKey("customYuGiOhCards"),
+        "[]"
+    );
+
+    alert("All custom cards cleared.");
+
+    updateOptionsPage();
+
+}
+
+
+loadOptions();
+
+
+/* =========================================================
+   TRIBUTE SELECTION SYSTEM
+========================================================= */
+
+/*
+    This is the important part for your
+    "YOU CAN'T CHOOSE MONSTERS TO TRIBUTE" problem.
+
+    The duel engine can call:
+
+        openTributeSelection(
+            monstersOnField,
+            2,
+            function(selected){
+                // continue summon
+            }
+        );
+
+    The player then manually chooses the monsters.
+*/
+
+
+function getTributeCandidates(
+    monsters,
+    required
+){
+
+    if(!Array.isArray(monsters)){
+        return [];
+    }
+
+
+    return monsters.filter(
+        monster => {
+
+            if(!monster)return false;
+
+            if(monster.faceUp === false){
+                return false;
+            }
+
+            if(monster.canBeTributed === false){
+                return false;
+            }
+
+            return true;
+
+        }
+    );
+
+}
+
+
+function openTributeSelection(
+    monsters,
+    required,
+    callback
+){
+
+    const candidates =
+        getTributeCandidates(
+            monsters,
+            required
+        );
+
+
+    tributeSelection = {
+
+        required:Math.max(
+            1,
+            Number(required) || 1
+        ),
+
+        selected:[],
+
+        candidates:candidates,
+
+        callback:
+            typeof callback === "function"
+            ? callback
+            : null
+
+    };
+
+
+    renderTributeSelection();
+
+    showPage("tributePage");
+
+}
+
+
+function toggleTributeCandidate(index){
+
+    const position =
+        tributeSelection.selected.indexOf(index);
+
+
+    if(position > -1){
+
+        tributeSelection.selected.splice(
+            position,
+            1
+        );
+
+    }
+    else{
+
+        if(
+            tributeSelection.selected.length >=
+            tributeSelection.required
+        ){
+
+            return;
+
+        }
+
+        tributeSelection.selected.push(index);
+
+    }
+
+
+    renderTributeSelection();
+
+}
+
+
+function renderTributeSelection(){
+
+    const requirement =
+        document.getElementById(
+            "tributeRequirement"
+        );
+
+    const container =
+        document.getElementById(
+            "tributeCandidates"
+        );
+
+
+    const required =
+        tributeSelection.required;
+
+    const candidates =
+        tributeSelection.candidates;
+
+
+    requirement.innerHTML = `
+
+        <h3>
+            Tribute ${required}
+            monster${required === 1 ? "" : "s"}
+        </h3>
+
+        <p>
+            Selected:
+            <strong>
+                ${tributeSelection.selected.length}
+                / ${required}
+            </strong>
+        </p>
+
+        ${
+            candidates.length < required
+            ? `
+                <div class="tribute-warning">
+
+                    ⚠ You do not have enough valid
+                    monsters to Tribute.
+
+                </div>
+            `
+            : ""
+        }
+
+    `;
+
+
+    if(candidates.length === 0){
+
+        container.innerHTML = `
+
+            <div class="form-section">
+
+                <h3>No Valid Monsters</h3>
+
+                <p>
+                    You have no valid monsters
+                    available to Tribute.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        candidates.map(
+            (card, index) => {
+
+                const selected =
+                    tributeSelection.selected.includes(index);
+
+
+                let stats = "";
+
+                if(card.type === "monster"){
+
+                    stats = `
+
+                        <span class="tribute-atk">
+                            ATK ${escapeHTML(card.attack)}
+                        </span>
+
+                        &nbsp;/&nbsp;
+
+                        <span class="tribute-def">
+                            DEF ${escapeHTML(card.defense)}
+                        </span>
+
+                    `;
+
+                }
+
+
+                return `
+
+                    <div
+                        class="tribute-card ${selected ? "selected" : ""}"
+                        onclick="toggleTributeCandidate(${index})">
+
+                        <input
+                            type="checkbox"
+                            ${selected ? "checked" : ""}
+                            onclick="event.stopPropagation(); toggleTributeCandidate(${index})">
+
+                        <div class="tribute-info">
+
+                            <strong>
+                                ${escapeHTML(card.name)}
+                            </strong>
+
+                            <br>
+
+                            ${stats}
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+        ).join("");
+
+}
+
+
+function confirmTributes(){
+
+    if(
+        tributeSelection.selected.length !==
+        tributeSelection.required
+    ){
+
+        alert(
+            `Select exactly ${tributeSelection.required} monster(s) to Tribute.`
+        );
+
+        return;
+
+    }
+
+
+    const chosenCards =
+        tributeSelection.selected.map(
+            index => tributeSelection.candidates[index]
+        );
+
+    const callback =
+        tributeSelection.callback;
+
+
+    tributeSelection = {
+        required: 0,
+        selected: [],
+        candidates: [],
+        callback: null
+    };
+
+
+    if(typeof callback === "function"){
+
+        callback(chosenCards);
+
+    }
+    else{
+
+        showPage("gamePage");
+
+    }
+
+}
+
+
+function cancelTributeSelection(){
+
+    tributeSelection = {
+        required: 0,
+        selected: [],
+        candidates: [],
+        callback: null
+    };
+
+    showPage("gamePage");
+
+}
+
+/* =========================================================
+   START FROM A DUEL CARD (template loader)
+   Reads the catalog the Duel Engine publishes to localStorage.
+========================================================= */
+
+function getDuelCatalog(){
+
+    try{
+
+        const c = JSON.parse(localStorage.getItem("yugiohCardCatalog") || "null");
+
+        return c && Array.isArray(c.cards) ? c : null;
+
+    } catch(error){ return null; }
+
+}
+
+function filterDuelTemplates(){
+
+    const sel = document.getElementById("duelTemplatePick");
+    const hint = document.getElementById("duelTemplateHint");
+    const q = (document.getElementById("duelTemplateSearch").value || "").toLowerCase().trim();
+
+    if(!sel) return;
+
+    const cat = getDuelCatalog();
+
+    if(!cat){
+
+        sel.innerHTML = "";
+        sel.disabled = true;
+
+        if(hint) hint.textContent = "Open duel.html once (same site) to load its cards here as templates.";
+
+        return;
+
+    }
+
+    sel.disabled = false;
+
+    const rows = cat.cards
+        .filter(c => !q || c.name.toLowerCase().indexOf(q) !== -1 || c.type.indexOf(q) !== -1)
+        .sort((a, b) => (a.type + a.name).localeCompare(b.type + b.name))
+        .slice(0, 3000);
+
+    sel.innerHTML = rows.map(c => `<option value="${escapeHTML(c.id)}">${escapeHTML(c.type.toUpperCase())} · ${escapeHTML(c.name)}${c.effects ? " ⚙" : ""}</option>`).join("");
+
+    if(hint) hint.textContent = cat.cards.length + " cards from the Duel Engine. Pick one to copy its stats and effects into the form, then change anything and save it as your own card (⚙ = built with the Effect Builder).";
+
+}
+
+function setFormValue(id, value){
+
+    const el = document.getElementById(id);
+
+    if(!el || value === undefined || value === null) return;
+
+    el.value = value;
+
+}
+
+function setFormCheck(id, on){
+
+    const el = document.getElementById(id);
+
+    if(!el) return;
+
+    el.checked = !!on;
+
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+
+}
+
+function loadDuelTemplate(){
+
+    const cat = getDuelCatalog();
+    const id = document.getElementById("duelTemplatePick").value;
+    const c = cat && cat.cards.find(x => x.id === id);
+
+    if(!c) return;
+
+    const type = document.getElementById("cardType");
+
+    type.value = c.type;
+    type.dispatchEvent(new Event("change", { bubbles: true }));
+
+    setFormValue("cardName", c.name.replace(/^Dev Lab:\s*/, "") + " (copy)");
+    setFormCheck("aiName", false);
+
+    if(c.type === "monster"){
+
+        setFormValue("attribute", c.attribute || "LIGHT");
+        setFormValue("level", c.level || 4);
+        setFormValue("monsterType", c.monsterType || "Warrior");
+        setFormValue("attack", c.atk || 0);
+        setFormValue("defense", c.def || 0);
+        setFormCheck("aiLevel", false);
+        setFormCheck("aiAttack", false);
+        setFormCheck("aiDefense", false);
+        setFormCheck("isPendulum", !!c.isPendulum);
+        if(c.isPendulum) setFormValue("pendulumScale", c.pendulumScale || 4);
+        setFormValue("scaleEffect", c.scaleEffect || "");
+        setFormValue("summonPreset", c.summonPreset || "");
+        setFormValue("battlePreset", c.battlePreset || "");
+        setFormCheck("isRitualMonster", !!c.isRitual);
+
+    }
+
+    if(c.type === "fusion"){
+
+        setFormValue("fusionMaterial1", (c.materials || [])[0] || "");
+        setFormValue("fusionMaterial2", (c.materials || [])[1] || "");
+        setFormValue("fusionAttribute", c.attribute || "DARK");
+        setFormValue("fusionLevel", c.level || 6);
+        setFormValue("fusionMonsterType", c.monsterType || "Warrior");
+        setFormValue("fusionAttack", c.atk || 0);
+        setFormValue("fusionDefense", c.def || 0);
+
+    }
+
+    if(c.type === "synchro"){
+
+        setFormValue("synchroAttribute", c.attribute || "LIGHT");
+        setFormValue("synchroLevel", c.level || 7);
+        setFormValue("synchroMonsterType", c.monsterType || "Dragon");
+        setFormValue("synchroAttack", c.atk || 0);
+        setFormValue("synchroDefense", c.def || 0);
+        setFormCheck("synchroIsTuner", !!c.isTuner);
+        setFormCheck("synchroTwoTuners", !!c.requiresTwoTuners);
+        setFormValue("synchroAbility", c.ability || "");
+
+    }
+
+    if(c.type === "xyz"){
+
+        setFormValue("xyzAttribute", c.attribute || "DARK");
+        setFormValue("xyzRank", c.rank || c.level || 4);
+        setFormValue("xyzMaterialCount", c.materialCount || 2);
+        setFormValue("xyzMonsterType", c.monsterType || "Warrior");
+        setFormValue("xyzAttack", c.atk || 0);
+        setFormValue("xyzDefense", c.def || 0);
+        setFormValue("xyzAbility", c.ability || "");
+
+    }
+
+    if(c.type === "link"){
+
+        setFormValue("linkAttribute", c.attribute || "LIGHT");
+        setFormValue("linkRating", c.linkRating || 2);
+        setFormValue("linkMonsterType", c.monsterType || "Warrior");
+        setFormValue("linkBonus", c.linkBonus || 0);
+        setFormValue("linkMaterialType", c.linkMaterialType || "");
+        setFormCheck("linkArrowLeft", (c.arrows || []).indexOf("left") !== -1);
+        setFormCheck("linkArrowRight", (c.arrows || []).indexOf("right") !== -1);
+        setFormValue("linkAttack", c.atk || 0);
+
+    }
+
+    if(c.type === "spell"){
+
+        setFormValue("spellType", c.spellType || "Normal Spell");
+        document.getElementById("spellType").dispatchEvent(new Event("change", { bubbles: true }));
+
+    }
+
+    if(c.type === "trap"){
+
+        setFormValue("trapType", c.trapType || "Normal Trap");
+        document.getElementById("trapType").dispatchEvent(new Event("change", { bubbles: true }));
+
+    }
+
+    setFormValue("cardVfx", c.vfx || "");
+    if(typeof previewVfxSwatch === "function") previewVfxSwatch();
+
+    setFormValue("description", c.effects ? "" : (c.effect || ""));
+
+    renderEffectBuilder();
+
+    for(let i = 0; i < 3; i++){
+
+        const e = (c.effects || [])[i];
+        const t = document.getElementById("effTrigger" + i);
+        const a = document.getElementById("effAction" + i);
+        const k = document.getElementById("effCond" + i);
+
+        if(!t || !a) continue;
+
+        t.value = e ? e.trigger : "";
+        a.value = e ? e.action : "";
+        if(k) k.value = e && e.cond ? e.cond : "";
+
+        onEffectActionChanged(i, e ? e.amount : undefined);
+
+    }
+
+    updatePowerMeter();
+
+    document.getElementById("cardForm").scrollIntoView({ behavior: "smooth" });
+
+}
+
+filterDuelTemplates();
+
+
+function renderSyncStatus(){
+
+    const el = document.getElementById("syncStatusText");
+
+    if(!el) return;
+
+    const st = getSharedSyncStatus("eck");
+
+    el.textContent = (st.state === "ok" ? "✅ " : st.state === "mismatch" ? "⚠ " : "ℹ ") + st.message;
+
+}
+
+populateSharedSelects();
+
+runSharedSyncCheck("eck");
+
+renderSyncStatus();
+
+</script>
+
+</body>
+</html>

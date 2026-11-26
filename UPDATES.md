@@ -1,5 +1,21 @@
 # Homepage Updates
 
+## Creative Apps
+
+Maker Studio was removed from the catalog at the owner's request; its separate repository was not deleted. Beat Painter and Pitch Slots replace it, imported unchanged from Downloads/Beat Painter.html and Downloads/Pitch Slots (2).html into their own folders under apps/. Both have actual app screenshots and are excluded from game search and random selection. Totals: 40 games and 6 apps. Deck Studio remains one paired app.
+
+## App Additions
+
+Business Plan Maker and Maker Studio link to their existing public app repositories. Deck Studio is one Apps entry with a shared launcher, card builder and duel engine. Sources are Downloads/eckbuiler (10).html and Downloads/duel (24).html, both downloaded November 26, 2026. Imported unchanged as apps/deck-studio/eckbuiler.html and duel.html so their existing relative links and profile-scoped storage keep working on the same origin. Downloads are not modified. Existing saves on other origins do not automatically migrate to zappatronic.com.
+
+Actual app screenshots accompany all three additions. Catalog totals: 40 games, 5 apps, 4 minigames. Beat Painter and Pitch Slots were also found among recent downloads but are not included in this change.
+
+## Combined Catalog
+
+Games & Apps is one scrollable view, with Apps directly below Games; `#apps` remains a direct link. Math Meadow is classified as an educational app alongside Claude Demo Mode. The catalog has 40 games and 2 apps. Worldsmith, Worldsmith Globe, WorldWalker and Trickshot Tapes retain game classification because they include conquest, survival or scoring mechanics. Browser rendering and generated HTML/JSON/schema share the explicit `appSlugs` list. Apps are excluded from game search and random selection.
+
+TikTok beats are shared by Music and Latest drops without duplicating players.
+
 ## Visitor Improvements
 
 Start here pins Pixel Omniverse, Freddles After Dark and Heartbox Dodge 3D Expanded ahead of personal rating sorting. The cache warning was removed. Existing screenshots and genre filters remain. Beyond Files, Hollow Pines and Wick and Cinder have expandable chapter groups; filters open matching chapters. Similar titles remain because their mechanics differ, with distinctions in their descriptions.

@@ -1,11 +1,10 @@
 (function () {
   'use strict';
   var groups = {
-    games: ['games'],
-    apps: ['apps'],
-    music: ['music'],
+    games: ['games', 'apps'],
+    music: ['music', 'tiktok-beats'],
     minigames: ['minigames'],
-    'latest-drops': ['latest-drops'],
+    'latest-drops': ['latest-drops', 'tiktok-beats'],
     bio: ['bio', 'channels'],
     feedback: ['business', 'feedback']
   };

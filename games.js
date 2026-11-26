@@ -43,7 +43,11 @@
     ['claude-in-claude-demo-mode', 'Claude in Claude - Demo Mode'],
     ['hollowmere', 'Hollowmere'],
     ['nimbo-s-rainbow-garden', "Nimbo's Rainbow Garden"],
-    ['wumble-and-tink', 'Wumble and Tink']
+    ['wumble-and-tink', 'Wumble and Tink'],
+    ['business-plan-maker', 'Business Plan Maker'],
+    ['beat-painter', 'Beat Painter'],
+    ['pitch-slots', 'Pitch Slots'],
+    ['deck-studio', 'Deck Studio']
   ];
   var featured = document.getElementById('featured-games');
   var more = document.getElementById('more-games');
@@ -87,10 +91,18 @@
     Action: ['Pixel_Omniverse','heartbox-dodge-3d-expanded','arena-clash','orb-runner','dusk-dojo-pixel-fighter','steel-and-sinew','photon-arena','ankle-breakers','juke-hour','total-mayhem'],
     Racing: ['rift-racer-3d'],
     Creative: ['worldsmith'],
+    Business: ['business-plan-maker'],
+    Music: ['beat-painter'],
+    Ideas: ['pitch-slots'],
+    Cards: ['deck-studio'],
     Education: ['math-meadow'],
     Puzzle: ['trickshot-tapes','wick-and-cinder-iii'],
     Chat: ['claude-in-claude','claude-in-claude-demo-mode']
   };
+  var appSlugs = ['math-meadow', 'claude-in-claude-demo-mode', 'business-plan-maker', 'beat-painter', 'pitch-slots', 'deck-studio'];
+  var catalogUrls = { 'deck-studio': 'https://zappatronic.com/apps/deck-studio/', 'beat-painter': 'https://zappatronic.com/apps/beat-painter/index.html', 'pitch-slots': 'https://zappatronic.com/apps/pitch-slots/index.html' };
+  function urlOf(slug) { return catalogUrls[slug] || 'https://spaceturismo.github.io/' + slug + '/'; }
+  function isAppSlug(slug) { return appSlugs.indexOf(slug) !== -1; }
   var controls = {
     'orb-runner': 'Mouse, touch or arrow keys',
     'vengeful-pendulum': 'Shared keyboard',
@@ -101,13 +113,13 @@
   function genreOf(slug) {
     return Object.keys(genres).find(function (genre) { return genres[genre].indexOf(slug) !== -1; }) || 'Adventure';
   }
-  Array.from(new Set(games.map(function (game) { return genreOf(game[0]); }))).filter(function (genre) { return genre !== 'Chat'; }).sort().forEach(function (genre) {
+  Array.from(new Set(games.filter(function (game) { return !isAppSlug(game[0]); }).map(function (game) { return genreOf(game[0]); }))).sort().forEach(function (genre) {
     var option = document.createElement('option');
     option.value = genre; option.textContent = genre; genreSelect.appendChild(option);
   });
 
   games.forEach(function (game, index) {
-    var isApp = genreOf(game[0]) === 'Chat';
+    var isApp = isAppSlug(game[0]);
     var article = document.createElement('article');
     article.className = 'game';
     var screen = document.createElement('div');
@@ -160,12 +172,12 @@
     actions.className = 'game-actions';
     var play = document.createElement('a');
     play.className = 'btn hot';
-    play.href = 'https://spaceturismo.github.io/' + game[0] + '/';
+    play.href = urlOf(game[0]);
     play.textContent = isApp ? 'Open app' : 'Play';
     play.setAttribute('aria-label', (isApp ? 'Open ' : 'Play ') + game[1]);
     var source = document.createElement('a');
     source.className = 'btn';
-    source.href = 'https://github.com/spaceturismo/' + game[0];
+    source.href = catalogUrls[game[0]] ? 'https://github.com/spaceturismo/professor-zappatronic/tree/main/apps/' + game[0] : 'https://github.com/spaceturismo/' + game[0];
     source.textContent = 'GitHub';
     source.setAttribute('aria-label', game[1] + ' on GitHub');
     actions.appendChild(play);
@@ -212,7 +224,7 @@
     var filtering = !!(query || genreSelect.value || mobileSelect.value);
     var count = 0;
     var focused = document.activeElement;
-    cards.filter(function (card) { return card.genre !== 'Chat'; }).sort(function (first, second) {
+    cards.filter(function (card) { return !isAppSlug(card.game[0]); }).sort(function (first, second) {
       if (first.index < 3 || second.index < 3) return first.index < 3 && second.index < 3 ? first.index - second.index : first.index < 3 ? -1 : 1;
       return (ratings[second.game[0]] || 0) - (ratings[first.game[0]] || 0) || first.index - second.index;
     }).forEach(function (card, rank) {
@@ -244,7 +256,7 @@
   genreSelect.addEventListener('change', filterGames);
   mobileSelect.addEventListener('change', filterGames);
   document.getElementById('random-game').addEventListener('click', function () {
-    var candidates = cards.filter(function (card) { return !card.element.hidden && card.genre !== 'Chat'; });
+    var candidates = cards.filter(function (card) { return !card.element.hidden && !isAppSlug(card.game[0]); });
     if (!candidates.length) { results.hidden = false; results.textContent = 'No playable games match these filters'; return; }
     var chosen = candidates[Math.floor(Math.random() * candidates.length)];
     window.location.assign('https://spaceturismo.github.io/' + chosen.game[0] + '/');
@@ -253,7 +265,7 @@
     event.preventDefault();
     var title = games.find(function (game) { return game[0] === bugGame.value; });
     if (!title) return;
-    var body = 'Game: ' + title[1] + '\nURL: https://spaceturismo.github.io/' + title[0] + '/\n\nWhat happened:\n' + document.getElementById('bug-description').value.trim() + '\n\nDevice and browser: ' + document.getElementById('bug-device').value.trim();
+    var body = 'Game or app: ' + title[1] + '\nURL: ' + urlOf(title[0]) + '\n\nWhat happened:\n' + document.getElementById('bug-description').value.trim() + '\n\nDevice and browser: ' + document.getElementById('bug-device').value.trim();
     window.location.href = 'mailto:professorzappatronic@gmail.com?subject=' + encodeURIComponent('Bug report: ' + title[1]) + '&body=' + encodeURIComponent(body);
     document.getElementById('bug-status').textContent = 'Report prepared for your email app. Send it there, or email professorzappatronic@gmail.com directly.';
   });
