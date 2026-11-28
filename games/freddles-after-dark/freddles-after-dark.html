@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Freddle’s After Dark</title>
+<style>
+:root{--fg:#efe6d2;--ac:#f2b53a}
+html,body{margin:0;height:100%;background:#000;color:var(--fg);font-family:Georgia,"Times New Roman",serif;overflow:hidden}
+canvas{display:block}
+#hud{position:fixed;inset:0 0 auto 0;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 0;display:flex;justify-content:space-between;gap:12px;pointer-events:none;font-size:16px;text-shadow:0 0 6px #000;box-sizing:border-box;line-height:1.5}
+.bar{width:130px;height:7px;background:#222;margin:2px 0 0 auto}.bar i{display:block;height:100%;background:var(--ac)}
+#msg,#lore{position:fixed;left:0;right:0;text-align:center;text-shadow:0 0 8px #000;pointer-events:none;opacity:0;transition:opacity .5s;padding:0 20px;box-sizing:border-box}
+#msg{bottom:12%;font-size:20px}#lore{bottom:22%;font-size:17px;font-style:italic;color:#d8c9a6;max-width:640px;margin:0 auto}
+#stat{position:fixed;display:none;pointer-events:none;box-shadow:inset 0 0 0 2px #7a7;color:#9f9;font:13px monospace;padding:6px;box-sizing:border-box;background-color:rgba(0,40,0,.08);background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 2px,transparent 2px 4px)}
+#vig,#red{position:fixed;inset:0;pointer-events:none}
+#vig{background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.85) 100%)}
+#red{background:radial-gradient(ellipse at center,transparent 30%,rgba(150,0,10,.8) 100%);opacity:0}
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(0,0,0,.86);padding:24px;box-sizing:border-box;overflow:auto}
+.ov h1{font-size:clamp(32px,6vw,64px);margin:0 0 10px;font-weight:700}
+.ov p{max-width:560px;line-height:1.55;margin:6px 0;font-size:17px}
+button{font:inherit;font-size:18px;color:var(--fg);background:#2a1a12;border:1px solid #6b4a30;padding:10px 22px;margin:6px;cursor:pointer}
+button:hover,button:focus-visible{background:#4a2c1c;outline:2px solid var(--ac)}
+#pause,#over,#win{display:none}#over{background:rgba(120,0,6,.93)}#over h1{animation:sh .08s infinite}
+#jr{max-height:34vh;overflow:auto;font-style:italic;color:#d8c9a6;font-size:15px;max-width:560px;text-align:left}
+@keyframes sh{0%{transform:translate(3px,2px)}50%{transform:translate(-3px,-2px)}100%{transform:translate(2px,-3px)}}
+@media (prefers-reduced-motion:reduce){#over h1{animation:none}}
+</style></head><body>
+<div id="hud"><div><span id="clock">12 AM</span><br>Cores <span id="cells">0</span>/6<br><span id="hint"></span></div>
+<div style="text-align:right">Light <span id="mode">wide</span><div class="bar"><i id="bat"></i></div>Music box<div class="bar"><i id="mus"></i></div>Stamina<div class="bar"><i id="sta"></i></div></div></div>
+<div id="slit" style="position:fixed;inset:0;pointer-events:none;display:none;background:linear-gradient(#000 0 40%,transparent 40% 60%,#000 60%)"></div><div style="position:fixed;left:50%;top:50%;width:3px;height:3px;margin:-1px;background:rgba(255,255,255,.4);border-radius:50%;pointer-events:none"></div><div id="pr" style="position:fixed;left:0;right:0;bottom:6%;text-align:center;font-size:15px;opacity:.85;pointer-events:none;text-shadow:0 0 6px #000"></div><div id="stat"></div><div id="grain" style="position:fixed;inset:0;pointer-events:none;opacity:.07;mix-blend-mode:overlay"></div><div style="position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px)"></div><div id="vig"></div><div id="red"></div><div id="msg"></div><div id="lore"></div>
+<div class="ov" id="start"><h1>Freddle’s After Dark</h1>
+<p>October 31, 1993. Your little brother Wren walked into Freddle’s Family Pizza on opening night and never walked out. The place has been shut for thirty years.</p>
+<p>Tonight the sign is lit. A voice on your answering machine hums a music-box tune, then whispers: “Six cores keep them awake. Take them all and they sleep. The car is the only way out.”</p>
+<p>WASD move · Shift sprint · mouse look (click-drag if the cursor won’t lock) · F light on/off · Q or right-click focus beam (stuns, drains fast) · Dark discs on the street are snares · B show hitboxes · R wind the music box (maze centre) · T throw a decoy · H hide in a maze locker (dead ends) · touch: drag left to move, right to look · Esc or P pause</p>
+<p>Work the pizzeria office, or go out and hunt the cores. They hunt by sound only: sprinting, light, the monitor and slamming the door all carry. The pizzeria is a maze they have to solve to reach you. Your choice. E door · C monitor · 1-4 cameras. Power runs out.</p><p id="bst"></p><p><label>Difficulty <select id="dif"><option value=".8">Easy</option><option value="1" selected>Normal</option><option value="1.25">Hard</option></select></label> &nbsp; <label><input type="checkbox" id="vo" checked> Voice</label></p><button id="go">Begin the night</button><button id="rp">New game</button></div>
+<div class="ov" id="pause"><h1>Paused</h1><label>Look speed <input id="sens" type="range" min="4" max="40" value="22"></label>
+<p>Journal</p><div id="jr"></div><div><button id="res">Resume</button><button id="rst">Restart night</button></div></div>
+<div class="ov" id="over"><h1>The show goes on</h1><p id="op">They found you.</p><button class="again">Try again</button></div>
+<div class="ov" id="win"><h1 id="wt"></h1><p id="wp"></p><button class="again">Continue</button></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x04050b);scene.fog=new THREE.FogExp2(0x070a14,0.035);
+const cam=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,0.1,260);cam.rotation.order='YXZ';scene.add(cam);
+const ren=new THREE.WebGLRenderer({antialias:true});ren.setSize(innerWidth,innerHeight);ren.setPixelRatio(Math.min(devicePixelRatio,'ontouchstart' in window?1.25:1.5));ren.shadowMap.enabled=true;ren.toneMapping=THREE.ACESFilmicToneMapping;ren.toneMappingExposure=1.25;ren.shadowMap.type=THREE.PCFSoftShadowMap;document.body.prepend(ren.domElement);
+const amb=new THREE.AmbientLight(0x2a3358,.95);scene.add(amb);
+const moon=new THREE.DirectionalLight(0x6070b0,.35);moon.position.set(-40,60,-80);scene.add(moon);
+const flash=new THREE.SpotLight(0xffe8b8,2,45,.55,.6,1.2);flash.castShadow=true;flash.shadow.mapSize.set(1024,1024);flash.shadow.camera.near=.5;flash.shadow.camera.far=60;flash.shadow.bias=-.0006;scene.add(flash,flash.target);
+const beam=new THREE.Mesh((g=>{g.translate(0,-15,0);return g})(new THREE.ConeGeometry(1,30,20,1,true)),new THREE.MeshBasicMaterial({color:0xfff0c0,transparent:true,opacity:.05,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+beam.rotation.x=Math.PI/2;beam.position.set(.25,-.22,-.3);cam.add(beam);
+const camB=new THREE.PerspectiveCamera(60,1.667,.1,260),CAMS=[[0,5,26,0,6],[40,5,15,12,15],[-40,5,15,-12,15],[-11,3.8,-7,4,1]];let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const mk=(g,m,x,y,z,p)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);(p||scene).add(o);return o};
+const tex=(w,h,f)=>{const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t};
+const wall=tex(128,128,(x,w,h)=>{for(let i=0;i<w;i++)for(let j=0;j<h;j+=2){const v=190+Math.random()*65|0;x.fillStyle=`rgb(${v},${v},${v})`;x.fillRect(i,j,1,2)}x.fillStyle='#090b10';for(let i=0;i<4;i++)for(let j=0;j<4;j++)x.fillRect(i*32+7,j*32+7,18,20)});
+const lit=tex(128,128,x=>{x.fillStyle='#000';x.fillRect(0,0,128,128);x.fillStyle='#ffb85a';for(let i=0;i<4;i++)for(let j=0;j<4;j++)if(Math.random()<.3)x.fillRect(i*32+7,j*32+7,18,20)});
+const asph=tex(64,64,(x,w,h)=>{for(let i=0;i<w;i++)for(let j=0;j<h;j++){const v=16+Math.random()*16|0;x.fillStyle=`rgb(${v},${v},${v+3})`;x.fillRect(i,j,1,1)}});asph.repeat.set(100,100);
+const mats=[0x6a7088,0x7a5858,0x58786a,0x6a6a88].map(c=>new THREE.MeshLambertMaterial({color:c,map:wall,emissive:0xffffff,emissiveMap:lit,emissiveIntensity:.9}));
+const gr=mk(new THREE.PlaneGeometry(400,400),new THREE.MeshLambertMaterial({color:0x4a6a4a,map:asph}),0,0,0);gr.rotation.x=-Math.PI/2;gr.receiveShadow=true;
+const roadM=new THREE.MeshLambertMaterial({color:0x9a9aa0,map:asph});
+for(let k=-5;k<=5;k++){let r=mk(new THREE.PlaneGeometry(6,400),roadM,k*30+15,.02,0);r.rotation.x=-Math.PI/2;r.receiveShadow=true;r=mk(new THREE.PlaneGeometry(400,6),roadM,0,.02,k*30+15);r.rotation.x=-Math.PI/2;r.receiveShadow=true}
+const sp=[];for(let i=0;i<700;i++){const a=rnd()*6.28,e=rnd()*1.4+.1;sp.push(Math.cos(a)*Math.cos(e)*220,Math.sin(e)*220,Math.sin(a)*Math.cos(e)*220)}
+const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xcfd8ff,size:1.4,fog:false,sizeAttenuation:false})));
+mk(new THREE.SphereGeometry(10,16,12),new THREE.MeshBasicMaterial({color:0xdfe6ff,fog:false}),-80,100,-170);
+const glow=c=>new THREE.MeshBasicMaterial({color:c}),boxes=[],bl=[];
+function wallB(x,z,w,d,h,m){const o=mk(new THREE.BoxGeometry(w,h,d),m,x,h/2,z);o.castShadow=o.receiveShadow=true;boxes.push({x,z,hw:w/2,hd:d/2})}
+function shell(x,z,hw,hd,h,m){wallB(x,z-hd+.25,hw*2,.5,h,m);wallB(x-hw+.25,z,.5,hd*2,h,m);wallB(x+hw-.25,z,.5,hd*2,h,m);const sw=hw-2.5;wallB(x-hw+sw/2,z+hd-.25,sw,.5,h,m);wallB(x+hw-sw/2,z+hd-.25,sw,.5,h,m);mk(new THREE.BoxGeometry(hw*2,.4,hd*2),m,x,h+.2,z).castShadow=true}
+for(let i=-4;i<=4;i++)for(let j=-4;j<=4;j++){if(!i&&!j)continue;
+ const hw=5+rnd()*4,hd=5+rnd()*4,h=5+rnd()*7,x=i*30,z=j*30;shell(x,z,hw,hd,h,mats[(rnd()*4)|0]);bl.push({x,z,hw,hd});
+ if(rnd()<.25)mk(new THREE.PlaneGeometry(2.6,1.2),glow(rnd()<.5?0xff3b6b:0x39d0ff),x,h-1,z-hd-.03).rotation.y=Math.PI;
+ if(rnd()<.5){const l=mk(new THREE.CylinderGeometry(.07,.07,4,6),glow(0x222222),x+hw+1.5,2,z+hd+1.5);mk(new THREE.SphereGeometry(.22,8,8),glow(0xffd890),x+hw+1.5,4.1,z+hd+1.5)}}
+shell(0,0,12,8,8,new THREE.MeshLambertMaterial({color:0x5a1a1f,map:wall}));bl.push({x:0,z:0,hw:12,hd:8});const doorB={x:0,z:7.75,hw:2.5,hd:.3},doorM=mk(new THREE.BoxGeometry(5,4,.3),new THREE.MeshLambertMaterial({color:0x5a5a64}),0,2,7.75);doorM.visible=false;const MZ={},PM=new THREE.MeshLambertMaterial({color:0x6a2a30,map:wall}),lk=(a,b,c,d)=>{MZ[a+','+b].push([c,d]);MZ[c+','+d].push([a,b])},lked=(c,r,n,m)=>MZ[c+','+r].some(q=>q[0]==n&&q[1]==m);
+for(let c=0;c<8;c++)for(let r=0;r<5;r++)MZ[c+','+r]=[];
+{const sn={'0,0':1},st=[[0,0]];while(st.length){const[c,r]=st[st.length-1],nb=[[1,0],[-1,0],[0,1],[0,-1]].map(d=>[c+d[0],r+d[1]]).filter(q=>q[0]>=0&&q[0]<8&&q[1]>=0&&q[1]<5&&!sn[q[0]+','+q[1]]);if(!nb.length){st.pop();continue}const q=nb[(rnd()*nb.length)|0];sn[q[0]+','+q[1]]=1;lk(c,r,q[0],q[1]);st.push(q)}}
+if(!lked(3,4,4,4))lk(3,4,4,4);
+for(let c=0;c<8;c++)for(let r=0;r<5;r++){if(c<7&&!lked(c,r,c+1,r))wallB(-9+3*c,-6+3*r,.4,3.4,2.6,PM);if(r<4&&!lked(c,r,c,r+1))wallB(-10.5+3*c,-4.5+3*r,3.4,.4,2.6,PM)}
+const il=new THREE.PointLight(0xff9977,.7,28);il.position.set(0,3.2,0);scene.add(il);
+[[45,-15,0],[-45,45,0],[75,15,1],[-75,-15,1],[15,75,0],[-15,-75,1]].forEach(a=>{const x=a[0],z=a[1];if(a[2]){mk(new THREE.BoxGeometry(2,.8,1.2),new THREE.MeshLambertMaterial({color:0x6a3a22}),x,.4,z).castShadow=true;mk(new THREE.BoxGeometry(1.6,.7,1.1),new THREE.MeshLambertMaterial({color:0x4a4a52}),x+.1,1.15,z).castShadow=true}else{mk(new THREE.BoxGeometry(2,.1,.1),glow(0xcc3030),x,2.2,z);[-1,1].forEach(s=>mk(new THREE.BoxGeometry(.1,2.2,.1),glow(0x884444),x+s,1.1,z));mk(new THREE.BoxGeometry(.6,.1,.4),glow(0xdddd44),x-.4,.7,z)}boxes.push({x,z,hw:1,hd:.7})});
+const dash=tex(8,64,x=>{x.fillStyle='#d8c24a';x.fillRect(3,8,2,24)});dash.repeat.set(1,80);const dm=new THREE.MeshBasicMaterial({map:dash,transparent:true,opacity:.7}),dg2=new THREE.PlaneGeometry(.3,400);
+for(let k=-5;k<=5;k++){mk(dg2,dm,k*30+15,.04,0).rotation.x=-Math.PI/2;mk(dg2,dm,0,.04,k*30+15).rotation.set(-Math.PI/2,0,Math.PI/2)}
+const RN=500,rp=new Float32Array(RN*6),rg=new THREE.BufferGeometry();for(let i=0;i<RN;i++){rp[i*6]=rp[i*6+3]=(rnd()-.5)*50;rp[i*6+1]=rnd()*25;rp[i*6+4]=rp[i*6+1]-.9;rp[i*6+2]=rp[i*6+5]=(rnd()-.5)*50}
+rg.setAttribute('position',new THREE.BufferAttribute(rp,3));const rain=new THREE.LineSegments(rg,new THREE.LineBasicMaterial({color:0x8899bb,transparent:true,opacity:.35}));rain.frustumCulled=false;scene.add(rain);
+let obs=[];
+function genObs(){obs.forEach(o=>{scene.remove(o.m);if(o.b){const i=boxes.indexOf(o.b);if(i>=0)boxes.splice(i,1)}});obs=[];const nb=4+night*2,nt=2+night*2,rM=new THREE.MeshLambertMaterial({color:0x6a3a22});
+ for(let i=0;i<nb;i++){const v=rnd()<.5,s=15+30*(((rnd()*10)|0)-5),mid=30*(((rnd()*8)|0)-4)+(rnd()-.5)*8,x=v?s-1:mid,z=v?mid:s-1;if(Math.hypot(x,z-12)<20)continue;const b={x,z,hw:v?2:.5,hd:v?.5:2},ms=mk(new THREE.BoxGeometry(v?4:1,1.1,v?1:4),rM,x,.55,z);ms.castShadow=true;boxes.push(b);obs.push({m:ms,b})}
+ for(let i=0;i<nt;i++){const v=rnd()<.5,s=15+30*(((rnd()*10)|0)-5),mid=(rnd()-.5)*240,x=v?s+(rnd()-.5)*4:mid,z=v?mid:s+(rnd()-.5)*4;if(Math.hypot(x,z-12)<14)continue;const ms=mk(new THREE.CylinderGeometry(.6,.6,.06,10),new THREE.MeshBasicMaterial({color:0x222222}),x,.06,z);obs.push({m:ms,t:1,x,z,hit:0})}}
+const mbx=mk(new THREE.CylinderGeometry(.35,.35,.5,8),glow(0xffc040),-1.5,.95,0);mk(new THREE.BoxGeometry(.9,.6,.9),new THREE.MeshLambertMaterial({color:0x5a3a22}),-1.5,.3,0);
+const lockers=[];for(let c=0;c<8;c++)for(let r=0;r<5;r++){if(MZ[c+','+r].length==1&&!(c==4&&r==1)&&lockers.length<5){const x=-10.5+3*c,z=-6+3*r;mk(new THREE.BoxGeometry(1,2.2,.8),new THREE.MeshLambertMaterial({color:0x30404a}),x,1.1,z).castShadow=true;boxes.push({x,z,hw:.5,hd:.4});lockers.push({x,z})}}
+function hideTog(){if(state!='play')return;if(hid){hid=null;P.x=hx;P.z=hz;say('msg','You step out.');return}const l=lockers.find(q=>Math.hypot(q.x-P.x,q.z-P.z)<2.6);if(l){hid=l;hx=P.x;hz=P.z;P.x=l.x;P.z=l.z;say('msg','Hidden. Stay quiet. H to leave.')}else say('msg','No locker close enough.')}
+mk(new THREE.PlaneGeometry(14,2.4),glow(0xffd24a),0,8.8,8.05);[-7,0,7].forEach(x=>mk(new THREE.PlaneGeometry(3,2),glow(0xffb347),x,3,8.05));
+const carM=new THREE.MeshLambertMaterial({color:0x2f3b44}),car=new THREE.Group();car.position.set(-15,0,15);scene.add(car);
+mk(new THREE.BoxGeometry(4.4,1.2,2.2),carM,0,.9,0,car);mk(new THREE.BoxGeometry(2.4,1,2),carM,0,1.9,0,car);const carLamp=mk(new THREE.SphereGeometry(.35,8,8),glow(0x445544),2.25,1,0,car);
+const LORE=['Core 1, tag BRUNO. Walt Marrow built him to sing. The children adored him, and he adored them back, too much.','Core 2, tag PENNY. She was built to guard the stage. She learned to guard it from the audience.','Core 3, tag ROXIE. Five children vanished at her party in 1987. The cake was cut for six.','Core 4, tag GOLDIE. Walt hid something inside him. It was not wires.','Core 5. A crayon drawing: four bears, and a small boy holding their hands. Signed “W.”','Core 6. A note in Walt’s hand: “They only play when a child is lost. Bring them a child, and the music stops.”'];
+const CALLS=['Message 1, 1 AM. “It’s Mara, the guard before you. Don’t hide for long. They listen, and they are very patient.”','Message 2. “I found Walt’s plans. The pizzeria floor was rebuilt as a maze so the children could never wander out alone. Or in.”','Message 3. “Wren’s voice is inside Goldie’s music box. Every time it plays he is counting. He never gets past six.”','Message 4. “Six cores, six chairs, six cakes. Walt needed one more child to finish the show. He chose Wren.”','Message 5, 5 AM. “Dawn is close. If you took the cores, drive. Don’t look in the back seat until the sun is up.”'];const cells=[],used=new Set(),beamM=new THREE.MeshBasicMaterial({color:0xffc83a,transparent:true,opacity:.3});
+while(cells.length<6){const b=bl[(rnd()*(bl.length-1))|0];if(used.has(b))continue;used.add(b);const g=new THREE.Group();g.position.set(b.x+(rnd()-.5)*b.hw,0,b.z+(rnd()-.5)*b.hd);
+ mk(new THREE.CylinderGeometry(.5,.5,.4,16),glow(0xffc83a),0,1.2,0,g);mk(new THREE.CylinderGeometry(.1,.1,14,8),beamM,0,7,0,g);scene.add(g);cells.push(g)}
+// animatronics
+const BC={bear:0x5a3a22,fox:0x9a4018,rabbit:0x5a4a8a,gold:0xc09a30,puppet:0xd8d4cc},DK=new THREE.MeshStandardMaterial({color:0x080808,roughness:1});
+function mkBot(type,col){const g=new THREE.Group(),M=new THREE.MeshStandardMaterial({color:col||BC[type],roughness:.55,metalness:.35}),em=new THREE.MeshBasicMaterial({color:0xff2222});
+ const lim=(x,y)=>{const a=new THREE.Group();a.position.set(x,y,0);g.add(a);return a};
+ mk(new THREE.CylinderGeometry(.5,.7,1.6,12),M,0,1.7,0,g).castShadow=true;mk(new THREE.BoxGeometry(.55,.3,.1),new THREE.MeshStandardMaterial({color:0xaa1111}),0,2.3,.5,g);
+ const head=new THREE.Group();head.position.y=2.85;g.add(head);mk(new THREE.SphereGeometry(.5,14,12),M,0,0,0,head).castShadow=true;
+ const sl=type=='fox'?.7:.4;mk(new THREE.BoxGeometry(.4,.26,sl),M,0,-.12,.2+sl/2,head);mk(new THREE.BoxGeometry(.34,.08,sl-.1),DK,0,-.3,.22+sl/2,head);
+ [-.2,.2].forEach(x=>{mk(new THREE.SphereGeometry(.13,8,8),DK,x,.1,.34,head);mk(new THREE.SphereGeometry(.09,8,8),em,x,.1,.4,head)});
+ [-.36,.36].forEach(x=>{if(type=='gold'&&x<0)return;mk(type=='bear'||type=='gold'?new THREE.SphereGeometry(.2,8,8):new THREE.ConeGeometry(.15,type=='rabbit'?1.2:.65,6),M,x,type=='rabbit'?.95:type=='fox'?.62:.4,0,head)});
+ const arms=[-1,1].map(s=>{const a=lim(s*.85,2.5);mk(new THREE.CylinderGeometry(.12,.1,1.3,8),M,0,-.65,0,a);mk(new THREE.SphereGeometry(.14,8,8),DK,0,-1.35,0,a);return a});
+ const legs=[-1,1].map(s=>{const l=lim(s*.3,1);mk(new THREE.CylinderGeometry(.17,.14,1,8),M,0,-.5,0,l);return l});
+ const W=new THREE.MeshStandardMaterial({color:0xe8e4dc,roughness:.4});for(let i=-2;i<=2;i++)mk(new THREE.BoxGeometry(.05,.1,.05),W,i*.07,-.27,.22+sl*.95,head);mk(new THREE.BoxGeometry(.6,.8,.1),new THREE.MeshStandardMaterial({color:0xcfa16a,roughness:.7}),0,1.6,.58,g);arms.forEach(a=>[-.06,0,.06].forEach(f=>mk(new THREE.CylinderGeometry(.02,.02,.25,4),DK,f,-1.5,.05,a)));
+if(type=='bear'){mk(new THREE.CylinderGeometry(.28,.28,.4,10),DK,0,.65,0,head);mk(new THREE.CylinderGeometry(.45,.45,.05,10),DK,0,.45,0,head)}
+if(type=='fox'){mk(new THREE.ConeGeometry(.22,.9,8),M,0,1,-.8,g).rotation.x=-1.2;mk(new THREE.BoxGeometry(.26,.2,.05),DK,.2,.1,.46,head)}
+if(type=='rabbit'){mk(new THREE.BoxGeometry(.5,.7,.12),new THREE.MeshStandardMaterial({color:0x7a1a1a}),0,-1,.3,arms[1]);mk(new THREE.BoxGeometry(.07,.8,.07),DK,0,-.45,.3,arms[1])}
+if(type=='gold')mk(new THREE.BoxGeometry(.3,.45,.05),DK,-.22,0,.47,head);
+if(type=='puppet'){g.scale.set(.8,1.15,.8);arms.forEach(a=>a.scale.y=1.5);[-.15,.15].forEach(x=>mk(new THREE.BoxGeometry(.05,.5,.02),glow(0x800000),x,-.15,.5,head))}
+const r=type=='puppet'?.6:type=='gold'?.85:.75,hb=new THREE.Group(),wm=new THREE.MeshBasicMaterial({color:0x00ff66,wireframe:true});hb.visible=false;mk(new THREE.SphereGeometry(.75,8,6),wm,0,2.85,0,hb);mk(new THREE.SphereGeometry(.9,8,6),wm,0,1.7,0,hb);mk(new THREE.SphereGeometry(.7,8,6),wm,0,.55,0,hb);mk(new THREE.CylinderGeometry(r,r,.1,16),wm,0,.05,0,hb);g.add(hb);
+const pl=new THREE.PointLight(0xff2020,.6,7);pl.position.set(0,2.85,.8);g.add(pl);scene.add(g);return {g,head,arms,legs,em,type,r,hb,stun:0,chase:false,tgt:null,stuck:0,on:true,ph:0,tp:20,lunge:5}}
+const bots=[['bear',0],['fox',0],['rabbit',0],['gold',3],['puppet',5],['fox',1,0x3a6a8a],['bear',2,0x2a5a3a],['rabbit',4,0x8a2a5a]].map(a=>{const b=mkBot(a[0],a[2]);b.at=a[1];return b}),spawns=[[-75,-75],[75,-45],[-45,75],[75,75],[-60,-60],[-100,0],[0,100],[100,-30]];const eff=b=>Math.max(0,b.at+2-night);
+const eyes=[];for(let i=0;i<5;i++){const g=new THREE.Group();[-.18,.18].forEach(x=>mk(new THREE.SphereGeometry(.07,6,6),glow(0xff2020),x,0,0,g));g.visible=false;scene.add(g);eyes.push({g,life:0})}
+// state
+const P={x:15,z:15},K={};let stT=0,trapT=0,doorH=1,dw=0,heat=0,fcd=0,dcam=-1,dcT=15,night=1,showHB=false,lt=0,ltT=12,dc={x:0,z:0,t:0},decoys=3,blk=0,blkT=70,mus=1,mw=0,hid=null,findT=0,hx=0,hz=0,sc=0,scB=null,boost=0,snd=0,guard=false,pw=1,doorC=false,mon=false,ci=0,yaw=0,pitch=0,state='menu',t=0,got=0,bat=1,sta=1,lightOn=true,focus=false,lastHour=-1,locked=false,sens=.0022,journal=[],eyeT=8,mt=0,hb=0,fl=0,lastUn=0,evT=15;
+const fd=new THREE.Vector3(0,0,-1),msgT={};
+function say(id,s,ms){const m=$(id);m.textContent=s;m.style.opacity=1;clearTimeout(msgT[id]);msgT[id]=setTimeout(()=>m.style.opacity=0,ms||3200)}
+function reset(){trapT=0;genObs();doorH=1;dw=0;heat=0;fcd=0;dcam=-1;dcT=15;dc.t=0;decoys=3;blk=0;blkT=70;mus=1;mw=0;hid=null;findT=0;P.x=1.5;P.z=-3;yaw=Math.PI;pitch=0;pw=1;mon=false;ci=0;setDoor(false);t=0;got=0;bat=1;sta=1;lightOn=true;focus=false;lastHour=-1;journal=[];
+ cells.forEach(c=>c.visible=true);bots.forEach((b,i)=>{const ins=false;b.g.position.set(ins?(i-1)*4:spawns[i][0],0,ins?-5:spawns[i][1]);b.cool=0;b.wait=0;b.stun=0;b.chase=false;b.tgt=null;b.on=eff(b)==0;b.g.visible=true;b.g.position.y=b.on?0:-60});
+ carLamp.material.color.set(0x445544);$('cells').textContent=0;mats.forEach(m=>m.emissiveIntensity=.9)}
+// audio
+let AC,dr,dg;function aud(){if(AC)return;try{AC=new(window.AudioContext||window.webkitAudioContext)();dr=AC.createOscillator();dg=AC.createGain();dr.type='sawtooth';dr.frequency.value=46;dg.gain.value=.02;dr.connect(dg).connect(AC.destination);dr.start()}catch(e){AC=null}}
+function noise(len,vol){if(!AC)return;const n=AC.sampleRate*len,b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const s=AC.createBufferSource(),g=AC.createGain();g.gain.value=vol;s.buffer=b;s.connect(g).connect(AC.destination);s.start()}
+function ping(f,v){if(!AC)return;const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;g.gain.value=v||.12;g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.7);o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+.7)}
+// pause + input
+function setPause(p){if(p&&state=='play'){state='pause';$('pause').style.display='flex';$('jr').innerHTML=journal.join('<br><br>')||'Nothing found yet.';document.exitPointerLock&&document.exitPointerLock()}
+ else if(!p&&state=='pause'){$('pause').style.display='none';state='play';try{ren.domElement.requestPointerLock()}catch(e){}}}
+addEventListener('keydown',e=>{K[e.code]=true;if(state=='play'){if(e.code=='KeyF'&&fcd<=0)lightOn=!lightOn;if(e.code=='KeyQ')focus=!focus;if(e.code=='KeyH')hideTog();if(e.code=='KeyB'){showHB=!showHB;bots.forEach(q=>q.hb.visible=showHB)}if(e.code=='KeyT'&&decoys>0&&!hid){decoys--;dc.x=P.x-Math.sin(yaw)*14;dc.z=P.z-Math.cos(yaw)*14;dc.t=7;say('msg','Decoy thrown. '+decoys+' left.');ping(300,.2)}if(guard){if(e.code=='KeyE'){setDoor(!doorC&&pw>0);boost=22}if(e.code=='KeyC')mon=!mon;if(/^Digit[1-4]$/.test(e.code))ci=+e.code[5]-1}}
+ if(e.code=='KeyP'||(e.code=='Escape'&&!locked&&performance.now()-lastUn>400))setPause(state=='play')});
+addEventListener('keyup',e=>K[e.code]=false);addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('mousedown',e=>{if(e.button==2&&state=='play')focus=true});addEventListener('mouseup',e=>{if(e.button==2)focus=false});
+document.addEventListener('pointerlockchange',()=>{const was=locked;locked=!!document.pointerLockElement;if(was&&!locked){lastUn=performance.now();if(state=='play')setPause(true)}});
+addEventListener('mousemove',e=>{if(state!='play'||!(locked||e.buttons&1))return;yaw-=e.movementX*sens;pitch=Math.max(-1.3,Math.min(1.3,pitch-e.movementY*sens))});
+$('sens').oninput=e=>sens=e.target.value/10000;
+function begin(g){if(typeof g=='boolean')guard=g;setTimeout(()=>say('lore',NL[night-1],7000),700);aud();if(AC&&AC.state=='suspended')AC.resume();reset();['start','over','win','pause'].forEach(i=>$(i).style.display='none');state='play';try{ren.domElement.requestPointerLock()}catch(e){}say('msg','Hold the pizzeria office, or hunt the cores outside. E door, C monitor.');if(0);else say('lore','“Take them all and they sleep.”',5000)}
+$('go').onclick=()=>begin();$('rst').onclick=begin;$('res').onclick=()=>setPause(false);document.querySelectorAll('.again').forEach(b=>b.onclick=begin);
+const TJ={x:0,y:0,run:false};
+if('ontouchstart' in window){const tb=document.createElement('div');tb.style.cssText='position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(3,64px);gap:8px;touch-action:none';
+ [['Run','run'],['Light','KeyF'],['Focus','KeyQ'],['Door','KeyE'],['Mon','KeyC'],['Cam','cam'],['Hide','KeyH'],['Wind','KeyR'],['Decoy','KeyT'],['Pause','KeyP']].forEach(a=>{const n=a[0],c=a[1],b=document.createElement('button');b.textContent=n;b.style.cssText='padding:12px 0;font-size:14px;margin:0';b.ontouchstart=e=>{e.preventDefault();if(c=='run')TJ.run=true;else dispatchEvent(new KeyboardEvent('keydown',{code:c=='cam'?'Digit'+((ci+1)%4+1):c}))};b.ontouchend=()=>{if(c=='run')TJ.run=false;else if(c=='KeyR')dispatchEvent(new KeyboardEvent('keyup',{code:'KeyR'}))};tb.appendChild(b)});
+ document.body.insertBefore(tb,$('start'));document.body.style.touchAction='none';let L=null,R=null;
+ addEventListener('touchstart',e=>{for(const t of e.changedTouches){if(t.target.tagName=='BUTTON')continue;if(t.clientX<innerWidth*.45&&!L)L={id:t.identifier,x:t.clientX,y:t.clientY};else if(!R)R={id:t.identifier,x:t.clientX,y:t.clientY}}});
+ addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches){if(L&&t.identifier==L.id){TJ.x=Math.max(-1,Math.min(1,(t.clientX-L.x)/50));TJ.y=Math.max(-1,Math.min(1,(t.clientY-L.y)/50))}else if(R&&t.identifier==R.id&&state=='play'){yaw-=(t.clientX-R.x)*.006;pitch=Math.max(-1.3,Math.min(1.3,pitch-(t.clientY-R.y)*.006));R.x=t.clientX;R.y=t.clientY}}},{passive:false});
+ addEventListener('touchend',e=>{for(const t of e.changedTouches){if(L&&t.identifier==L.id){L=null;TJ.x=TJ.y=0}if(R&&t.identifier==R.id)R=null}})}
+addEventListener('blur',()=>{if(state=='play')setPause(true)});
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
+// world helpers
+const blocked=(x,z,r)=>{for(const b of boxes)if(Math.abs(x-b.x)<b.hw+r&&Math.abs(z-b.z)<b.hd+r)return true;return Math.abs(x)>135||Math.abs(z)>135};
+const mv=(o,dx,dz,r)=>{if(!blocked(o.x+dx,o.z,r))o.x+=dx;if(!blocked(o.x,o.z+dz,r))o.z+=dz};
+const los=(ax,az,bx,bz)=>{const d=Math.hypot(bx-ax,bz-az),n=Math.ceil(d/2);for(let k=1;k<n;k++)if(blocked(ax+(bx-ax)*k/n,az+(bz-az)*k/n,0))return false;return true};
+const rs=(o,d,c,r)=>{const mx=o.x-c.x,my=o.y-c.y,mz=o.z-c.z,b=mx*d.x+my*d.y+mz*d.z,cc=mx*mx+my*my+mz*mz-r*r;if(cc>0&&b>0)return-1;const s=b*b-cc;return s<0?-1:-b-Math.sqrt(s)};
+function setDoor(c){doorC=c;doorM.visible=c;const i=boxes.indexOf(doorB);if(c&&i<0)boxes.push(doorB);if(!c&&i>=0)boxes.splice(i,1)}
+const bof=(x,z)=>bl.find(b=>Math.abs(x-b.x)<b.hw-.4&&Math.abs(z-b.z)<b.hd-.4);
+const PZ=bl[bl.length-1];
+function mz(p,tx,tz){const C=(x,z)=>[Math.max(0,Math.min(7,Math.floor((x+12)/3))),Math.max(0,Math.min(4,Math.floor((z+7.5)/3)))],s=C(p.x,p.z),t=C(tx,tz);if(s[0]==t[0]&&s[1]==t[1])return[tx,tz];const D={},q=[t];D[t[0]+','+t[1]]=0;while(q.length){const c=q.shift(),dc=D[c[0]+','+c[1]];for(const n of MZ[c[0]+','+c[1]]){const k=n[0]+','+n[1];if(D[k]==null){D[k]=dc+1;q.push(n)}}}let best=null,bd=1e9;for(const n of MZ[s[0]+','+s[1]]){const d=D[n[0]+','+n[1]];if(d!=null&&d<bd){bd=d;best=n}}return best?[-10.5+3*best[0],-6+3*best[1]]:[tx,tz]}
+function aim(p,tx,tz){const bp=bof(p.x,p.z),tb=bof(tx,tz);if(bp===tb)return bp===PZ?mz(p,tx,tz):[tx,tz];if(bp){const f=Math.abs(p.x-bp.x)<1.5&&p.z>bp.z+bp.hd-3;return f?[bp.x,bp.z+bp.hd+3]:bp===PZ?mz(p,bp.x,bp.z+bp.hd-2):[bp.x,bp.z+bp.hd-2]}return(Math.abs(p.x-tb.x)<1.5&&p.z>tb.z+tb.hd)?(tb===PZ?[tb.x,tb.z+tb.hd-2]:[tx,tz]):[tb.x,tb.z+tb.hd+3]}
+const dirName=(dx,dz)=>['N','NE','E','SE','S','SW','W','NW'][Math.round(((Math.atan2(dx,-dz)*180/Math.PI)+360)%360/45)%8];
+function end(win,a,b){cam.fov=72;cam.updateProjectionMatrix();state=win?'win':'over';const o=rec();if(win){const dn=night>=5;night=dn?1:night+1;o.n=night;o.w=(o.w||0)+1;if(dn){a='The fifth dawn';b='Walt’s show is over and the music box is silent. '+b}else{a='Night '+(night-1)+' survived';b+=' Night '+night+' awaits.'}}o.best=Math.max(o.best||0,Math.floor(t));try{localStorage.setItem('fnaf1',JSON.stringify(o))}catch(e){}bstUp(o);try{speechSynthesis.cancel()}catch(e){}document.exitPointerLock&&document.exitPointerLock();$('red').style.opacity=0;
+ if(win){$('wt').textContent=a;$('wp').textContent=b;$('win').style.display='flex'}else{noise(1.4,.7);$('op').textContent=['The music stops. Then it starts again.','Wren’s drawing had a fifth figure. It was you.','Core ' + (got+1) + ' was waiting for you.'][(rnd()*3)|0];$('over').style.display='flex'}}
+const hours=['12 AM','1 AM','2 AM','3 AM','4 AM','5 AM','6 AM'],NOTES=[523,659,587,494,523,392,440,392];
+let last=performance.now();
+function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;
+ if(state=='play'){
+  t+=dt;const hr=Math.floor(t/60);$('clock').textContent='Night '+night+' · '+hours[Math.min(hr,6)]+' · Noise '+Math.round(snd)+' m';
+  if(hr!=lastHour){lastHour=hr;bots.forEach((b,i)=>{if(eff(b)==hr&&!b.on){b.on=true;b.g.visible=true;b.g.position.set((P.x>0?-90:90)*(i%2?1:.6),0,(P.z>0?-90:90)*(i%3?1:.6))}});if(bots[3].at+2-night==hr){say('msg',hours[hr]+'. Goldie is awake.')}else if(bots[4].at+2-night==hr){say('msg',hours[hr]+'. Something thin is drawn to your light.')}else if(hr>0)say('msg',hours[hr]+'. The music gets louder. Another one wakes.');{const c=CALLS[hr-1];if(c){say('lore',c,9000);journal.push(c);ping(880,.1);speak(c)}}}
+  if(t>=360)return end(true,'6 AM','Dawn. The sign flickers out, but the cores keep playing in the dark. You lived. Wren did not leave.');
+  const sp=!!(K.ShiftLeft||K.ShiftRight||TJ.run)&&sta>.02,fx=-TJ.y+(K.KeyW||K.ArrowUp?1:0)-(K.KeyS||K.ArrowDown?1:0),sx=TJ.x+(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0),moving=fx||sx,run=sp&&moving;
+  if(moving&&!hid&&trapT<=0){const l=Math.hypot(fx,sx),v=(run?8:4.6)*dt/l,s=Math.sin(yaw),c=Math.cos(yaw);mv(P,(-s*fx+c*sx)*v,(-c*fx-s*sx)*v,.5)}
+  sta=Math.max(0,Math.min(1,sta+(run?-.25:.15)*dt));mus=Math.max(0,mus-dt/(70-(night-1)*6));if(K.KeyR&&!hid&&Math.hypot(P.x+1.5,P.z)<2.8){mus=Math.min(1,mus+dt*.4);boost=Math.max(boost,16)}mbx.rotation.y+=dt*mus*4;if(mus<.2&&!mw){mw=1;say('msg','The music box is nearly out. Wind it with R.')}if(mus>.6)mw=0;ltT-=dt;if(ltT<=0){ltT=18+rnd()*25;lt=.35;noise(1.6,.25)}if(lt>0){lt-=dt;amb.intensity=(lt>.25||(lt<.15&&lt>.08))?3.2:.95}else amb.intensity=.95;
+for(let i=0;i<RN;i++){const j=i*6+1;rp[j]-=dt*28;if(rp[j]<0)rp[j]+=25;rp[j+3]=rp[j]-.9}rg.attributes.position.needsUpdate=true;rain.position.set(P.x,0,P.z);rain.visible=!bof(P.x,P.z);
+dc.t-=dt;blkT-=dt;if(night>=2){dcT-=dt;if(dcT<=0){dcT=12+rnd()*10;dcam=dcam<0?(rnd()*4)|0:-1}}if(night>=4){fcd-=dt;if(focus&&lightOn&&bat>0)heat+=dt;else heat=Math.max(0,heat-dt*.6);if(heat>6){heat=0;lightOn=false;fcd=4;say('msg','Flashlight overheated.')}}if(night>=3&&!doorC)doorH=Math.min(1,doorH+dt*.05);if(doorH>.6)dw=0;cam.fov+=((run?78:72)-cam.fov)*Math.min(1,8*dt);cam.updateProjectionMatrix();stT-=dt;if(moving&&!hid&&trapT<=0&&stT<=0){stT=run?.28:.46;noise(.06,run?.12:.05)}if(trapT>0)trapT-=dt;else if(!hid)for(const o of obs)if(o.t&&!o.hit&&Math.hypot(o.x-P.x,o.z-P.z)<.9){o.hit=1;o.m.material.color.set(0xaa1111);trapT=2.5;boost=35;say('msg','Snared! Everything heard that.');ping(110,.3);noise(.4,.3)}if(blkT<=0&&blk<=0){blk=9;blkT=(60+rnd()*50)/(1+(night-1)*.25);setDoor(false);say('msg','Blackout. The doors have released.');noise(.6,.2)}if(blk>0)blk-=dt;boost=Math.max(0,boost-8*dt);snd=(run?30:moving?15:7)+(lightOn?5:0)+(focus&&lightOn?6:0)+(mon?8:0)+boost+Math.min(hr,5)*2+(mus?0:25);if(hid){snd=3;findT=Math.max(0,findT-dt*.5)}$('slit').style.display=hid?'block':'none';guard=bof(P.x,P.z)===bl[bl.length-1];if(!guard)mon=false;pw=Math.max(0,pw-(.0012+(doorC?.0016:0)+(mon?.0008:0))*dt);if(!pw){if(doorC||mon)say('msg','Power out. The door is open.');setDoor(false);mon=false}
+  if(lightOn){bat=Math.max(0,bat-(focus?.035:.01)*dt);if(!bat){lightOn=false;say('msg','Flashlight dead. Find a core.')}}
+  cam.position.set(P.x,1.7+(moving?Math.sin(t*(run?14:9))*.05:0),P.z);cam.rotation.set(pitch,yaw,0);
+  const fwd=new THREE.Vector3(-Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch));fd.lerp(fwd,Math.min(1,12*dt)).normalize();
+  let nearest=1e9;
+  bots.forEach(b=>{if(b.on)nearest=Math.min(nearest,Math.hypot(P.x-b.g.position.x,P.z-b.g.position.z))});
+  fl-=dt;if(fl<=0){fl=nearest<14?.05+rnd()*.5:bat<.15?.1+rnd()*.8:9;if(nearest<14||bat<.15)flash.userData.off=.06+rnd()*.12}
+  flash.userData.off=Math.max(0,(flash.userData.off||0)-dt);
+  const on=lightOn&&bat>0&&!flash.userData.off&&blk<=0;flash.visible=on;beam.visible=on;
+  flash.angle=focus?.17:.55;flash.intensity=focus?4.5:2;flash.distance=focus?60:45;beam.scale.set(focus?3:9,1,focus?3:9);beam.material.opacity=focus?.09:.045;$('mode').textContent=lightOn?(focus?'focus':'wide'):'off';
+  flash.position.copy(cam.position);flash.target.position.copy(cam.position).add(fd);
+  // cores
+  let near=1e9,nc=null;cells.forEach(c=>{if(!c.visible)return;c.rotation.y+=dt*2;const d=Math.hypot(c.position.x-P.x,c.position.z-P.z);if(d<near){near=d;nc=c}
+   if(d<2.2){c.visible=false;got++;bat=Math.min(1,bat+.25);$('cells').textContent=got;ping(660);journal.push(LORE[got-1]);say('lore',LORE[got-1],7000);mats.forEach(m=>m.emissiveIntensity=.9-got*.14);
+    if(got==6){say('msg','All six. Get to the car by the pizzeria.');carLamp.material.color.set(0x44ff77)}else say('msg','Core '+got+' of 6.')}});
+  const tx=got==6?car.position.x:nc?nc.position.x:0,tz=got==6?car.position.z:nc?nc.position.z:0;
+  $('hint').textContent=guard?'Power '+Math.round(pw*100)+'% · Door '+(doorC?'closed':'open')+(mon?' · CAM '+(ci+1):''):(got==6?'Car: ':'Nearest core: ')+Math.round(Math.hypot(tx-P.x,tz-P.z))+' m '+dirName(tx-P.x,tz-P.z);
+  if(got==6&&Math.hypot(car.position.x-P.x,car.position.z-P.z)<3.5)return end(true,'The drive home','The radio hums the music-box tune. In the mirror the pizzeria sign goes dark, and the back seat creaks. “Wren?” you whisper. Something small laughs, and four pairs of red eyes blink out behind you.');
+  // bots
+  const base=(2.3+Math.min(hr,5)*.42)*(1+got*.07)*(+$('dif').value)*(mus?1:1.3)*(1+(night-1)*.1),eyeRay={x:cam.position.x,y:cam.position.y,z:cam.position.z};
+  bots.forEach(b=>{if(!b.on)return;const p=b.g.position,dx=P.x-p.x,dz=P.z-p.z,d=Math.hypot(dx,dz),seen=los(P.x,P.z,p.x,p.z),dot=(dx*fd.x+dz*fd.z)/(d||1)/Math.hypot(fd.x,fd.z);
+   if(on&&focus&&d<58&&seen&&b.type!='puppet'){const h=rs(eyeRay,fd,{x:p.x,y:2.85,z:p.z},.75),bd=rs(eyeRay,fd,{x:p.x,y:1.7,z:p.z},.9),lg=rs(eyeRay,fd,{x:p.x,y:.55,z:p.z},.7);if(h>=0||bd>=0||lg>=0){const s=h>=0?3:bd>=0?2.2:1.4;if(b.stun<=0)ping(h>=0?700:420,.08);if(s>b.stun)b.stun=s}}
+   b.em.color.set(b.stun>0?0x331111:0xff2222);
+   if(b.stun>0){b.stun-=dt;return}
+   if(b.type=='fox'&&on&&seen&&d<40&&dot>.6)return;
+   if(b.type=='gold'){b.tp-=dt;if(b.tp<=0&&(!seen||dot<0)&&d>25){const a=yaw+Math.PI+(rnd()-.5);const nx=P.x+Math.sin(a)*-22,nz=P.z+Math.cos(a)*22;if(!blocked(nx,nz,1)){p.x=nx;p.z=nz;b.chase=true;b.tp=22}else b.tp=2}}
+   const hear=b.type=='puppet'?(lightOn?45:4):snd;if(doorC&&Math.hypot(p.x,p.z-11)<5){b.wait+=dt;if(night>=3){doorH-=dt*.07;if(doorH<.4&&!dw){dw=1;say('msg','The door is buckling.')}if(doorH<=0){doorH=.3;setDoor(false);say('msg','The door gave way!');noise(.8,.4);boost=30}}if(b.wait>5+b.ph%4){b.cool=14;b.wait=0;b.tgt=null}}else b.wait=0;if(b.cool>0){b.cool-=dt;b.chase=false}else if(d<hear||(dc.t>0&&Math.hypot(dc.x-p.x,dc.z-p.z)<35))b.chase=true;else if(d>hear+14&&dc.t<=0)b.chase=false;
+   let gx,gz,a;if(b.chase){const tg=dc.t>0&&Math.hypot(dc.x-p.x,dc.z-p.z)<35?dc:P;a=aim(p,tg.x,tg.z)}else{if(!b.tgt||b.stuck>2||Math.hypot(b.tgt[0]-p.x,b.tgt[1]-p.z)<3){const q=bl[(rnd()*bl.length)|0];b.tgt=rnd()<.5?[q.x,q.z]:[15+30*(((rnd()*10)|0)-5),15+30*(((rnd()*10)|0)-5)];b.stuck=0}a=aim(p,b.tgt[0],b.tgt[1])}gx=a[0]-p.x;gz=a[1]-p.z;
+   b.lunge-=dt;let mult=1;if(b.type=='rabbit'&&b.chase&&b.lunge<0){mult=2.1;if(b.lunge<-.8)b.lunge=5}
+   const gl=Math.hypot(gx,gz)||1,v=(b.chase?base*1.25:base*.6)*mult*dt,ox=p.x,oz=p.z;mv(p,gx/gl*v,gz/gl*v,b.r);
+   if(Math.hypot(p.x-ox,p.z-oz)<v*.3)b.stuck+=dt;else b.stuck=0;if(b.chase&&b.stuck>.6)mv(p,-gz/gl*v*2,gx/gl*v*2,b.r);
+   b.g.rotation.y=Math.atan2(gx,gz);b.ph+=v*3.2;const sw=Math.sin(b.ph)*.7;b.arms[0].rotation.x=sw;b.arms[1].rotation.x=-sw;b.legs[0].rotation.x=-sw*.8;b.legs[1].rotation.x=sw*.8;b.head.rotation.z=Math.sin(now/300+b.ph)*.12;
+   if(hid&&d<2.2){findT+=dt;if(findT>(night>=5?1.5:3.5)){state='scare';sc=0;scB=b;noise(1.2,.8);document.exitPointerLock&&document.exitPointerLock();return}}if(!hid&&d<b.r+.7){state='scare';sc=0;scB=b;noise(1.2,.8);document.exitPointerLock&&document.exitPointerLock();return}});
+  // horror
+  eyeT-=dt;if(eyeT<=0){eyeT=7+rnd()*8;const e=eyes.find(q=>q.life<=0),a=yaw+(rnd()-.5)*2,dd=16+rnd()*10,ex=P.x-Math.sin(a)*dd,ez=P.z-Math.cos(a)*dd;if(e&&!blocked(ex,ez,1)){e.g.position.set(ex,1.9,ez);e.life=3.5}}
+  eyes.forEach(e=>{if(e.life<=0){e.g.visible=false;return}e.life-=dt;e.g.visible=true;e.g.lookAt(P.x,1.9,P.z);const ex=e.g.position.x-P.x,ez=e.g.position.z-P.z,ed=Math.hypot(ex,ez);if(on&&(ex*fd.x+ez*fd.z)/ed/Math.hypot(fd.x,fd.z)>.97){e.life=0;ping(150,.05)}});
+  mt-=dt;if(mt<=0){mt=.55;if(nearest<30)ping(NOTES[(t*2|0)%8],.02+.12*(1-nearest/30))}
+  hb-=dt;if(hb<=0&&nearest<26){hb=.35+Math.min(1,nearest/26)*.8;ping(55,.3)}
+  evT-=dt;if(evT<=0){evT=14+rnd()*14;noise(.5,.04);ping(90+rnd()*60,.05)}
+  $('red').style.opacity=Math.max(0,1-nearest/20)*.8;
+  if(AC){dg.gain.value=.02+.12*Math.max(0,1-nearest/32);dr.frequency.value=46+(nearest<20?(20-nearest)*1.5:0)}
+  $('pr').textContent=hid?'H leave locker':lockers.some(q=>Math.hypot(q.x-P.x,q.z-P.z)<2.6)?'H hide':Math.hypot(P.x+1.5,P.z)<2.8?'Hold R to wind the music box':guard?'E door / C monitor / 1-4 cameras':'';$('bat').style.width=bat*100+'%';$('sta').style.width=sta*100+'%';$('mus').style.width=mus*100+'%';scene.fog.density=on?.035:.05;
+ }else if(state=='scare'){sc+=dt;const b=scB,p=b.g.position,r=b.g.rotation.y;cam.position.set(p.x+Math.sin(r)*1.3+(Math.random()-.5)*.12,2.85+(Math.random()-.5)*.12,p.z+Math.cos(r)*1.3);cam.lookAt(p.x,2.85,p.z);cam.fov=72+sc*55;cam.updateProjectionMatrix();b.em.color.set(0xffffff);b.head.rotation.z=(Math.random()-.5)*.5;$('red').style.opacity=.9;flash.visible=false;beam.visible=false;if(sc>.9)end(false)}else if(state=='menu'){t+=dt;cam.position.set(15,1.7,15);cam.rotation.set(0,t*.1,0);flash.visible=false;beam.visible=false}
+ $('grain').style.backgroundPosition=(Math.random()*128|0)+'px '+(Math.random()*128|0)+'px';ren.render(scene,cam);
+ if(state=='play'&&guard&&mon){const W=innerWidth,H=innerHeight,w=Math.min(W*.5,520),h=w*.6,c=CAMS[ci],fo=flash.visible;camB.position.set(c[0],c[1],c[2]);camB.lookAt(c[3],1.5,c[4]);flash.visible=false;ren.setScissorTest(true);ren.setViewport(W-w-14,H-h-14,w,h);ren.setScissor(W-w-14,H-h-14,w,h);if(ci!=dcam)ren.render(scene,camB);else ren.clear();ren.setScissorTest(false);ren.setViewport(0,0,W,H);flash.visible=fo;const s=$('stat').style;s.display='block';s.left=(W-w-14)+'px';s.top=(H-h-14)+'px';s.width=w+'px';s.height=h+'px';s.opacity=.75+Math.random()*.25;s.backgroundPosition='0 '+(Math.random()*8|0)+'px';$('stat').textContent='CAM '+(ci+1)+(ci==dcam?'  NO SIGNAL':'  REC')}else $('stat').style.display='none'}
+function rec(){try{return JSON.parse(localStorage.getItem('fnaf1')||'{}')}catch(e){return{}}}
+function bstUp(o){$('go').textContent='Begin night '+night;$('bst').textContent=o.best?'Longest night: '+Math.floor(o.best/60)+'m '+(o.best%60)+'s · Wins: '+(o.w||0):''}
+function speak(s){try{if(!$('vo').checked||!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(s.replace(/^Message[^.]*\. /,'').replace(/[“”]/g,''));u.rate=.85;u.pitch=.6;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+{const nc=document.createElement('canvas');nc.width=nc.height=128;const x=nc.getContext('2d'),d=x.createImageData(128,128);for(let i=0;i<d.data.length;i+=4){d.data[i]=d.data[i+1]=d.data[i+2]=Math.random()*255;d.data[i+3]=255}x.putImageData(d,0,0);$('grain').style.backgroundImage='url('+nc.toDataURL()+')'}
+const NL=['Night 1. The sign is lit. Find the cores, or keep the door shut and wait for dawn.','Night 2. They remember you. The music is already playing. Cameras are failing.','Night 3. Something is learning how you move. Closed doors can break.','Night 4. Mara’s messages stop making sense. Believe the ones about Wren. The flashlight overheats.','Night 5. The last night. Walt’s show ends at dawn, with or without you. The lockers are no longer safe.'];
+night=rec().n||1;$('rp').onclick=()=>{night=1;const o=rec();o.n=1;try{localStorage.setItem('fnaf1',JSON.stringify(o))}catch(e){}bstUp(o)};
+bstUp(rec());reset();requestAnimationFrame(loop);
+</script></body></html>

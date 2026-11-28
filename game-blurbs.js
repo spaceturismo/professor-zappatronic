@@ -1,4 +1,6 @@
 window.gameBlurbs = {
+  'fractured-depths': 'Create a hero and descend through fractured realities, collecting loot and choosing skills in turn-based encounters.',
+  'skybound-drift': 'Explore a skybound world with touch controls, checkpoints, inventory and map travel.',
   'deck-studio': 'Create custom cards and decks, then test them in the connected duel engine. Both parts share profiles and belong to this one app.',
   'business-plan-maker': 'Build a business plan from your idea, market, team and finances, with a printable 12-month forecast.',
   'beat-painter': 'Arrange music with instrument patterns and song parts, then import, export or keep your creations in the browser.',

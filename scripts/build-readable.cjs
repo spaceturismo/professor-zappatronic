@@ -23,10 +23,10 @@ const games = variable('games').map(([slug, name]) => ({
   mobileSupport: friendly.includes(slug) ? 'friendly' : desktop.includes(slug) ? 'desktop' : 'unknown',
   controls: controls[slug] || null,
   threeDimensional: dimensions.includes(slug),
-  url: catalogUrls[slug] || 'https://spaceturismo.github.io/' + slug + '/',
+  url: catalogUrls[slug] || 'https://zappatronic.com/games/' + slug + '/',
   image: 'https://zappatronic.com/images/games/' + slug + '.jpg'
 }));
-assert.equal(games.length, 46);
+assert.equal(games.length, 48);
 const minigames = [
   { name: 'Reflex Zap', mechanic: 'Reaction timing', url: 'https://zappatronic.com/#minigames', requiresJavaScript: true },
   { name: 'Spark Catcher', mechanic: 'Timed target tapping', url: 'https://zappatronic.com/#minigames', requiresJavaScript: true },

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Claude in Claude (demo)</title>
+<style>
+  :root {
+    --bg: #faf9f7;
+    --panel: #ffffff;
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #c15f3c;
+    --border: #e5e1da;
+    --bubble-user: #eee8dd;
+    --bubble-ai: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1a1816;
+      --panel: #242220;
+      --text: #f0ece4;
+      --muted: #a39c8f;
+      --accent: #e0805a;
+      --border: #38342f;
+      --bubble-user: #34302a;
+      --bubble-ai: #242220;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1a1816;
+    --panel: #242220;
+    --text: #f0ece4;
+    --muted: #a39c8f;
+    --accent: #e0805a;
+    --border: #38342f;
+    --bubble-user: #34302a;
+    --bubble-ai: #242220;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  header h1 {
+    font-size: 16px;
+    margin: 0 0 2px 0;
+    font-weight: 600;
+  }
+  header span {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .badge {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+  #log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .msg {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .user {
+    align-self: flex-end;
+    background: var(--bubble-user);
+    border-bottom-right-radius: 4px;
+  }
+  .ai {
+    align-self: flex-start;
+    background: var(--bubble-ai);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+  .empty {
+    margin: auto;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 300px;
+  }
+  form {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  textarea {
+    flex: 1;
+    resize: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14.5px;
+    font-family: inherit;
+    background: var(--panel);
+    color: var(--text);
+    max-height: 120px;
+  }
+  textarea:focus { outline: 1.5px solid var(--accent); }
+  button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  button:disabled { opacity: 0.5; cursor: default; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Claude in Claude — demo mode</h1>
+  <span>simulated replies, typed out locally — no API calls, no usage spent</span>
+  <div class="badge">no tokens used</div>
+</header>
+
+<div id="log">
+  <div class="empty" id="emptyState">Type something below. Replies are canned/simulated — nothing here calls the real model.</div>
+</div>
+
+<form id="form">
+  <textarea id="input" rows="1" placeholder="Ask Claude (demo)..."></textarea>
+  <button id="send" type="submit">Send</button>
+</form>
+
+<script>
+let busy = false;
+
+const log = document.getElementById('log');
+const emptyState = document.getElementById('emptyState');
+const form = document.getElementById('form');
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('send');
+
+// A small bank of canned, generic-sounding replies plus a couple of
+// pattern-matched ones, so the demo feels responsive without ever
+// calling a real model.
+const CANNED = [
+  "That's an interesting question. In demo mode I can't actually think this through — but in the live version I'd reason about it and give you a real answer.",
+  "Good point. This is a simulated reply so I won't go deep here, but this is exactly the kind of thing the real version would unpack for you.",
+  "I hear you. This demo just plays back a scripted response — the real Claude-in-Claude page would send this to the model and stream back an actual answer.",
+  "Noted! No real thinking happened here — just a placeholder line so you can see how the chat flow feels without spending any usage.",
+  "That's a fair ask. In the token-using version, I'd actually process this and respond properly. Here, you're just seeing the UI in action."
+];
+
+function pickReply(text) {
+  const lower = text.toLowerCase();
+  if (/^(hi|hello|hey)\b/.test(lower)) {
+    return "Hey! This is the demo version — I'm just echoing scripted lines, not actually thinking. Try the real one when you want a genuine answer.";
+  }
+  if (lower.includes('token') || lower.includes('cost') || lower.includes('usage')) {
+    return "Right — this page never calls the real API, so nothing here touches your usage. It's just a mockup of the chat UI.";
+  }
+  if (lower.endsWith('?')) {
+    return "Good question! I can't actually answer it in demo mode since no real model call happens here — but the UI works the same as the live version.";
+  }
+  return CANNED[Math.floor(Math.random() * CANNED.length)];
+}
+
+function addBubble(role, text) {
+  if (emptyState) emptyState.remove();
+  const div = document.createElement('div');
+  div.className = 'msg ' + (role === 'user' ? 'user' : 'ai');
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
+}
+
+function typeOut(el, text, done) {
+  let i = 0;
+  const speed = 12; // ms per character, feels like streaming
+  function step() {
+    i += Math.max(1, Math.round(text.length / 120)); // scale for long replies
+    el.textContent = text.slice(0, i);
+    log.scrollTop = log.scrollHeight;
+    if (i < text.length) {
+      setTimeout(step, speed);
+    } else {
+      el.textContent = text;
+      done && done();
+    }
+  }
+  step();
+}
+
+input.addEventListener('input', () => {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+});
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (!text || busy) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  addBubble('user', text);
+
+  busy = true;
+  sendBtn.disabled = true;
+  const aiBubble = addBubble('ai', '');
+  const reply = pickReply(text);
+
+  // small delay to mimic "thinking" before the reply starts typing out
+  setTimeout(() => {
+    typeOut(aiBubble, reply, () => {
+      busy = false;
+      sendBtn.disabled = false;
+    });
+  }, 400 + Math.random() * 400);
+});
+
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    form.requestSubmit();
+  }
+});
+</script>
+
+</body>
+</html>

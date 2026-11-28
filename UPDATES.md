@@ -1,5 +1,15 @@
 # Homepage Updates
 
+## New Mobile Games
+
+Added Fractured Depths and Skybound Drift from the two newest November 27 HTML downloads. Both are hosted under games/ and included in the Mobile-friendly filter, with actual screenshots. Verified loading at 360px and 390px without page overflow or runtime errors, plus touch hero creation and exploration launch. Skybound Drift recommends landscape orientation. Catalog totals: 42 games, six apps and four minigames.
+
+The mobile audit also corrected catalog links to the existing same-site game mirrors, repaired Wizard Academy's duplicate JavaScript declaration, enlarged homepage touch controls, and made Beat Painter's note grid internally scrollable with 44px cells. This is layout and launch coverage, not full-game completion or physical-device performance certification.
+
+## Browser Profiles And Tab Icon
+
+Added browser-local website profiles with creation, switching, Guest mode and confirmed deletion. Each named profile has separate site ratings; existing ratings remain under Guest. Profiles persist on this browser only, have no passwords or cloud sync, and do not replace independent accounts or saves inside externally hosted games and apps. Blocked storage and invalid profile data leave Guest available without overwriting saved profiles. Replaced the game-screenshot favicon with a lightning-bolt SVG.
+
 ## Creative Apps
 
 Maker Studio was removed from the catalog at the owner's request; its separate repository was not deleted. Beat Painter and Pitch Slots replace it, imported unchanged from Downloads/Beat Painter.html and Downloads/Pitch Slots (2).html into their own folders under apps/. Both have actual app screenshots and are excluded from game search and random selection. Totals: 40 games and 6 apps. Deck Studio remains one paired app.

@@ -47,7 +47,9 @@
     ['business-plan-maker', 'Business Plan Maker'],
     ['beat-painter', 'Beat Painter'],
     ['pitch-slots', 'Pitch Slots'],
-    ['deck-studio', 'Deck Studio']
+    ['deck-studio', 'Deck Studio'],
+    ['fractured-depths', 'Fractured Depths'],
+    ['skybound-drift', 'Skybound Drift']
   ];
   var featured = document.getElementById('featured-games');
   var more = document.getElementById('more-games');
@@ -58,7 +60,7 @@
   var results = document.getElementById('game-results');
   var bugGame = document.getElementById('bug-game');
   var cards = [];
-  var ratingKey = 'zappatronic-game-ratings-v1';
+  var ratingKey = window.zappatronicProfiles ? window.zappatronicProfiles.ratingKey : 'zappatronic-game-ratings-v1';
   var ratings = Object.create(null);
   var ratingsPersist = true;
   try {
@@ -70,7 +72,7 @@
       });
     }
   } catch (error) { ratingsPersist = false; }
-  var mobileFriendly = ['freddles-after-dark','orb-runner','math-meadow','dusk-dojo-pixel-fighter','rift-racer-3d','nimbo-s-rainbow-garden','wumble-and-tink','wick-and-cinder','wick-and-cinder-2','the-beyond-files-1-the-girl-in-the-4th-dimension'];
+  var mobileFriendly = ['freddles-after-dark','orb-runner','math-meadow','dusk-dojo-pixel-fighter','rift-racer-3d','nimbo-s-rainbow-garden','wumble-and-tink','wick-and-cinder','wick-and-cinder-2','the-beyond-files-1-the-girl-in-the-4th-dimension','fractured-depths','skybound-drift'];
   var desktopOnly = ['arena-clash','silent-vault-3d-heist','wizard-academy-3d','the-beyond-files-4-the-workshop','vengeful-pendulum'];
   function mobileOf(slug) {
     return mobileFriendly.indexOf(slug) !== -1 ? 'friendly' : desktopOnly.indexOf(slug) !== -1 ? 'desktop' : 'unknown';
@@ -87,6 +89,7 @@
     filterGames();
   }
   var genres = {
+    RPG: ['fractured-depths'],
     Horror: ['freddles-after-dark','the-land-has-no-edge','the-marrow-house','vacancy-case-file-2','hollow-pines-the-hall','hollow-pines-night-watch','last-frame-night-shift','the-beyond-files-4-the-workshop','the-beyond-files-3-blackout-ward','the-beyond-files-2-randy','the-beyond-files-1-the-girl-in-the-4th-dimension','hollowmere'],
     Action: ['Pixel_Omniverse','heartbox-dodge-3d-expanded','arena-clash','orb-runner','dusk-dojo-pixel-fighter','steel-and-sinew','photon-arena','ankle-breakers','juke-hour','total-mayhem'],
     Racing: ['rift-racer-3d'],
@@ -101,9 +104,11 @@
   };
   var appSlugs = ['math-meadow', 'claude-in-claude-demo-mode', 'business-plan-maker', 'beat-painter', 'pitch-slots', 'deck-studio'];
   var catalogUrls = { 'deck-studio': 'https://zappatronic.com/apps/deck-studio/', 'beat-painter': 'https://zappatronic.com/apps/beat-painter/index.html', 'pitch-slots': 'https://zappatronic.com/apps/pitch-slots/index.html' };
-  function urlOf(slug) { return catalogUrls[slug] || 'https://spaceturismo.github.io/' + slug + '/'; }
+  function urlOf(slug) { return catalogUrls[slug] || 'games/' + slug + '/'; }
   function isAppSlug(slug) { return appSlugs.indexOf(slug) !== -1; }
   var controls = {
+    'fractured-depths': 'Touch movement pad and turn-based actions',
+    'skybound-drift': 'Touch controls with adjustable layout',
     'orb-runner': 'Mouse, touch or arrow keys',
     'vengeful-pendulum': 'Shared keyboard',
     'claude-in-claude': 'Keyboard text input',
@@ -177,7 +182,7 @@
     play.setAttribute('aria-label', (isApp ? 'Open ' : 'Play ') + game[1]);
     var source = document.createElement('a');
     source.className = 'btn';
-    source.href = catalogUrls[game[0]] ? 'https://github.com/spaceturismo/professor-zappatronic/tree/main/apps/' + game[0] : 'https://github.com/spaceturismo/' + game[0];
+    source.href = 'https://github.com/spaceturismo/professor-zappatronic/tree/main/' + (catalogUrls[game[0]] ? 'apps/' : 'games/') + game[0];
     source.textContent = 'GitHub';
     source.setAttribute('aria-label', game[1] + ' on GitHub');
     actions.appendChild(play);

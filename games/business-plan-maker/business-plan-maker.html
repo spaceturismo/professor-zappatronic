@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Business Plan Maker</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1d2433;--mute:#667085;--line:#e3e1d8;--acc:#1f6f5c;--acc2:#e8f3ef;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181f;--card:#1c222c;--ink:#eceff4;--mute:#9aa4b5;--line:#2c3441;--acc:#4fc3a1;--acc2:#1b2e2a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14181f;--card:#1c222c;--ink:#eceff4;--mute:#9aa4b5;--line:#2c3441;--acc:#4fc3a1;--acc2:#1b2e2a;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.7rem;margin:.2rem 0}.sub{color:var(--mute);margin:0 0 18px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+.tab{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;border-radius:999px;cursor:pointer;font-size:.9rem}
+.tab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+label{display:block;font-weight:600;margin:14px 0 4px;font-size:.95rem}
+.hint{color:var(--mute);font-weight:400;font-size:.85rem}
+input,textarea,select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:84px;resize:vertical}
+input:focus,textarea:focus{outline:2px solid var(--acc);outline-offset:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}@media(max-width:560px){.grid{grid-template-columns:1fr}}
+.nav{display:flex;justify-content:space-between;margin-top:16px;gap:8px;flex-wrap:wrap}
+button.b{background:var(--acc);color:#fff;border:0;padding:10px 18px;border-radius:10px;cursor:pointer;font:inherit;font-weight:600}
+button.g{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+.kpi{background:var(--acc2);border-radius:10px;padding:10px 12px}.kpi b{display:block;font-size:1.25rem}.kpi span{color:var(--mute);font-size:.8rem}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.88rem}th,td{padding:6px 9px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}
+.plan h2{color:var(--acc);border-bottom:2px solid var(--line);padding-bottom:4px;margin-top:26px}.plan p{white-space:pre-wrap;margin:.4rem 0}
+.plan .cover{text-align:center;padding:20px 0}.plan .cover h1{font-size:2rem}
+.bar{height:6px;background:var(--line);border-radius:9px;margin-bottom:14px}.bar i{display:block;height:100%;background:var(--acc);border-radius:9px;transition:width .2s}
+@media print{body{background:#fff;color:#000}.noprint{display:none!important}.card{border:0;padding:0}.plan h2{color:#000}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="noprint">
+<h1>Business Plan Maker</h1>
+<p class="sub">Answer a few short sections and get a complete, printable business plan with a 12-month financial forecast.</p>
+<div class="bar"><i id="prog"></i></div>
+<div class="tabs" id="tabs"></div>
+</div>
+<div class="card" id="main"></div>
+</div>
+<script>
+var S=[
+{id:"overview",t:"Overview",f:[
+["name","Business name","text"],["tagline","One-line description","text","e.g. Fresh-baked sourdough delivered weekly"],
+["type","Business type","select",["Product","Service","Online / e-commerce","Restaurant / food","Subscription / SaaS","Other"]],
+["location","Location","text"],["mission","Mission statement","area","Why does this business exist?"],["goals","Goals for year one","area","e.g. 200 customers, $120k revenue"]]},
+{id:"problem",t:"Problem & Solution",f:[
+["problem","The problem you solve","area","What pain do customers have today?"],["solution","Your solution","area","What do you offer and how does it fix it?"],["edge","Your competitive edge","area","Why choose you over alternatives?"]]},
+{id:"market",t:"Market",f:[
+["customer","Target customer","area","Who are they? Age, job, needs, habits"],["size","Market size & trends","area","How big is the market? Is it growing?"],["competitors","Main competitors","area","Name 2–4 and what they do well or badly"]]},
+{id:"marketing",t:"Marketing & Sales",f:[
+["channels","How you’ll reach customers","area","Social, search, partnerships, local events…"],["pricing","Pricing strategy","area","Why this price?"],["sales","How you’ll make the sale","area","Website, in person, referrals…"]]},
+{id:"ops",t:"Operations & Team",f:[
+["ops","Day-to-day operations","area","Suppliers, tools, workflow, facilities"],["team","Founders & key people","area","Names, roles, relevant experience"],["milestones","Milestones (next 12 months)","area","e.g. Launch in month 2, hire first employee in month 6"]]},
+{id:"fin",t:"Financials",f:[
+["startup","Startup costs ($)","num","One-time costs: equipment, legal, inventory…",5000],["price","Price per unit / order ($)","num","",40],["cogs","Cost to deliver one unit ($)","num","Materials, shipping, fees",15],
+["units","Units sold in month 1","num","",50],["growth","Monthly sales growth (%)","num","",8],["fixed","Fixed monthly costs ($)","num","Rent, software, salaries, marketing",1500]]},
+{id:"plan",t:"Your Plan",f:[]}
+];
+var D={},step=0,KEY="bpm_v1";
+try{var r=localStorage.getItem(KEY);if(r)D=JSON.parse(r)||{}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function n(k){var v=parseFloat(D[k]);if(isNaN(v)){var f=S[5].f.filter(function(x){return x[0]==k})[0];return f?f[4]:0}return v}
+function money(x){return (x<0?"-":"")+"$"+Math.abs(Math.round(x)).toLocaleString("en-US")}
+function forecast(){var rows=[],u=n("units"),cum=-n("startup"),be=null,tr=0,tp=0;
+for(var m=1;m<=12;m++){var rev=u*n("price"),cost=u*n("cogs"),gp=rev-cost,net=gp-n("fixed");cum+=net;tr+=rev;tp+=net;
+if(be===null&&cum>=0)be=m;rows.push({m:m,u:Math.round(u),rev:rev,cost:cost,gp:gp,net:net,cum:cum});u*=1+n("growth")/100}
+var margin=n("price")-n("cogs");
+return{rows:rows,be:be,tr:tr,tp:tp,margin:margin,beUnits:margin>0?Math.ceil(n("fixed")/margin):null}}
+function tabs(){var h="";S.forEach(function(s,i){h+='<button class="tab'+(i==step?" on":"")+'" onclick="go('+i+')">'+(i+1)+". "+s.t+"</button>"});
+document.getElementById("tabs").innerHTML=h;
+document.getElementById("prog").style.width=((step+1)/S.length*100)+"%"}
+function go(i){step=i;render();window.scrollTo(0,0)}
+function field(f){var k=f[0],v=D[k]==null?"":D[k],h='<label for="'+k+'">'+f[1]+(f[3]&&f[2]!="select"?' <span class="hint">'+esc(f[3])+"</span>":"")+"</label>";
+if(f[2]=="area")h+='<textarea id="'+k+'" oninput="set(\''+k+'\',this.value)" placeholder="">'+esc(v)+"</textarea>";
+else if(f[2]=="select"){h+='<select id="'+k+'" onchange="set(\''+k+'\',this.value)"><option value="">Choose…</option>';f[3].forEach(function(o){h+='<option'+(o==v?" selected":"")+">"+o+"</option>"});h+="</select>"}
+else if(f[2]=="num")h+='<input id="'+k+'" type="number" inputmode="decimal" step="any" value="'+esc(v===""?f[4]:v)+'" oninput="set(\''+k+'\',this.value);live()">';
+else h+='<input id="'+k+'" type="text" value="'+esc(v)+'" oninput="set(\''+k+'\',this.value)" placeholder="'+esc(f[3]||"")+'">';
+return h}
+function set(k,v){D[k]=v;save()}
+function live(){var el=document.getElementById("live");if(el)el.innerHTML=kpis()}
+function kpis(){var F=forecast();return '<div class="kpis"><div class="kpi"><b>'+money(F.margin)+'</b><span>profit per unit</span></div><div class="kpi"><b>'+(F.beUnits==null?"n/a":F.beUnits)+'</b><span>units/month to cover fixed costs</span></div><div class="kpi"><b>'+money(F.tr)+'</b><span>year-one revenue</span></div><div class="kpi"><b>'+(F.be?"Month "+F.be:"After year 1")+'</b><span>payback of startup costs</span></div></div>'}
+function table(F){var h='<div class="scroll"><table><tr><th>Month</th><th>Units</th><th>Revenue</th><th>Direct costs</th><th>Net profit</th><th>Cumulative</th></tr>';
+F.rows.forEach(function(r){h+="<tr><td>"+r.m+"</td><td>"+r.u+"</td><td>"+money(r.rev)+"</td><td>"+money(r.cost)+"</td><td>"+money(r.net)+"</td><td>"+money(r.cum)+"</td></tr>"});
+return h+"</table></div>"}
+function sec(title,keys){var out=[];keys.forEach(function(p){var v=(D[p[0]]||"").trim();out.push([p[1],v||"(Not filled in yet)"])});return{title:title,items:out}}
+function buildPlan(){var F=forecast(),name=D.name||"Your Business",P=[];
+P.push(sec("Executive Summary",[["tagline","What we do"],["type","Business type"],["location","Location"],["mission","Mission"],["goals","Year-one goals"]]));
+P.push(sec("Problem & Solution",[["problem","The problem"],["solution","Our solution"],["edge","Competitive edge"]]));
+P.push(sec("Market Analysis",[["customer","Target customer"],["size","Market size & trends"],["competitors","Competitors"]]));
+P.push(sec("Marketing & Sales",[["channels","Channels"],["pricing","Pricing"],["sales","Sales approach"]]));
+P.push(sec("Operations & Team",[["ops","Operations"],["team","Team"],["milestones","Milestones"]]));
+return{name:name,P:P,F:F}}
+function planHTML(B){var h='<div class="plan"><div class="cover"><h1>'+esc(B.name)+'</h1><p>Business Plan · '+new Date().toLocaleDateString("en-US",{month:"long",year:"numeric"})+"</p></div>";
+B.P.forEach(function(s){h+="<h2>"+s.title+"</h2>";s.items.forEach(function(i){h+="<p><b>"+i[0]+":</b> "+esc(i[1])+"</p>"})});
+h+="<h2>Financial Plan</h2><p>Startup costs: <b>"+money(n("startup"))+"</b> · Price per unit: <b>"+money(n("price"))+"</b> · Cost per unit: <b>"+money(n("cogs"))+"</b> · Fixed monthly costs: <b>"+money(n("fixed"))+"</b> · Growth: <b>"+n("growth")+"%/month</b></p>"+kpis()+table(B.F);
+h+="<p>Year-one net profit: <b>"+money(B.F.tp-n("startup"))+"</b> after startup costs. This forecast is an estimate based on the assumptions above.</p></div>";return h}
+function planText(B){var t="# "+B.name+" — Business Plan\n\n";B.P.forEach(function(s){t+="## "+s.title+"\n";s.items.forEach(function(i){t+=i[0]+": "+i[1]+"\n"});t+="\n"});
+t+="## Financial Plan\nStartup costs: "+money(n("startup"))+"\nPrice per unit: "+money(n("price"))+"\nCost per unit: "+money(n("cogs"))+"\nFixed monthly costs: "+money(n("fixed"))+"\nGrowth: "+n("growth")+"%/month\n\nMonth | Units | Revenue | Net profit | Cumulative\n";
+B.F.rows.forEach(function(r){t+=r.m+" | "+r.u+" | "+money(r.rev)+" | "+money(r.net)+" | "+money(r.cum)+"\n"});
+return t+"\nYear-one net profit after startup: "+money(B.F.tp-n("startup"))+"\n"}
+function copyPlan(){var t=planText(buildPlan()),ok=false;
+function fb(){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{ok=document.execCommand("copy")}catch(e){}document.body.removeChild(a);msg(ok)}
+function msg(o){document.getElementById("cm").textContent=o?"Copied to clipboard ✓":"Couldn’t copy — use Print and save as PDF."}
+if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){msg(true)},fb);else fb()}
+function reset(){if(confirm("Clear everything and start over?")){D={};save();step=0;render()}}
+function render(){tabs();var s=S[step],h="",m=document.getElementById("main");
+if(s.id=="plan"){var B=buildPlan();
+h='<div class="noprint" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="b" onclick="window.print()">Print / Save as PDF</button><button class="b g" onclick="copyPlan()">Copy as text</button><button class="b g" onclick="reset()">Start over</button><span id="cm" class="hint" style="align-self:center"></span></div>'+planHTML(B)+'<div class="nav noprint"><button class="b g" onclick="go('+(step-1)+')">← Back</button></div>'}
+else{h="<h2 style='margin-top:0'>"+s.t+"</h2>";var g=s.id=="fin";if(g)h+='<div class="grid">';
+s.f.forEach(function(f){h+=(g?"<div>":"")+field(f)+(g?"</div>":"")});if(g)h+='</div><div id="live">'+kpis()+"</div>";
+h+='<div class="nav">'+(step?'<button class="b g" onclick="go('+(step-1)+')">← Back</button>':"<span></span>")+'<button class="b" onclick="go('+(step+1)+')">'+(step==S.length-2?"Generate my plan →":"Next →")+"</button></div>"}
+m.innerHTML=h}
+render();
+</script>
+</body>
+</html>
